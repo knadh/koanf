@@ -1,0 +1,60 @@
+time = "2019-01-01"
+type = "toml"
+orphan = [
+  "red",
+  "blue",
+  "orange"
+]
+bools = [
+  true,
+  false,
+  true
+]
+intbools = [
+  1.0,
+  0.0,
+  1.0
+]
+strbools = [
+  "1",
+  "t",
+  "f"
+]
+strbool = "1"
+
+[parent1]
+name = "parent1"
+id = 1234.0
+
+  [parent1.child1]
+  name = "child1"
+  type = "toml"
+
+    [parent1.child1.grandchild1]
+    ids = [
+      1.0,
+      2.0,
+      3.0
+    ]
+    on = true
+
+    [parent1.child1.empty]
+
+[parent2]
+name = "parent2"
+id = 5678.0
+
+  [parent2.child2]
+  name = "child2"
+
+    [parent2.child2.grandchild2]
+    ids = [
+      4.0,
+      5.0,
+      6.0
+    ]
+    on = true
+
+    [parent2.child2.empty]
+
+[empty]
