@@ -12,8 +12,6 @@ os:
 go:
   - 1.11.x
   - 1.12.x
-  - release
-  - tip
 
 install: go get -v ./...
 script: go test -v -cover ./...
