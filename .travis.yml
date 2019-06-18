@@ -1,9 +1,17 @@
+go_import_path: github.com/knadh/koanf
+
 language: go
+
+env:
+  global:
+    - GO111MODULE="on"
+
+os:
+  - linux
+
 go:
-  - 1.8.x
-  - 1.9.x
-  - 1.10.x
   - 1.11.x
+  - 1.12.x
   - release
   - tip
 
