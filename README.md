@@ -4,6 +4,8 @@
 
 koanf comes with built in support for reading configuration from files, command line flags, and environment variables, and can parse JSON, YAML, TOML, and Hasicorp HCL.
 
+[![Build Status](https://travis-ci.com/knadh/koanf.svg?branch=master)](https://travis-ci.com/knadh/koanf)
+
 ### Installation
 
 `go get -u github.com/knadh/koanf`
