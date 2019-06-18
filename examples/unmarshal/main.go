@@ -7,7 +7,6 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/mitchellh/mapstructure"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
@@ -38,15 +37,6 @@ func main() {
 
 	// Unmarshal with advanced config.
 	out = childStruct{}
-	k.UnmarshalWithConfig("parent1.child1", koanf.UnmarshalConf{
-		DecoderConfig: &mapstructure.DecoderConfig{
-			Metadata:         nil,
-			Result:           &out,
-			WeaklyTypedInput: true,
-
-			// Customize the struct tag, for eg:, "json".
-			TagName: "koanf",
-		},
-	})
-
+	k.UnmarshalWithConf("parent1.child1", &out, koanf.UnmarshalConf{Tag: "koanf"})
+	fmt.Println(out)
 }
