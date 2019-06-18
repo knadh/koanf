@@ -187,6 +187,7 @@ func (r *RawBytes) Read() (map[string]interface{}, error) {
 
 ### Unmarshalling
 
+```go
 Unmarshalling is useful when you want to copy a nested config map into a struct (like unmarshalling JSON) instead of accessing individual config values using gettor methods.
 
 package main
@@ -231,8 +232,8 @@ log.Fatalf("error loading config: %v", err)
     out = childStruct{}
     k.UnmarshalWithConf("parent1.child1", &out, koanf.UnmarshalConf{Tag: "koanf"})
     fmt.Println(out)
-
 }
+```
 
 ### Setting default values.
 
