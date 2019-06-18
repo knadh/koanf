@@ -31,6 +31,10 @@ type KeyMap map[string][]string
 // UnmarshalConf represents configuration options used by
 // Unmarshal() to unmarshal conf maps into arbitrary structs.
 type UnmarshalConf struct {
+	// Tag is the struct field tag to unmarshal.
+	// `koanf` is used if left empty.
+	Tag string
+
 	FlathPaths    bool
 	DecoderConfig *mapstructure.DecoderConfig
 }
@@ -164,22 +168,29 @@ func (ko *Koanf) Merge(in *Koanf) {
 // Unmarshal unmarshals a given key path into the given struct using
 // the mapstructure lib. If no path is specified, the whole map is unmarshalled.
 // `koanf` is the struct field tag used to match field names. To customize,
-// use UnmarshalWithConfig().
+// use UnmarshalWithConf(). It uses the mitchellh/mapstructure package.
 func (ko *Koanf) Unmarshal(path string, o interface{}) error {
-	return ko.UnmarshalWithConfig(path,
-		UnmarshalConf{
-			DecoderConfig: &mapstructure.DecoderConfig{
-				Metadata:         nil,
-				Result:           &o,
-				WeaklyTypedInput: true,
-				TagName:          "koanf",
-			},
-		})
+	return ko.UnmarshalWithConf(path, o, UnmarshalConf{})
 }
 
-// UnmarshalWithConfig is like Unmarshal but takes a mapstructure.DecoderConfig
-// for advanced customization of the unmarshal behaviour.
-func (ko *Koanf) UnmarshalWithConfig(path string, c UnmarshalConf) error {
+// UnmarshalWithConf is like Unmarshal but takes configuration params in UnmarshalConf.
+// See mitchellh/mapstructure's DecoderConfig for advanced customization
+// of the unmarshal behaviour.
+func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error {
+	if c.DecoderConfig == nil {
+		c.DecoderConfig = &mapstructure.DecoderConfig{
+			Metadata:         nil,
+			Result:           o,
+			WeaklyTypedInput: true,
+		}
+	}
+
+	if c.Tag == "" {
+		c.DecoderConfig.TagName = "koanf"
+	} else {
+		c.DecoderConfig.TagName = c.Tag
+	}
+
 	d, err := mapstructure.NewDecoder(c.DecoderConfig)
 	if err != nil {
 		return err

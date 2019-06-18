@@ -189,61 +189,50 @@ func (r *RawBytes) Read() (map[string]interface{}, error) {
 
 Unmarshalling is useful when you want to copy a nested config map into a struct (like unmarshalling JSON) instead of accessing individual config values using gettor methods.
 
-```go
 package main
 
 import (
-	"fmt"
-	"log"
+"fmt"
+"log"
 
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/mitchellh/mapstructure"
+    "github.com/knadh/koanf"
+    "github.com/knadh/koanf/parsers/json"
+    "github.com/knadh/koanf/providers/file"
+
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
 var k = koanf.New(".")
 
 func main() {
-	// Load JSON config.
-	if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
-		log.Fatalf("error loading config: %v", err)
-	}
-
-	// Structure to unmarshal nested conf to.
-	type childStruct struct {
-		Name       string            `koanf:"name"`
-		Type       string            `koanf:"type"`
-		Empty      map[string]string `koanf:"empty"`
-		GrandChild struct {
-			Ids []int `koanf:"ids"`
-			On  bool  `koanf:"on"`
-		} `koanf:"grandchild1"`
-	}
-
-	var out childStruct
-
-	// Quick unmarshal.
-	k.Unmarshal("parent1.child1", &out)
-	fmt.Println(out)
-
-	// Unmarshal with advanced config.
-	out = childStruct{}
-	k.UnmarshalWithConfig("parent1.child1", koanf.UnmarshalConf{
-		DecoderConfig: &mapstructure.DecoderConfig{
-			Metadata:         nil,
-			Result:           &out,
-			WeaklyTypedInput: true,
-
-			// Customize the struct tag, for eg:, "json".
-			TagName: "koanf",
-		},
-	})
-
+// Load JSON config.
+if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
+log.Fatalf("error loading config: %v", err)
 }
 
-```
+    // Structure to unmarshal nested conf to.
+    type childStruct struct {
+    	Name       string            `koanf:"name"`
+    	Type       string            `koanf:"type"`
+    	Empty      map[string]string `koanf:"empty"`
+    	GrandChild struct {
+    		Ids []int `koanf:"ids"`
+    		On  bool  `koanf:"on"`
+    	} `koanf:"grandchild1"`
+    }
+
+    var out childStruct
+
+    // Quick unmarshal.
+    k.Unmarshal("parent1.child1", &out)
+    fmt.Println(out)
+
+    // Unmarshal with advanced config.
+    out = childStruct{}
+    k.UnmarshalWithConf("parent1.child1", &out, koanf.UnmarshalConf{Tag: "koanf"})
+    fmt.Println(out)
+
+}
 
 ### Setting default values.
 
@@ -323,20 +312,20 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 
 ### Instance methods
 
-| Method                                                         | Description                                                                                                                            |
-| -------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `Load(p Provider, pa Parser) error`                            | Loads config from a Provider. If a koanf.Parser is provided, the config is assumed to be raw bytes that's then parsed with the Parser. |
-| `Keys() []string`                                              | Returns the list of flattened key paths that can be used to access config values                                                       |
-| `KeyMap() map[string][]string`                                 | Returns a map of all possible key path combinations possible in the loaded nested conf map                                             |
-| `All() map[string]interface{}`                                 | Returns a flat map of flattened key paths and their corresponding config values                                                        |
-| `Raw() map[string]interface{}`                                 | Returns a copy of the raw nested conf map                                                                                              |
-| `Print()`                                                      | Prints a human readable copy of the flattened key paths and their values for debugging                                                 |
-| `Sprint()`                                                     | Returns a human readable copy of the flattened key paths and their values for debugging                                                |
-| `Cut(path string) *Koanf`                                      | Cuts the loaded nested conf map at the given path and returns a new Koanf instance with the children                                   |
-| `Copy() *Koanf`                                                | Returns a copy of the Koanf instance                                                                                                   |
-| `Merge(*Koanf)`                                                | Merges the config map of a Koanf instance into the current instance                                                                    |
-| `Unmarshal(path string, o interface{}) error`                  | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag                  |
-| `Unmarshal(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                                                                                           |
+| Method                                                                 | Description                                                                                                                            |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `Load(p Provider, pa Parser) error`                                    | Loads config from a Provider. If a koanf.Parser is provided, the config is assumed to be raw bytes that's then parsed with the Parser. |
+| `Keys() []string`                                                      | Returns the list of flattened key paths that can be used to access config values                                                       |
+| `KeyMap() map[string][]string`                                         | Returns a map of all possible key path combinations possible in the loaded nested conf map                                             |
+| `All() map[string]interface{}`                                         | Returns a flat map of flattened key paths and their corresponding config values                                                        |
+| `Raw() map[string]interface{}`                                         | Returns a copy of the raw nested conf map                                                                                              |
+| `Print()`                                                              | Prints a human readable copy of the flattened key paths and their values for debugging                                                 |
+| `Sprint()`                                                             | Returns a human readable copy of the flattened key paths and their values for debugging                                                |
+| `Cut(path string) *Koanf`                                              | Cuts the loaded nested conf map at the given path and returns a new Koanf instance with the children                                   |
+| `Copy() *Koanf`                                                        | Returns a copy of the Koanf instance                                                                                                   |
+| `Merge(*Koanf)`                                                        | Merges the config map of a Koanf instance into the current instance                                                                    |
+| `Unmarshal(path string, o interface{}) error`                          | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag                  |
+| `UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                                                                                           |
 
 ### Getter methods
 

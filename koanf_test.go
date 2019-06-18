@@ -357,8 +357,13 @@ func TestUnmarshal(t *testing.T) {
 		assert.Nil(t, k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 		assert.Nil(t, k.Unmarshal("", &ts), "unmarshal failed")
+		real.Type = c.typeName
+		real.Parent1.Child1.Type = c.typeName
+		assert.Equal(t, real, ts, "unmarshalled structs don't match")
 
-		// The "type" field varies between files.
+		// Unmarshal with config.
+		ts = testStruct{}
+		assert.Nil(t, k.UnmarshalWithConf("", &ts, UnmarshalConf{Tag:"koanf"}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
 		assert.Equal(t, real, ts, "unmarshalled structs don't match")
