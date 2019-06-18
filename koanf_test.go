@@ -216,7 +216,7 @@ func TestLoadMerge(t *testing.T) {
 	// Load env provider and override value.
 	os.Setenv("PREFIX_PARENT1.CHILD1.TYPE", "env")
 	err := k.Load(env.Provider("PREFIX_", ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(s), "prefix_", "")
+		return strings.Replace(strings.ToLower(s), "prefix_", "", -1)
 	}), nil)
 
 	assert.Nil(t, err, "error loading env")
@@ -363,7 +363,7 @@ func TestUnmarshal(t *testing.T) {
 
 		// Unmarshal with config.
 		ts = testStruct{}
-		assert.Nil(t, k.UnmarshalWithConf("", &ts, UnmarshalConf{Tag:"koanf"}), "unmarshal failed")
+		assert.Nil(t, k.UnmarshalWithConf("", &ts, UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
 		assert.Equal(t, real, ts, "unmarshalled structs don't match")
