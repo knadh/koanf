@@ -1,6 +1,7 @@
 package koanf
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -122,7 +123,7 @@ func (ko *Koanf) Raw() map[string]interface{} {
 // Sprint returns a key -> value string representation
 // of the config map with keys sorted alphabetically.
 func (ko *Koanf) Sprint() string {
-	b := strings.Builder{}
+	b := bytes.Buffer{}
 	for _, k := range ko.Keys() {
 		b.Write([]byte(fmt.Sprintf("%s -> %v\n", k, ko.confMapFlat[k])))
 	}
