@@ -32,6 +32,12 @@ func Provider(f *pflag.FlagSet, delim string) *Posflag {
 func (p *Posflag) Read() (map[string]interface{}, error) {
 	mp := make(map[string]interface{})
 	p.flagset.VisitAll(func(f *pflag.Flag) {
+		// If no value was explicity specified by the user,
+		// ignore the flag.
+		if !f.Changed {
+			return
+		}
+
 		var v interface{}
 		switch f.Value.Type() {
 		case "int":
