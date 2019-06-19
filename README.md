@@ -313,7 +313,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | parsers/toml | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
 | parsers/hcl  | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
 
-### Instance methods
+### Instance functions
 
 | Method                                                                 | Description                                                                                                                            |
 | ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -330,25 +330,30 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | `Unmarshal(path string, o interface{}) error`                          | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag                  |
 | `UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                                                                                           |
 
-### Getter methods
+### Getter functions
 
-|                                       |                                                                                                                                                                                            |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Get(path string) interface{}`        | Returns the value for the given key path, and if it doesn’t exist, returns nil                                                                                                             |
-| `Exists(path string) bool`            | Returns true if the given key path exists in the conf map                                                                                                                                  |
-| `Int64(path string) int64`            |                                                                                                                                                                                            |
-| `Int64s(path string) []int64`         |                                                                                                                                                                                            |
-| `Int(path string) int`                |                                                                                                                                                                                            |
-| `Ints(path string) []int`             |                                                                                                                                                                                            |
-| `Float64(path string) float64`        |                                                                                                                                                                                            |
-| `Float64s(path string) []float64`     |                                                                                                                                                                                            |
-| `Duration(path string) time.Duration` | Returns the time.Duration value of the given key path if it’s numeric (attempts a parse+convert if string)                                                                                 |
-| `Time(path, layout string) time.Time` | Parses the string value of the the given key path with the given layout format and returns time.Time. If the key path is numeric, treats it as a UNIX timestamp and returns its time.Time. |
-| `String(path string) string`          |                                                                                                                                                                                            |
-| `Strings(path string) []string`       |                                                                                                                                                                                            |
-| `Byte(path string) []byte`            |                                                                                                                                                                                            |
-| `Bool(path string) bool`              |                                                                                                                                                                                            |
-| `Bools(path string) []bool`           |                                                                                                                                                                                            |
+|                                              |                                                                                                                                                                                            |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Get(path string) interface{}`               | Returns the value for the given key path, and if it doesn’t exist, returns nil                                                                                                             |
+| `Exists(path string) bool`                   | Returns true if the given key path exists in the conf map                                                                                                                                  |
+| `Int64(path string) int64`                   |                                                                                                                                                                                            |
+| `Int64s(path string) []int64`                |                                                                                                                                                                                            |
+| `Int64Map(path string) map[string]int64`     |                                                                                                                                                                                            |
+| `Int(path string) int`                       |                                                                                                                                                                                            |
+| `Ints(path string) []int`                    |                                                                                                                                                                                            |
+| `IntMap(path string) map[string]int`         |                                                                                                                                                                                            |
+| `Float64(path string) float64`               |                                                                                                                                                                                            |
+| `Float64s(path string) []float64`            |                                                                                                                                                                                            |
+| `Float64Map(path string) map[string]float64` |                                                                                                                                                                                            |
+| `Duration(path string) time.Duration`        | Returns the time.Duration value of the given key path if it’s numeric (attempts a parse+convert if string)                                                                                 |
+| `Time(path, layout string) time.Time`        | Parses the string value of the the given key path with the given layout format and returns time.Time. If the key path is numeric, treats it as a UNIX timestamp and returns its time.Time. |
+| `String(path string) string`                 |                                                                                                                                                                                            |
+| `Strings(path string) []string`              |                                                                                                                                                                                            |
+| `StringMap(path string) map[string]string`   |                                                                                                                                                                                            |
+| `Byte(path string) []byte`                   |                                                                                                                                                                                            |
+| `Bool(path string) bool`                     |                                                                                                                                                                                            |
+| `Bools(path string) []bool`                  |                                                                                                                                                                                            |
+| `BoolMap(path string) map[string]bool`       |                                                                                                                                                                                            |
 
 ### Alternative to viper
 

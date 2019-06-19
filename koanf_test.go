@@ -41,13 +41,25 @@ var testKeys = []string{
 	"empty",
 	"intbools",
 	"orphan",
+	"parent1.boolmap.notok3",
+	"parent1.boolmap.ok1",
+	"parent1.boolmap.ok2",
 	"parent1.child1.empty",
 	"parent1.child1.grandchild1.ids",
 	"parent1.child1.grandchild1.on",
 	"parent1.child1.name",
 	"parent1.child1.type",
+	"parent1.floatmap.key1",
+	"parent1.floatmap.key2",
+	"parent1.floatmap.key3",
 	"parent1.id",
+	"parent1.intmap.key1",
+	"parent1.intmap.key2",
+	"parent1.intmap.key3",
 	"parent1.name",
+	"parent1.strmap.key1",
+	"parent1.strmap.key2",
+	"parent1.strmap.key3",
 	"parent2.child2.empty",
 	"parent2.child2.grandchild2.ids",
 	"parent2.child2.grandchild2.on",
@@ -66,6 +78,10 @@ var testKeyMap = map[string][]string{
 	"intbools":                       []string{"intbools"},
 	"orphan":                         []string{"orphan"},
 	"parent1":                        []string{"parent1"},
+	"parent1.boolmap":                []string{"parent1", "boolmap"},
+	"parent1.boolmap.notok3":         []string{"parent1", "boolmap", "notok3"},
+	"parent1.boolmap.ok1":            []string{"parent1", "boolmap", "ok1"},
+	"parent1.boolmap.ok2":            []string{"parent1", "boolmap", "ok2"},
 	"parent1.child1":                 []string{"parent1", "child1"},
 	"parent1.child1.empty":           []string{"parent1", "child1", "empty"},
 	"parent1.child1.grandchild1":     []string{"parent1", "child1", "grandchild1"},
@@ -73,8 +89,20 @@ var testKeyMap = map[string][]string{
 	"parent1.child1.grandchild1.on":  []string{"parent1", "child1", "grandchild1", "on"},
 	"parent1.child1.name":            []string{"parent1", "child1", "name"},
 	"parent1.child1.type":            []string{"parent1", "child1", "type"},
+	"parent1.floatmap":               []string{"parent1", "floatmap"},
+	"parent1.floatmap.key1":          []string{"parent1", "floatmap", "key1"},
+	"parent1.floatmap.key2":          []string{"parent1", "floatmap", "key2"},
+	"parent1.floatmap.key3":          []string{"parent1", "floatmap", "key3"},
 	"parent1.id":                     []string{"parent1", "id"},
+	"parent1.intmap":                 []string{"parent1", "intmap"},
+	"parent1.intmap.key1":            []string{"parent1", "intmap", "key1"},
+	"parent1.intmap.key2":            []string{"parent1", "intmap", "key2"},
+	"parent1.intmap.key3":            []string{"parent1", "intmap", "key3"},
 	"parent1.name":                   []string{"parent1", "name"},
+	"parent1.strmap":                 []string{"parent1", "strmap"},
+	"parent1.strmap.key1":            []string{"parent1", "strmap", "key1"},
+	"parent1.strmap.key2":            []string{"parent1", "strmap", "key2"},
+	"parent1.strmap.key3":            []string{"parent1", "strmap", "key3"},
 	"parent2":                        []string{"parent2"},
 	"parent2.child2":                 []string{"parent2", "child2"},
 	"parent2.child2.empty":           []string{"parent2", "child2", "empty"},
@@ -96,12 +124,24 @@ var testAll = `bools -> [true false true]
 empty -> map[]
 intbools -> [1 0 1]
 orphan -> [red blue orange]
+parent1.boolmap.notok3 -> false
+parent1.boolmap.ok1 -> true
+parent1.boolmap.ok2 -> true
 parent1.child1.empty -> map[]
 parent1.child1.grandchild1.ids -> [1 2 3]
 parent1.child1.grandchild1.on -> true
 parent1.child1.name -> child1
+parent1.floatmap.key1 -> 1.1
+parent1.floatmap.key2 -> 1.2
+parent1.floatmap.key3 -> 1.3
 parent1.id -> 1234
+parent1.intmap.key1 -> 1
+parent1.intmap.key2 -> 1
+parent1.intmap.key3 -> 1
 parent1.name -> parent1
+parent1.strmap.key1 -> val1
+parent1.strmap.key2 -> val2
+parent1.strmap.key3 -> val3
 parent2.child2.empty -> map[]
 parent2.child2.grandchild2.ids -> [4 5 6]
 parent2.child2.grandchild2.on -> true
@@ -403,24 +443,46 @@ func TestGetTypes(t *testing.T) {
 	for _, c := range cases {
 		assert.Equal(t, nil, c.koanf.Get("xxx"), "get value mismatch")
 		assert.Equal(t, make(map[string]interface{}), c.koanf.Get("empty"), "get value mismatch")
+
+		// Int.
 		assert.Equal(t, int64(0), c.koanf.Int64("xxxx"), "get value mismatch")
 		assert.Equal(t, int64(1234), c.koanf.Int64("parent1.id"), "get value mismatch")
 		assert.Equal(t, int(0), c.koanf.Int("xxxx"), "get value mismatch")
 		assert.Equal(t, int(1234), c.koanf.Int("parent1.id"), "get value mismatch")
 		assert.Equal(t, []int64{}, c.koanf.Int64s("xxxx"), "get value mismatch")
 		assert.Equal(t, []int64{1, 2, 3}, c.koanf.Int64s("parent1.child1.grandchild1.ids"), "get value mismatch")
+		assert.Equal(t, map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.intmap"), "get value mismatch")
+		assert.Equal(t, map[string]int64{}, c.koanf.Int64Map("parent1.boolmap"), "get value mismatch")
+		assert.Equal(t, map[string]int64{}, c.koanf.Int64Map("xxxx"), "get value mismatch")
+		assert.Equal(t, map[string]int64{}, c.koanf.Int64Map("parent1.floatmap"), "get value mismatch")
 		assert.Equal(t, []int{1, 2, 3}, c.koanf.Ints("parent1.child1.grandchild1.ids"), "get value mismatch")
 		assert.Equal(t, []int{}, c.koanf.Ints("xxxx"), "get value mismatch")
+		assert.Equal(t, map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.koanf.IntMap("parent1.intmap"), "get value mismatch")
+		assert.Equal(t, map[string]int{}, c.koanf.IntMap("parent1.boolmap"), "get value mismatch")
+		assert.Equal(t, map[string]int{}, c.koanf.IntMap("xxxx"), "get value mismatch")
+
+		// Float.
 		assert.Equal(t, float64(0), c.koanf.Float64("xxx"), "get value mismatch")
 		assert.Equal(t, float64(1234), c.koanf.Float64("parent1.id"), "get value mismatch")
 		assert.Equal(t, []float64{}, c.koanf.Float64s("xxxx"), "get value mismatch")
 		assert.Equal(t, []float64{1, 2, 3}, c.koanf.Float64s("parent1.child1.grandchild1.ids"), "get value mismatch")
+		assert.Equal(t, map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Float64Map("parent1.intmap"), "get value mismatch")
+		assert.Equal(t, map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.koanf.Float64Map("parent1.floatmap"), "get value mismatch")
+		assert.Equal(t, map[string]float64{}, c.koanf.Float64Map("parent1.boolmap"), "get value mismatch")
+		assert.Equal(t, map[string]float64{}, c.koanf.Float64Map("xxxx"), "get value mismatch")
+
+		// String and bytes.
 		assert.Equal(t, []byte{}, c.koanf.Bytes("xxxx"), "get value mismatch")
 		assert.Equal(t, []byte("parent1"), c.koanf.Bytes("parent1.name"), "get value mismatch")
 		assert.Equal(t, "", c.koanf.String("xxxx"), "get value mismatch")
 		assert.Equal(t, "parent1", c.koanf.String("parent1.name"), "get value mismatch")
 		assert.Equal(t, []string{}, c.koanf.Strings("xxxx"), "get value mismatch")
 		assert.Equal(t, []string{"red", "blue", "orange"}, c.koanf.Strings("orphan"), "get value mismatch")
+		assert.Equal(t, map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.StringMap("parent1.strmap"), "get value mismatch")
+		assert.Equal(t, map[string]string{}, c.koanf.StringMap("xxxx"), "get value mismatch")
+		assert.Equal(t, map[string]string{}, c.koanf.StringMap("parent1.intmap"), "get value mismatch")
+
+		// Bools.
 		assert.Equal(t, false, c.koanf.Bool("xxxx"), "get value mismatch")
 		assert.Equal(t, false, c.koanf.Bool("type"), "get value mismatch")
 		assert.Equal(t, true, c.koanf.Bool("parent1.child1.grandchild1.on"), "get value mismatch")
@@ -429,10 +491,16 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal(t, []bool{true, false, true}, c.koanf.Bools("bools"), "get value mismatch")
 		assert.Equal(t, []bool{true, false, true}, c.koanf.Bools("intbools"), "get value mismatch")
 		assert.Equal(t, []bool{true, true, false}, c.koanf.Bools("strbools"), "get value mismatch")
+		assert.Equal(t, map[string]bool{"ok1": true, "ok2": true, "notok3": false}, c.koanf.BoolMap("parent1.boolmap"), "get value mismatch")
+		assert.Equal(t, map[string]bool{"key1": true, "key2": true, "key3": true}, c.koanf.BoolMap("parent1.intmap"), "get value mismatch")
+		assert.Equal(t, map[string]bool{}, c.koanf.BoolMap("xxxx"), "get value mismatch")
+
+		// Others.
 		assert.Equal(t, time.Duration(1234), c.koanf.Duration("parent1.id"), "get value mismatch")
 		assert.Equal(t, time.Duration(0), c.koanf.Duration("xxxx"), "get value mismatch")
 		assert.Equal(t, time.Time{}, c.koanf.Time("xxxx", "2006-01-02"), "get value mismatch")
 		assert.Equal(t, time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.Time("time", "2006-01-02"), "get value mismatch")
+
 		// Attempt to parse int=1234 as a Unix timestamp.
 		assert.Equal(t, time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.koanf.Time("parent1.id", "").UTC(), "get value mismatch")
 	}

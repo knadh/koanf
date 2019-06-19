@@ -278,6 +278,40 @@ func (ko *Koanf) Int64s(path string) []int64 {
 	return []int64{}
 }
 
+// Int64Map returns the map[string]int64 value of a given key path
+// or an empty map[string]int64 if the path does not exist or if the
+// value is not a valid int64 map.
+func (ko *Koanf) Int64Map(path string) map[string]int64 {
+	var (
+		out = map[string]int64{}
+		o   = ko.Get(path)
+	)
+	if o == nil {
+		return out
+	}
+
+	mp, ok := o.(map[string]interface{})
+	if !ok {
+		return out
+	}
+
+	out = make(map[string]int64, len(mp))
+	for k, v := range mp {
+		switch i := v.(type) {
+		case int64:
+			out[k] = i
+		default:
+			// Attempt a conversion.
+			iv, err := toInt64(i)
+			if err != nil {
+				return map[string]int64{}
+			}
+			out[k] = iv
+		}
+	}
+	return out
+}
+
 // Int returns the int value of a given key path or 0 if the path
 // does not exist or if the value is not a valid int.
 func (ko *Koanf) Int(path string) int {
@@ -296,6 +330,20 @@ func (ko *Koanf) Ints(path string) []int {
 	out := make([]int, len(ints))
 	for i, v := range ints {
 		out[i] = int(v)
+	}
+	return out
+}
+
+// IntMap returns the map[string]int value of a given key path
+// or an empty map[string]int if the path does not exist or if the
+// value is not a valid int map.
+func (ko *Koanf) IntMap(path string) map[string]int {
+	var (
+		mp  = ko.Int64Map(path)
+		out = make(map[string]int, len(mp))
+	)
+	for k, v := range mp {
+		out[k] = int(v)
 	}
 	return out
 }
@@ -337,6 +385,40 @@ func (ko *Koanf) Float64s(path string) []float64 {
 	}
 
 	return []float64{}
+}
+
+// Float64Map returns the map[string]float64 value of a given key path
+// or an empty map[string]float64 if the path does not exist or if the
+// value is not a valid float64 map.
+func (ko *Koanf) Float64Map(path string) map[string]float64 {
+	var (
+		out = map[string]float64{}
+		o   = ko.Get(path)
+	)
+	if o == nil {
+		return out
+	}
+
+	mp, ok := o.(map[string]interface{})
+	if !ok {
+		return out
+	}
+
+	out = make(map[string]float64, len(mp))
+	for k, v := range mp {
+		switch i := v.(type) {
+		case float64:
+			out[k] = i
+		default:
+			// Attempt a conversion.
+			iv, err := toFloat64(i)
+			if err != nil {
+				return map[string]float64{}
+			}
+			out[k] = iv
+		}
+	}
+	return out
 }
 
 // Duration returns the time.Duration value of a given key path assuming
@@ -406,6 +488,36 @@ func (ko *Koanf) Strings(path string) []string {
 	return []string{}
 }
 
+// StringMap returns the map[string]string value of a given key path
+// or an empty map[string]string if the path does not exist or if the
+// value is not a valid string map.
+func (ko *Koanf) StringMap(path string) map[string]string {
+	var (
+		out = map[string]string{}
+		o   = ko.Get(path)
+	)
+	if o == nil {
+		return out
+	}
+
+	mp, ok := o.(map[string]interface{})
+	if !ok {
+		return out
+	}
+	out = make(map[string]string, len(mp))
+	for k, v := range mp {
+		switch s := v.(type) {
+		case string:
+			out[k] = s
+		default:
+			// There's a non string type. Return.
+			return map[string]string{}
+		}
+	}
+
+	return out
+}
+
 // Bytes returns the []byte value of a given key path or an empty
 // []byte slice if the path does not exist or if the value is not a valid string.
 func (ko *Koanf) Bytes(path string) []byte {
@@ -448,6 +560,40 @@ func (ko *Koanf) Bools(path string) []bool {
 		return out
 	}
 	return nil
+}
+
+// BoolMap returns the map[string]bool value of a given key path
+// or an empty map[string]bool if the path does not exist or if the
+// value is not a valid bool map.
+func (ko *Koanf) BoolMap(path string) map[string]bool {
+	var (
+		out = map[string]bool{}
+		o   = ko.Get(path)
+	)
+	if o == nil {
+		return out
+	}
+
+	mp, ok := o.(map[string]interface{})
+	if !ok {
+		return out
+	}
+	out = make(map[string]bool, len(mp))
+	for k, v := range mp {
+		switch i := v.(type) {
+		case bool:
+			out[k] = i
+		default:
+			// Attempt a conversion.
+			b, err := toBool(i)
+			if err != nil {
+				return map[string]bool{}
+			}
+			out[k] = b
+		}
+	}
+
+	return out
 }
 
 func (ko *Koanf) merge(c map[string]interface{}) {
