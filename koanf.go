@@ -36,6 +36,16 @@ type UnmarshalConf struct {
 	// `koanf` is used if left empty.
 	Tag string
 
+	// If this is set to true, instead of unmarshalling nested structures
+	// based on the key path, keys are taken literally to unmarshal into
+	// a flat struct. For example:
+	// ```
+	// type MyStuff struct {
+	// 	Child1Name string `koanf:"parent1.child1.name"`
+	// 	Child2Name string `koanf:"parent2.child2.name"`
+	// 	Type       string `koanf:"json"`
+	// }
+	// ```
 	FlathPaths    bool
 	DecoderConfig *mapstructure.DecoderConfig
 }
@@ -196,7 +206,17 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 	if err != nil {
 		return err
 	}
-	return d.Decode(ko.Get(path))
+
+	// Unmarshal using flat key paths.
+	mp := ko.Get(path)
+	if c.FlathPaths {
+		if f, ok := mp.(map[string]interface{}); ok {
+			fmp, _ := maps.Flatten(f, nil, ko.delim)
+			mp = fmp
+		}
+	}
+
+	return d.Decode(mp)
 }
 
 // Get returns the raw, uncast interface{} value of a given key path
