@@ -1,4 +1,4 @@
-package koanf
+package koanf_test
 
 import (
 	"flag"
@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/toml"
@@ -181,18 +182,18 @@ type testStruct struct {
 }
 
 type Case struct {
-	koanf    *Koanf
+	koanf    *koanf.Koanf
 	file     string
-	parser   Parser
+	parser   koanf.Parser
 	typeName string
 }
 
 // Case instances to be used in multiple tests. These will not be mutated.
 var cases = []Case{
-	{koanf: New(delim), file: mockJSON, parser: json.Parser(), typeName: "json"},
-	{koanf: New(delim), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
-	{koanf: New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
-	{koanf: New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
+	{koanf: koanf.New(delim), file: mockJSON, parser: json.Parser(), typeName: "json"},
+	{koanf: koanf.New(delim), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
+	{koanf: koanf.New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
+	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
 }
 
 func init() {
@@ -239,7 +240,7 @@ func TestLoadFileAllKeys(t *testing.T) {
 
 func TestLoadMerge(t *testing.T) {
 	// Load several types into a fresh Koanf instance.
-	k := New(delim)
+	k := koanf.New(delim)
 	for _, c := range cases {
 		assert.Nil(t, k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
@@ -262,20 +263,6 @@ func TestLoadMerge(t *testing.T) {
 	assert.Nil(t, err, "error loading env")
 	assert.Equal(t, "env", k.String("parent1.child1.type"), "types don't match")
 
-	// Override with the posflag provider.
-	f := pflag.NewFlagSet("test", pflag.ContinueOnError)
-	f.String("parent1.child1.type", "flag", "")
-	f.Set("parent1.child1.type", "posflag")
-	assert.Nil(t, k.Load(posflag.Provider(f, "."), nil), "error loading posflag")
-	assert.Equal(t, "posflag", k.String("parent1.child1.type"), "types don't match")
-
-	// Override with the flag provider.
-	bf := flag.NewFlagSet("test", flag.ContinueOnError)
-	bf.String("parent1.child1.type", "flag", "")
-	bf.Set("parent1.child1.type", "basicflag")
-	assert.Nil(t, k.Load(basicflag.Provider(bf, "."), nil), "error loading basicflag")
-	assert.Equal(t, "basicflag", k.String("parent1.child1.type"), "types don't match")
-
 	// Override with the confmap provider.
 	k.Load(confmap.Provider(map[string]interface{}{
 		"parent1.child1.type": "confmap",
@@ -292,8 +279,48 @@ func TestLoadMerge(t *testing.T) {
 	assert.Equal(t, "rawbytes", k.String("type"), "types don't match")
 }
 
+func TestFlags(t *testing.T) {
+	k := koanf.New(delim)
+	assert.Nil(t, k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
+	k2 := k.Copy()
+
+	// Override with the posflag provider.
+	f := pflag.NewFlagSet("test", pflag.ContinueOnError)
+
+	// Key that exists in the loaded conf. Should overwrite with Set().
+	f.String("parent1.child1.type", "flag", "")
+	f.Set("parent1.child1.type", "flag")
+
+	// Key that doesn't exist in the loaded file conf. Should merge the default value.
+	f.String("flagkey", "flag", "")
+
+	// Key that exists in the loadd conf but no Set(). Default value shouldn't be merged.
+	f.String("parent1.name", "flag", "")
+
+	// Initialize the provider with the Koanf instance passed where default values
+	// will merge if the keys are not present in the conf map.
+	assert.Nil(t, k.Load(posflag.Provider(f, ".", k), nil), "error loading posflag")
+	assert.Equal(t, "flag", k.String("parent1.child1.type"), "types don't match")
+	assert.Equal(t, "flag", k.String("flagkey"), "value doesn't match")
+	assert.NotEqual(t, "flag", k.String("parent1.name"), "value doesn't match")
+
+	// Test without passing the Koanf instance where default values will not merge.
+	assert.Nil(t, k2.Load(posflag.Provider(f, ".", nil), nil), "error loading posflag")
+	assert.Equal(t, "flag", k2.String("parent1.child1.type"), "types don't match")
+	assert.Equal(t, "", k2.String("flagkey"), "value doesn't match")
+	assert.NotEqual(t, "", k2.String("parent1.name"), "value doesn't match")
+
+	// Override with the flag provider.
+	bf := flag.NewFlagSet("test", flag.ContinueOnError)
+	bf.String("parent1.child1.type", "flag", "")
+	bf.Set("parent1.child1.type", "basicflag")
+	assert.Nil(t, k.Load(basicflag.Provider(bf, "."), nil), "error loading basicflag")
+	assert.Equal(t, "basicflag", k.String("parent1.child1.type"), "types don't match")
+
+}
+
 func TestConfMapValues(t *testing.T) {
-	k := New(delim)
+	k := koanf.New(delim)
 	assert.Nil(t, k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	var (
 		c1  = k.All()
@@ -301,7 +328,7 @@ func TestConfMapValues(t *testing.T) {
 		r1  = k.Cut("parent2").Raw()
 	)
 
-	k = New(delim)
+	k = koanf.New(delim)
 	assert.Nil(t, k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	var (
 		c2  = k.All()
@@ -316,7 +343,7 @@ func TestConfMapValues(t *testing.T) {
 
 func TestCutCopy(t *testing.T) {
 	// Instance 1.
-	k1 := New(delim)
+	k1 := koanf.New(delim)
 	assert.Nil(t, k1.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
 	var (
@@ -326,7 +353,7 @@ func TestCutCopy(t *testing.T) {
 	)
 
 	// Instance 2.
-	k2 := New(delim)
+	k2 := koanf.New(delim)
 	assert.Nil(t, k2.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
 	var (
@@ -348,7 +375,7 @@ func TestCutCopy(t *testing.T) {
 }
 
 func TestMerge(t *testing.T) {
-	k := New(delim)
+	k := koanf.New(delim)
 	assert.Nil(t, k.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
 
@@ -361,7 +388,7 @@ func TestMerge(t *testing.T) {
 	assert.NotEqual(t, cut1.Sprint(), cut2.Sprint(), "different cuts incorrectly match")
 
 	// Create an empty Koanf instance.
-	k2 := New(delim)
+	k2 := koanf.New(delim)
 
 	// Merge cut1 into it and check if they match.
 	k2.Merge(cut1)
@@ -391,7 +418,7 @@ func TestUnmarshal(t *testing.T) {
 	// Unmarshal and check all parsers.
 	for _, c := range cases {
 		var (
-			k  = New(delim)
+			k  = koanf.New(delim)
 			ts testStruct
 		)
 		assert.Nil(t, k.Load(file.Provider(c.file), c.parser),
@@ -403,7 +430,7 @@ func TestUnmarshal(t *testing.T) {
 
 		// Unmarshal with config.
 		ts = testStruct{}
-		assert.Nil(t, k.UnmarshalWithConf("", &ts, UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
+		assert.Nil(t, k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
 		assert.Equal(t, real, ts, "unmarshalled structs don't match")

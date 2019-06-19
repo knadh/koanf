@@ -2,7 +2,7 @@
 
 **koanf** (pronounced _conf_; a play on the Japanese _Koan_) is a library for reading configuration from different sources in different formats in Go applications. It is a cleaner, lighter [alternative to spf13/viper](#alternative-to-viper) with better abstractions and extensibility and fewer dependencies.
 
-koanf comes with built in support for reading configuration from files, command line flags, and environment variables, and can parse JSON, YAML, TOML, and Hasicorp HCL.
+koanf comes with built in support for reading configuration from files, command line flags, and environment variables, and can parse JSON, YAML, TOML, and Hashicorp HCL.
 
 [![Build Status](https://travis-ci.com/knadh/koanf.svg?branch=master)](https://travis-ci.com/knadh/koanf)
 
@@ -98,13 +98,15 @@ func main() {
 	// "time" and "type" may have been loaded from the config file, but
 	// they can still be overridden with the values from the command line.
 	// The bundled posflag.Provider takes a flagset from the spf13/pflag lib.
-	if err := k.Load(posflag.Provider(f, "."), nil); err != nil {
+	// Passing the Koanf instance to posflag helps it deal with default command
+	// line flag values that are not present in conf maps from previously loaded
+	// providers.
+	if err := k.Load(posflag.Provider(f, ".", k), nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
 	fmt.Println("time is = ", k.String("time"))
 }
-
 ```
 
 ### Reading environment variables

@@ -6,6 +6,7 @@ package posflag
 import (
 	"errors"
 
+	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
 	"github.com/spf13/pflag"
 )
@@ -14,6 +15,7 @@ import (
 type Posflag struct {
 	delim   string
 	flagset *pflag.FlagSet
+	ko      *koanf.Koanf
 }
 
 // Provider returns a commandline flags provider that returns
@@ -21,10 +23,17 @@ type Posflag struct {
 // nesting hierarchy of keys are defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
-func Provider(f *pflag.FlagSet, delim string) *Posflag {
+//
+// It takes an optional (but recommended) Koanf instance to see if the
+// the flags defined have been set from other providers, for instance,
+// a config file. If they are not, then the default values of the flags
+// are merged. If they do exist, the flag values are not merged but only
+// the values that have been explicity set in the command line are merged.
+func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
+		ko:      ko,
 	}
 }
 
@@ -32,10 +41,16 @@ func Provider(f *pflag.FlagSet, delim string) *Posflag {
 func (p *Posflag) Read() (map[string]interface{}, error) {
 	mp := make(map[string]interface{})
 	p.flagset.VisitAll(func(f *pflag.Flag) {
-		// If no value was explicity specified by the user,
-		// ignore the flag.
+		// If no value was explicity set in the command line,
+		// check if the default value should be used.
 		if !f.Changed {
-			return
+			if p.ko != nil {
+				if p.ko.Exists(f.Name) {
+					return
+				}
+			} else {
+				return
+			}
 		}
 
 		var v interface{}

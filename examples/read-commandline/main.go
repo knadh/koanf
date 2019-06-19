@@ -39,7 +39,10 @@ func main() {
 	// "time" and "type" may have been loaded from the config file, but
 	// they can still be overridden with the values from the command line.
 	// The bundled posflag.Provider takes a flagset from the spf13/pflag lib.
-	if err := k.Load(posflag.Provider(f, "."), nil); err != nil {
+	// Passing the Koanf instance to posflag helps it deal with default command
+	// line flag values that are not present in conf maps from previously loaded
+	// providers.
+	if err := k.Load(posflag.Provider(f, ".", k), nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
