@@ -72,7 +72,7 @@ func (ko *Koanf) Load(p Provider, pa Parser) error {
 		// There's a Parser. Get raw bytes from the Provider to parse.
 		b, err := p.ReadBytes()
 		if err != nil {
-			return nil
+			return err
 		}
 		mp, err = pa.Parse(b)
 		if err != nil {
