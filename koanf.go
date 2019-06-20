@@ -46,7 +46,7 @@ type UnmarshalConf struct {
 	// 	Type       string `koanf:"json"`
 	// }
 	// ```
-	FlathPaths    bool
+	FlatPaths     bool
 	DecoderConfig *mapstructure.DecoderConfig
 }
 
@@ -209,7 +209,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 
 	// Unmarshal using flat key paths.
 	mp := ko.Get(path)
-	if c.FlathPaths {
+	if c.FlatPaths {
 		if f, ok := mp.(map[string]interface{}); ok {
 			fmp, _ := maps.Flatten(f, nil, ko.delim)
 			mp = fmp

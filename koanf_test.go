@@ -469,7 +469,7 @@ func TestUnmarshalFlat(t *testing.T) {
 		assert.Nil(t, k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 		ts := testStructFlat{}
-		assert.Nil(t, k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf", FlathPaths: true}), "unmarshal failed")
+		assert.Nil(t, k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1Child1Type = c.typeName
 		assert.Equal(t, real, ts, "unmarshalled structs don't match")

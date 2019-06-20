@@ -265,7 +265,7 @@ func main() {
 
 	// Unmarshal the whole root with FlatPaths: True.
 	var o1 rootFlat
-	k.UnmarshalWithConf("", &o1, koanf.UnmarshalConf{Tag: "koanf", FlathPaths: true})
+	k.UnmarshalWithConf("", &o1, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true})
 	fmt.Println(o1)
 
 	// Unmarshal a child structure of "parent1".
@@ -280,7 +280,7 @@ func main() {
 	}
 
 	var o2 subFlat
-	k.UnmarshalWithConf("parent1", &o2, koanf.UnmarshalConf{Tag: "koanf", FlathPaths: true})
+	k.UnmarshalWithConf("parent1", &o2, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true})
 	fmt.Println(o2)
 }
 ```
