@@ -10,6 +10,20 @@ koanf comes with built in support for reading configuration from files, command 
 
 `go get -u github.com/knadh/koanf`
 
+### Contents
+
+- [Concepts](#concepts)
+- [Reading config from files](#reading-config-from-files)
+- [Reading from command line](#reading-from-command-line)
+- [Reading environment variables](#reading-environment-variables)
+- [Reading raw bytes](#reading-raw-bytes)
+- [Unmarshalling](#unmarshalling)
+- [Unmarshalling with flat paths](#unmarshalling-with-flat-paths)
+- [Setting default values](#setting-default-values)
+- [Order of merge and key case senstivity](#order-of-merge-and-key-case-senstivity)
+- [Custom Providers and Parsers](#custom-providers-and-parsers)
+- [API](#api)
+
 ### Concepts
 
 - `koanf.Provider` is a generic interface that provides configuration, for example, from files, enviornment variables, HTTP sources, or anywhere. The configuration can either be raw bytes that a parser can parse, or it can be a nested map[string]interface{} that can be directly loaded.
@@ -151,7 +165,7 @@ func main() {
 }
 ```
 
-### Reading arbitrary bytes
+### Reading raw bytes
 
 The bundled `rawbytes` Provider can be used to read arbitrary bytes from a source, like a database or an HTTP call.
 
