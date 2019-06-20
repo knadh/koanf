@@ -156,36 +156,23 @@ func main() {
 The bundled `rawbytes` Provider can be used to read arbitrary bytes from a source, like a database or an HTTP call.
 
 ```go
-// Package rawbytes implements a koanf.Provider that takes a []byte slice
-// and provides it to koanf to be parsed by a koanf.Parser.
-package rawbytes
+package main
 
 import (
-	"errors"
+	"fmt"
+
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/rawbytes"
 )
 
-// RawBytes implements a raw bytes provider.
-type RawBytes struct {
-	b []byte
-}
+// Global koanf instance. Use . as the key path delimiter. This can be / or anything.
+var k = koanf.New(".")
 
-// Provider returns a provider that takes a raw []byte slice to be parsed
-// by a koanf.Parser parser. This should be a nested conf map, like the
-// contents of a raw JSON config file.
-func Provider(b []byte) *RawBytes {
-	r := &RawBytes{b: make([]byte, len(b))}
-	copy(r.b[:], b)
-	return r
-}
-
-// ReadBytes is not supported by the env provider.
-func (r *RawBytes) ReadBytes() ([]byte, error) {
-	return r.b, nil
-}
-
-// Read returns the raw bytes for parsing.
-func (r *RawBytes) Read() (map[string]interface{}, error) {
-	return nil, errors.New("buf provider does not support this method")
+func main() {
+	b := []byte(`{"type": "rawbytes", "parent1": {"child1": {"type": "rawbytes"}}}`)
+	k.Load(rawbytes.Provider(b), json.Parser())
+	fmt.Println("type is = ", k.String("parent1.child1.type"))
 }
 ```
 
