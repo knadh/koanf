@@ -37,10 +37,10 @@ func TestFlatten(t *testing.T) {
 		"empty":                     map[string]interface{}{},
 	}, f)
 	assert.Equal(t, map[string][]string{
-		"parent.child.key":          []string{"parent", "child", "key"},
-		"parent.child.key.with.dot": []string{"parent", "child", "key.with.dot"},
-		"top":                       []string{"top"},
-		"empty":                     []string{"empty"},
+		"parent.child.key":          {"parent", "child", "key"},
+		"parent.child.key.with.dot": {"parent", "child", "key.with.dot"},
+		"top":                       {"top"},
+		"empty":                     {"empty"},
 	}, k)
 }
 

@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"strings"
 	"log"
+	"strings"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"

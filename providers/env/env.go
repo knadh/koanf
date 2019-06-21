@@ -24,7 +24,7 @@ type Env struct {
 // to `{parent: {child: {key: 1}}}`.
 //
 // If prefix is specified (case sensitive), only the env vars with
-// the prefix are capturd. cb is an optional callback that takes
+// the prefix are captured. cb is an optional callback that takes
 // a string and returns a string (the env variable name) in case
 // transformatios have to be applied, for instance, to lowercase
 // everything, strip prefixes and replace _ with . etc.

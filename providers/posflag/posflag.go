@@ -28,7 +28,7 @@ type Posflag struct {
 // the flags defined have been set from other providers, for instance,
 // a config file. If they are not, then the default values of the flags
 // are merged. If they do exist, the flag values are not merged but only
-// the values that have been explicity set in the command line are merged.
+// the values that have been explicitly set in the command line are merged.
 func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 	return &Posflag{
 		flagset: f,
@@ -41,7 +41,7 @@ func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 func (p *Posflag) Read() (map[string]interface{}, error) {
 	mp := make(map[string]interface{})
 	p.flagset.VisitAll(func(f *pflag.Flag) {
-		// If no value was explicity set in the command line,
+		// If no value was explicitly set in the command line,
 		// check if the default value should be used.
 		if !f.Changed {
 			if p.ko != nil {
