@@ -416,6 +416,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | `Bool(path string) bool`                     |                                                                                                                                                                                            |
 | `Bools(path string) []bool`                  |                                                                                                                                                                                            |
 | `BoolMap(path string) map[string]bool`       |                                                                                                                                                                                            |
+| `MapKeys(path string) []string`              | Returns the list of keys in any map                                                                                                                                                        |
 
 ### Alternative to viper
 

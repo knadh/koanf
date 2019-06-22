@@ -616,6 +616,30 @@ func (ko *Koanf) BoolMap(path string) map[string]bool {
 	return out
 }
 
+// MapKeys returns a sorted string list of keys in a map addressed by the
+// given path. If the path is not a map, an empty string slice is
+// returned.
+func (ko *Koanf) MapKeys(path string) []string {
+	var (
+		out = []string{}
+		o   = ko.Get(path)
+	)
+	if o == nil {
+		return out
+	}
+
+	mp, ok := o.(map[string]interface{})
+	if !ok {
+		return out
+	}
+	out = make([]string, 0, len(mp))
+	for k := range mp {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
 func (ko *Koanf) merge(c map[string]interface{}) {
 	maps.IntfaceKeysToStrings(c)
 	maps.Merge(c, ko.confMap)

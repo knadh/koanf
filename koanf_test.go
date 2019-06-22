@@ -566,6 +566,10 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal(t, time.Duration(0), c.koanf.Duration("xxxx"), "get value mismatch")
 		assert.Equal(t, time.Time{}, c.koanf.Time("xxxx", "2006-01-02"), "get value mismatch")
 		assert.Equal(t, time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.Time("time", "2006-01-02"), "get value mismatch")
+		assert.Equal(t, []string{}, c.koanf.MapKeys("xxxx"), "map keys mismatch")
+		assert.Equal(t, []string{"bools", "empty", "intbools", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
+			c.koanf.MapKeys(""), "map keys mismatch")
+		assert.Equal(t, []string{"key1", "key2", "key3"}, c.koanf.MapKeys("parent1.strmap"), "map keys mismatch")
 
 		// Attempt to parse int=1234 as a Unix timestamp.
 		assert.Equal(t, time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.koanf.Time("parent1.id", "").UTC(), "get value mismatch")
