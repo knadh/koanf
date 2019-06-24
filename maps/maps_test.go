@@ -17,6 +17,18 @@ var testMap = map[string]interface{}{
 	"empty": map[string]interface{}{},
 }
 var testMap2 = map[string]interface{}{
+	"list": []interface{}{
+		map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+			},
+		},
+		map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+			},
+		},
+	},
 	"parent": map[string]interface{}{
 		"child": map[string]interface{}{
 			"key": 123,
@@ -56,6 +68,18 @@ func TestUnflatten(t *testing.T) {
 
 func TestIntfaceKeysToStrings(t *testing.T) {
 	m := map[string]interface{}{
+		"list": []interface{}{
+			map[interface{}]interface{}{
+				"child": map[interface{}]interface{}{
+					"key": 123,
+				},
+			},
+			map[interface{}]interface{}{
+				"child": map[interface{}]interface{}{
+					"key": 123,
+				},
+			},
+		},
 		"parent": map[interface{}]interface{}{
 			"child": map[interface{}]interface{}{
 				"key": 123,
