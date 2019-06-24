@@ -184,7 +184,6 @@ func IntfaceKeysToStrings(mp map[string]interface{}) {
 			mp[key] = x
 			IntfaceKeysToStrings(x)
 		case []interface{}:
-			fmt.Println(key)
 			for i, v := range cur {
 				switch sub := v.(type) {
 				case map[interface{}]interface{}:
