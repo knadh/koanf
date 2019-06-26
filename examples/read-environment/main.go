@@ -28,9 +28,10 @@ func main() {
 	//
 	// For example, env vars: MYVAR_TYPE and MYVAR_PARENT1.CHILD1.NAME
 	// will me merged into the "type" and the nested "parent1.child1.name"
-	// keys in the config file.
+	// keys in the config file here as the we lowercase the key and strip
+	// the MYVAR_ prefix so that only "parent1.child1.name" remains.
 	k.Load(env.Provider("MYVAR_", ".", func(s string) string {
-		return strings.ToLower(s)
+		return strings.ToLower(strings.TrimPrefix(s, "MYVAR_"))
 	}), nil)
 
 	fmt.Println("name is =", k.String("parent1.child1.name"))
