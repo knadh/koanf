@@ -165,3 +165,11 @@ func TestCopy(t *testing.T) {
 	}
 	assert.Equal(t, mp, Copy(mp))
 }
+
+func TestLookupMaps(t *testing.T) {
+	assert.Equal(t, map[string]bool{"a": true, "b": true}, StringSliceToLookupMap([]string{"a", "b"}))
+	assert.Equal(t, map[string]bool{}, StringSliceToLookupMap(nil))
+	assert.Equal(t, map[int64]bool{1: true, 2: true}, Int64SliceToLookupMap([]int64{1,2}))
+	assert.Equal(t, map[int64]bool{}, Int64SliceToLookupMap(nil))
+
+}

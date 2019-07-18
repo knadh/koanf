@@ -202,3 +202,23 @@ func IntfaceKeysToStrings(mp map[string]interface{}) {
 		}
 	}
 }
+
+// StringSliceToLookupMap takes a slice of strings and returns a lookup map
+// with the slice values as keys with true values.
+func StringSliceToLookupMap(s []string) map[string]bool {
+	mp := make(map[string]bool, len(s))
+	for _, v := range s {
+		mp[v] = true
+	}
+	return mp
+}
+
+// Int64SliceToLookupMap takes a slice of int64s and returns a lookup map
+// with the slice values as keys with true values.
+func Int64SliceToLookupMap(s []int64) map[int64]bool {
+	mp := make(map[int64]bool, len(s))
+	for _, v := range s {
+		mp[v] = true
+	}
+	return mp
+}
