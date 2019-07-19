@@ -154,12 +154,14 @@ func main() {
 	// The (optional, or can be nil) function can be used to transform
 	// the env var names, for instance, to lowercase them.
 	//
-	// For example, env vars: MYVAR_TYPE and MYVAR_PARENT1.CHILD1.NAME
-	// will me merged into the "type" and the nested "parent1.child1.name"
-	// keys in the config file here as the we lowercase the key and strip
-	// the MYVAR_ prefix so that only "parent1.child1.name" remains.
+	// For example, env vars: MYVAR_TYPE and MYVAR_PARENT1_CHILD1_NAME
+	// will be merged into the "type" and the nested "parent1.child1.name"
+	// keys in the config file here as we lowercase the key, 
+	// replace `_` with `.` and strip the MYVAR_ prefix so that 
+	// only "parent1.child1.name" remains.
 	k.Load(env.Provider("MYVAR_", ".", func(s string) string {
-		return strings.ToLower(strings.TrimPrefix(s, "MYVAR_"))
+		return strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, "MYVAR_")), "_", ".", -1)
 	}), nil)
 
 	fmt.Println("name is = ", k.String("parent1.child1.name"))
