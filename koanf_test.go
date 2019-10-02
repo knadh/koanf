@@ -3,8 +3,10 @@ package koanf_test
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -248,6 +250,92 @@ func TestLoadFileAllKeys(t *testing.T) {
 		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
 		assert.Equal(t, testAll, s, fmt.Sprintf("key -> value list mismatch: %v", c.typeName))
 	}
+}
+
+func TestWatchFile(t *testing.T) {
+	k := koanf.New(delim)
+
+	// Create a tmp config file.
+	out, err := ioutil.TempFile("", "koanf_mock")
+	if err != nil {
+		log.Fatalf("error creating temp config file: %v", err)
+	}
+	out.Write([]byte(`{"parent": {"name": "name1"}}`))
+	out.Close()
+
+	// Load the new config and watch it for changes.
+	f := file.Provider(out.Name())
+	k.Load(f, json.Parser())
+
+	// Watch for changes.
+	changedName := ""
+	f.Watch(func(event interface{}, err error) {
+		// The File watcher always returns a nil `event`, which can
+		// be ignored.
+		assert.NoError(t, err, "watch file event error")
+
+		if err != nil {
+			return
+		}
+		// Reload the config.
+		k.Load(f, json.Parser())
+		changedName = k.String("parent.name")
+	})
+
+	// Wait a second and change the file.
+	time.Sleep(1 * time.Second)
+	ioutil.WriteFile(out.Name(), []byte(`{"parent": {"name": "name2"}}`), 0644)
+	time.Sleep(1 * time.Second)
+
+	assert.Equal(t, "name2", changedName, "file watch reload didn't change config")
+}
+
+func TestWatchFileSymlink(t *testing.T) {
+	k := koanf.New(delim)
+
+	// Create a symlink.
+	symPath := filepath.Join(os.TempDir(), "koanf_test_symlink")
+	os.Remove(symPath)
+	symPath2 := filepath.Join(os.TempDir(), "koanf_test_symlink2")
+	os.Remove(symPath)
+
+	wd, err := os.Getwd()
+	assert.NoError(t, err, "error getting working dir")
+
+	jsonFile := filepath.Join(wd, mockJSON)
+	yamlFile := filepath.Join(wd, mockYAML)
+
+	// Create a symlink to the JSON file which will be swapped out later.
+	assert.NoError(t, os.Symlink(jsonFile, symPath), "error creating symlink")
+
+	// Load the symlink (to the JSON) file.
+	f := file.Provider(symPath)
+	k.Load(f, json.Parser())
+
+	// Watch for changes.
+	changedType := ""
+	f.Watch(func(event interface{}, err error) {
+		// The File watcher always returns a nil `event`, which can
+		// be ignored.
+		assert.NoError(t, err, "watch file event error")
+
+		if err != nil {
+			return
+		}
+		// Reload the config.
+		k.Load(f, yaml.Parser())
+		changedType = k.String("type")
+	})
+
+	// Wait a second and swap the symlink target from the JSON file to the YAML file.
+	// Create a temp symlink to the YAML file and rename the old symlink to the new
+	// symlink. We do this to avoid removing the symlink and triggering a REMOVE event.
+	time.Sleep(1 * time.Second)
+	assert.NoError(t, os.Symlink(yamlFile, symPath2), "error creating temp symlink")
+	assert.NoError(t, os.Rename(symPath2, symPath), "error creating temp symlink")
+	time.Sleep(1 * time.Second)
+
+	assert.Equal(t, "yml", changedType, "symlink watch reload didn't change config")
 }
 
 func TestLoadMerge(t *testing.T) {

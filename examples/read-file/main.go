@@ -15,7 +15,8 @@ var k = koanf.New(".")
 
 func main() {
 	// Load JSON config.
-	if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
+	f := file.Provider("mock/mock.json")
+	if err := k.Load(f, json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
@@ -24,4 +25,23 @@ func main() {
 
 	fmt.Println("parent's name is = ", k.String("parent1.name"))
 	fmt.Println("parent's ID is = ", k.Int("parent1.id"))
+
+	// Watch the file and get a callback on change. The callback can do whatever,
+	// like re-load the configuration.
+	// File provider always returns a nil `event`.
+	f.Watch(func(event interface{}, err error) {
+		if err != nil {
+			log.Printf("watch error: %v", err)
+			return
+		}
+
+		log.Println("config changed. Reloading ...")
+		k.Load(f, json.Parser())
+		k.Print()
+	})
+
+	// Block forever (and manually make a change to mock/mock.json) to
+	// reload the config.
+	log.Println("waiting forever. Try making a change to mock/mock.json to live reload")
+	<-make(chan bool)
 }

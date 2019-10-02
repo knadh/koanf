@@ -91,3 +91,8 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 func (p *Posflag) ReadBytes() ([]byte, error) {
 	return nil, errors.New("pflag provider does not support this method")
 }
+
+// Watch is not supported.
+func (p *Posflag) Watch(cb func(event interface{}, err error)) error {
+	return errors.New("posflag provider does not support this method")
+}
