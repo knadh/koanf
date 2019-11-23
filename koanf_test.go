@@ -608,7 +608,7 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal(t, map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.intmap"), "get value mismatch")
 		assert.Equal(t, map[string]int64{}, c.koanf.Int64Map("parent1.boolmap"), "get value mismatch")
 		assert.Equal(t, map[string]int64{}, c.koanf.Int64Map("xxxx"), "get value mismatch")
-		assert.Equal(t, map[string]int64{}, c.koanf.Int64Map("parent1.floatmap"), "get value mismatch")
+		assert.Equal(t, map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.floatmap"), "get value mismatch")
 		assert.Equal(t, []int{1, 2, 3}, c.koanf.Ints("parent1.child1.grandchild1.ids"), "get value mismatch")
 		assert.Equal(t, []int{}, c.koanf.Ints("xxxx"), "get value mismatch")
 		assert.Equal(t, map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.koanf.IntMap("parent1.intmap"), "get value mismatch")

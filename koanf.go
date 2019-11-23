@@ -668,12 +668,12 @@ func toInt64(v interface{}) (int64, error) {
 	}
 
 	// Force it to a string and try to convert.
-	i, err := strconv.Atoi(fmt.Sprintf("%v", v))
+	f, err := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
 	if err != nil {
 		return 0, err
 	}
 
-	return int64(i), nil
+	return int64(f), nil
 }
 
 // toInt64 takes an interface v interface{}value and if it is a float type,
