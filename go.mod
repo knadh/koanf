@@ -3,6 +3,7 @@ module github.com/knadh/koanf
 go 1.12
 
 require (
+	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/hashicorp/hcl v1.0.0
