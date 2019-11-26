@@ -4,7 +4,7 @@
 
 koanf comes with built in support for reading configuration from files, command line flags, and environment variables, and can parse JSON, YAML, TOML, and Hashicorp HCL.
 
-[![Build Status](https://travis-ci.com/knadh/koanf.svg?branch=master)](https://travis-ci.com/knadh/koanf)
+[![Build Status](https://travis-ci.com/knadh/koanf.svg?branch=master)](https://travis-ci.com/knadh/koanf) [![GoDoc](https://godoc.org/github.com/knadh/koanf?status.svg)](https://godoc.org/github.com/knadh/koanf) 
 
 ### Installation
 
@@ -364,7 +364,11 @@ func main() {
 
 ### Setting default values.
 
-The bundled `confmap` provider takes a `map[string]interface{}` that can be loaded into a koanf instance. Thus, koanf does not provide any special functions to set default values but uses the Provider interface to enable it.
+koanf does not provide any special functions to set default values but uses the Provider interface to enable it.
+
+#### From a map
+
+The bundled `confmap` provider takes a `map[string]interface{}` that can be loaded into a koanf instance. 
 
 ```go
 package main
@@ -405,6 +409,71 @@ func main() {
 }
 ```
 
+#### From a struct 
+
+The bundled `structs` provider can be used to read data from a struct to load into a koanf instance.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/providers/structs"
+)
+
+// Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
+var k = koanf.New(".")
+
+type parentStruct struct {
+	Name   string      `koanf:"name"`
+	ID     int         `koanf:"id"`
+	Child1 childStruct `koanf:"child1"`
+}
+type childStruct struct {
+	Name        string            `koanf:"name"`
+	Type        string            `koanf:"type"`
+	Empty       map[string]string `koanf:"empty"`
+	Grandchild1 grandchildStruct  `koanf:"grandchild1"`
+}
+type grandchildStruct struct {
+	Ids []int `koanf:"ids"`
+	On  bool  `koanf:"on"`
+}
+type sampleStruct struct {
+	Type    string            `koanf:"type"`
+	Empty   map[string]string `koanf:"empty"`
+	Parent1 parentStruct      `koanf:"parent1"`
+}
+
+func main() {
+	// Load default values using the structs provider.
+	// We provide a struct along with the struct tag `koanf` to the
+	// provider.
+	k.Load(structs.Provider(sampleStruct{
+		Type:  "json",
+		Empty: make(map[string]string),
+		Parent1: parentStruct{
+			Name: "parent1",
+			ID:   1234,
+			Child1: childStruct{
+				Name:  "child1",
+				Type:  "json",
+				Empty: make(map[string]string),
+				Grandchild1: grandchildStruct{
+					Ids: []int{1, 2, 3},
+					On:  true,
+				},
+			},
+		},
+	}, "koanf"), nil)
+
+	fmt.Printf("name is = `%s`\n", k.String("parent1.child1.name"))
+}
+```
+
+
 ### Order of merge and key case senstivity
 
 - Config keys are case sensitive in koanf. For example, `app.server.port` and `APP.SERVER.port` are not the same.
@@ -427,6 +496,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | providers/posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spft3/pflag.FlagSet` (advanced POSIX compatiable flags with multiple types) and provides a nested config map based on delim.                                                |
 | providers/env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
 | providers/confmap   | `confmap.Provider(mp map[string]interface{}, delim string)`   | Takes a premade `map[string]interface{}` conf map. If delim is provided, the keys are assumed to be flattened, thus unflattened using delim.                                          |
+| providers/structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                           |
 | providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
 
 ### Bundled parsers
