@@ -228,6 +228,21 @@ func main() {
 }
 ```
 
+### Reading from an S3 bucket
+
+```go
+// Load JSON config from s3.
+if err := k.Load(s3.Provider(s3.Config{
+	AccessKey: os.Getenv("AWS_S3_ACCESS_KEY"),
+	SecretKey: os.Getenv("AWS_S3_SECRET_KEY"),
+	Region:    os.Getenv("AWS_S3_REGION"),
+	Bucket:    os.Getenv("AWS_S3_BUCKET"),
+	ObjectKey: "dir/config.json",
+}), json.Parser()); err != nil {
+	log.Fatalf("error loading config: %v", err)
+}
+```
+
 ### Reading raw bytes
 
 The bundled `rawbytes` Provider can be used to read arbitrary bytes from a source, like a database or an HTTP call.
@@ -497,6 +512,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | providers/env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
 | providers/confmap   | `confmap.Provider(mp map[string]interface{}, delim string)`   | Takes a premade `map[string]interface{}` conf map. If delim is provided, the keys are assumed to be flattened, thus unflattened using delim.                                          |
 | providers/structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                           |
+| providers/s3   | `s3.Provider(s3.S3Config{})`                 | Takes a s3 config struct.                                           |
 | providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
 
 ### Bundled parsers
