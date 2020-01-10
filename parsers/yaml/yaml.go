@@ -2,7 +2,7 @@
 package yaml
 
 import (
-	"github.com/go-yaml/yaml"
+	"gopkg.in/yaml.v2"
 )
 
 // YAML implements a YAML parser.
