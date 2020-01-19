@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path/filepath"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
 )
@@ -52,6 +53,11 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 		return err
 	}
 
+	var (
+		lastEvent     string
+		lastEventTime time.Time
+	)
+
 	go func() {
 	loop:
 		for {
@@ -61,6 +67,15 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					cb(nil, errors.New("fsnotify watch channel closed"))
 					break loop
 				}
+
+				// Use a simple timer to buffer events as certain events fire
+				// multiple times on some platforms.
+				if event.String() == lastEvent && time.Since(lastEventTime) < time.Millisecond*5 {
+					continue
+				}
+				lastEvent = event.String()
+				lastEventTime = time.Now()
+
 				evFile := filepath.Clean(event.Name)
 
 				// Since the event is triggered on a directory, is this
