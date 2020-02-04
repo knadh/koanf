@@ -50,4 +50,5 @@
 "strbool" = "1"
 "strbools" = ["1", "t", "f"]
 "time" = "2019-01-01"
+"duration" = "3s"
 "type" = "hcl"

@@ -41,6 +41,7 @@ const (
 // Ordered list of fields in the test confs.
 var testKeys = []string{
 	"bools",
+	"duration",
 	"empty",
 	"intbools",
 	"orphan",
@@ -77,6 +78,7 @@ var testKeys = []string{
 
 var testKeyMap = map[string][]string{
 	"bools":                          {"bools"},
+	"duration":                       {"duration"},
 	"empty":                          {"empty"},
 	"intbools":                       {"intbools"},
 	"orphan":                         {"orphan"},
@@ -124,6 +126,7 @@ var testKeyMap = map[string][]string{
 // `parent1.child1.type` and `type` are excluded as their
 // values vary between files.
 var testAll = `bools -> [true false true]
+duration -> 3s
 empty -> map[]
 intbools -> [1 0 1]
 orphan -> [red blue orange]
@@ -692,12 +695,13 @@ func TestGetTypes(t *testing.T) {
 		// Others.
 		assert.Equal(time.Duration(1234), c.koanf.Duration("parent1.id"))
 		assert.Equal(time.Duration(0), c.koanf.Duration("xxxx"))
+		assert.Equal(time.Second*3, c.koanf.Duration("duration"))
 
 		assert.Equal(time.Time{}, c.koanf.Time("xxxx", "2006-01-02"))
 		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.Time("time", "2006-01-02"))
 
 		assert.Equal([]string{}, c.koanf.MapKeys("xxxx"), "map keys mismatch")
-		assert.Equal([]string{"bools", "empty", "intbools", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
+		assert.Equal([]string{"bools", "duration", "empty", "intbools", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
 			c.koanf.MapKeys(""), "map keys mismatch")
 		assert.Equal([]string{"key1", "key2", "key3"}, c.koanf.MapKeys("parent1.strmap"), "map keys mismatch")
 
@@ -771,6 +775,7 @@ func TestMustGetTypes(t *testing.T) {
 		// Others.
 		assert.Panics(func() { c.koanf.MustDuration("xxxx") })
 		assert.Equal(time.Duration(1234), c.koanf.MustDuration("parent1.id"))
+		assert.Equal(time.Second*3, c.koanf.MustDuration("duration"))
 
 		assert.Panics(func() { c.koanf.MustTime("xxxx", "2006-01-02") })
 		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.MustTime("time", "2006-01-02"))

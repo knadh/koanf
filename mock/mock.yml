@@ -60,3 +60,4 @@ strbools:
   - f
 strbool: "1"
 time: "2019-01-01"
+duration: "3s"
