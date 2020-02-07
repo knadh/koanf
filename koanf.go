@@ -61,6 +61,11 @@ func New(delim string) *Koanf {
 	}
 }
 
+// Returns delimiter set for this instance of Koanf
+func (ko *Koanf) Delim() string {
+	return ko.delim
+}
+
 // Load takes a Provider that either provides a parsed config map[string]interface{}
 // in which case pa (Parser) can be nil, or raw bytes to be parsed, where a Parser
 // can be provided to parse.
