@@ -2,6 +2,7 @@ package koanf
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -378,6 +379,8 @@ func (ko *Koanf) Strings(path string) []string {
 		out := make([]string, len(v))
 		copy(out[:], v[:])
 		return out
+	case string:
+		return strings.Split(o.(string), " ")
 	}
 	return []string{}
 }
