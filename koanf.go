@@ -189,6 +189,8 @@ func (ko *Koanf) Unmarshal(path string, o interface{}) error {
 func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error {
 	if c.DecoderConfig == nil {
 		c.DecoderConfig = &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc()),
 			Metadata:         nil,
 			Result:           o,
 			WeaklyTypedInput: true,
