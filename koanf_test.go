@@ -405,6 +405,8 @@ func TestFlags(t *testing.T) {
 	// Key that exists in the loaded conf. Should overwrite with Set().
 	f.String("parent1.child1.type", "flag", "")
 	f.Set("parent1.child1.type", "flag")
+	f.StringSlice("stringslice", []string{"a", "b", "c"}, "")
+	f.IntSlice("intslice", []int{1, 2, 3}, "")
 
 	// Key that doesn't exist in the loaded file conf. Should merge the default value.
 	f.String("flagkey", "flag", "")
@@ -418,6 +420,8 @@ func TestFlags(t *testing.T) {
 	assert.Equal("flag", k.String("parent1.child1.type"), "types don't match")
 	assert.Equal("flag", k.String("flagkey"), "value doesn't match")
 	assert.NotEqual("flag", k.String("parent1.name"), "value doesn't match")
+	assert.Equal([]string{"a", "b", "c"}, k.Strings("stringslice"), "value doesn't match")
+	assert.Equal([]int{1, 2, 3}, k.Ints("intslice"), "value doesn't match")
 
 	// Test without passing the Koanf instance where default values will not merge.
 	assert.Nil(k2.Load(posflag.Provider(f, ".", nil), nil), "error loading posflag")

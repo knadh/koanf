@@ -78,6 +78,8 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 			v, _ = p.flagset.GetBool(f.Name)
 		case "stringSlice":
 			v, _ = p.flagset.GetStringSlice(f.Name)
+		case "intSlice":
+			v, _ = p.flagset.GetIntSlice(f.Name)
 		default:
 			v = f.Value.String()
 		}
