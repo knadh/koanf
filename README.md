@@ -289,10 +289,10 @@ import (
 var k = koanf.New(".")
 
 func main() {
-// Load JSON config.
-if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
-log.Fatalf("error loading config: %v", err)
-}
+    // Load JSON config.
+    if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
+        log.Fatalf("error loading config: %v", err)
+    }
 
     // Structure to unmarshal nested conf to.
     type childStruct struct {
