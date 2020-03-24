@@ -289,7 +289,7 @@ import (
 var k = koanf.New(".")
 
 func main() {
-// Load JSON config.
+    // Load JSON config.
     if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
         log.Fatalf("error loading config: %v", err)
     }
