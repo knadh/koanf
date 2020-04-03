@@ -83,7 +83,7 @@ func (ko *Koanf) Load(p Provider, pa Parser) error {
 		if err != nil {
 			return err
 		}
-		mp, err = pa.Parse(b)
+		mp, err = pa.Unmarshal(b)
 		if err != nil {
 			return err
 		}
@@ -173,6 +173,12 @@ func (ko *Koanf) Copy() *Koanf {
 // the current instance.
 func (ko *Koanf) Merge(in *Koanf) {
 	ko.merge(in.Raw())
+}
+
+// Marshal takes a Parser implementation and marshals the config map into bytes,
+// for example, to TOML or JSON bytes.
+func (ko *Koanf) Marshal(p Parser) ([]byte, error) {
+	return p.Marshal(ko.All())
 }
 
 // Unmarshal unmarshals a given key path into the given struct using

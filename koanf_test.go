@@ -596,6 +596,36 @@ func TestUnmarshalFlat(t *testing.T) {
 	}
 }
 
+func TestMarshal(t *testing.T) {
+	assert := assert.New(t)
+
+	for _, c := range cases {
+		// HCL does not support marshalling.
+		if c.typeName == "hcl" {
+			continue
+		}
+
+		// Load config.
+		k := koanf.New(delim)
+		assert.NoError(k.Load(file.Provider(c.file), c.parser),
+			fmt.Sprintf("error loading: %v", c.file))
+
+		// Serialize / marshal into raw bytes using the parser.
+		b, err := k.Marshal(c.parser)
+		assert.NoError(err, "error marshalling")
+
+		// Reload raw serialize bytes into a new koanf instance.
+		k = koanf.New(delim)
+		assert.NoError(k.Load(rawbytes.Provider(b), c.parser),
+			fmt.Sprintf("error loading: %v", c.file))
+
+		// Check if values are intact.
+		assert.Equal(float64(1234), c.koanf.MustFloat64("parent1.id"))
+		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
+		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
+	}
+}
+
 func TestGetExists(t *testing.T) {
 	assert := assert.New(t)
 

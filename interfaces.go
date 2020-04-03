@@ -20,5 +20,6 @@ type Provider interface {
 
 // Parser represents a configuration format parser.
 type Parser interface {
-	Parse([]byte) (map[string]interface{}, error)
+	Unmarshal([]byte) (map[string]interface{}, error)
+	Marshal(map[string]interface{}) ([]byte, error)
 }

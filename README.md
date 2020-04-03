@@ -18,7 +18,7 @@ koanf comes with built in support for reading configuration from files, command 
 - [Reading from command line](#reading-from-command-line)
 - [Reading environment variables](#reading-environment-variables)
 - [Reading raw bytes](#reading-raw-bytes)
-- [Unmarshalling](#unmarshalling)
+- [Unmarshalling and marshalling](#unmarshalling-and-marshalling)
 - [Unmarshalling with flat paths](#unmarshalling-with-flat-paths)
 - [Setting default values](#setting-default-values)
 - [Order of merge and key case senstivity](#order-of-merge-and-key-case-senstivity)
@@ -268,53 +268,59 @@ func main() {
 }
 ```
 
-### Unmarshalling
+### Unmarshalling and marshalling
+`Parser`s can be used to unmarshal and scan the values in a Koanf instance into a struct based on the field tags, and also to marshal a Koanf instance back into serialized bytes, for example, back to JSON or YAML, to write back to files.
 
 ```go
-Unmarshalling is useful when you want to copy a nested config map into a struct (like unmarshalling JSON) instead of accessing individual config values using gettor methods.
-
 package main
 
 import (
-"fmt"
-"log"
+	"fmt"
+	"log"
 
-    "github.com/knadh/koanf"
-    "github.com/knadh/koanf/parsers/json"
-    "github.com/knadh/koanf/providers/file"
-
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
-var k = koanf.New(".")
+var (
+	k      = koanf.New(".")
+	parser = json.Parser()
+)
 
 func main() {
-    // Load JSON config.
-    if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
-        log.Fatalf("error loading config: %v", err)
-    }
+	// Load JSON config.
+	if err := k.Load(file.Provider("mock/mock.json"), parser); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
 
-    // Structure to unmarshal nested conf to.
-    type childStruct struct {
-    	Name       string            `koanf:"name"`
-    	Type       string            `koanf:"type"`
-    	Empty      map[string]string `koanf:"empty"`
-    	GrandChild struct {
-    		Ids []int `koanf:"ids"`
-    		On  bool  `koanf:"on"`
-    	} `koanf:"grandchild1"`
-    }
+	// Structure to unmarshal nested conf to.
+	type childStruct struct {
+		Name       string            `koanf:"name"`
+		Type       string            `koanf:"type"`
+		Empty      map[string]string `koanf:"empty"`
+		GrandChild struct {
+			Ids []int `koanf:"ids"`
+			On  bool  `koanf:"on"`
+		} `koanf:"grandchild1"`
+	}
 
-    var out childStruct
+	var out childStruct
 
-    // Quick unmarshal.
-    k.Unmarshal("parent1.child1", &out)
-    fmt.Println(out)
+	// Quick unmarshal.
+	k.Unmarshal("parent1.child1", &out)
+	fmt.Println(out)
 
-    // Unmarshal with advanced config.
-    out = childStruct{}
-    k.UnmarshalWithConf("parent1.child1", &out, koanf.UnmarshalConf{Tag: "koanf"})
-    fmt.Println(out)
+	// Unmarshal with advanced config.
+	out = childStruct{}
+	k.UnmarshalWithConf("parent1.child1", &out, koanf.UnmarshalConf{Tag: "koanf"})
+	fmt.Println(out)
+
+	// Marshal the instance back to JSON.
+	// The paser instance can be anything, eg: json.Paser(), yaml.Parser() etc.
+	b, _ := k.Marshal(parser)
+	fmt.Println(string(b))
 }
 ```
 
@@ -376,6 +382,9 @@ func main() {
 	fmt.Println(o2)
 }
 ```
+
+### Marshalling and writing config
+It is possible to marshal and serialize the conf map into TOML, YAML etc.
 
 ### Setting default values.
 

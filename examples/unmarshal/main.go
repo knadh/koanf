@@ -10,11 +10,14 @@ import (
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
-var k = koanf.New(".")
+var (
+	k      = koanf.New(".")
+	parser = json.Parser()
+)
 
 func main() {
 	// Load JSON config.
-	if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {
+	if err := k.Load(file.Provider("mock/mock.json"), parser); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
@@ -39,4 +42,10 @@ func main() {
 	out = childStruct{}
 	k.UnmarshalWithConf("parent1.child1", &out, koanf.UnmarshalConf{Tag: "koanf"})
 	fmt.Println(out)
+
+	// Marshal the instance back to JSON.
+	// The paser instance can be anything, eg: json.Paser(),
+	// yaml.Parser() etc.
+	b, _ := k.Marshal(parser)
+	fmt.Println(string(b))
 }
