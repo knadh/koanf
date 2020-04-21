@@ -432,6 +432,53 @@ func (ko *Koanf) MustStringMap(path string) map[string]string {
 	return val
 }
 
+// StringsMap returns the map[string][]string value of a given key path
+// or an empty map[string][]string if the path does not exist or if the
+// value is not a valid strings map.
+func (ko *Koanf) StringsMap(path string) map[string][]string {
+	var (
+		out = map[string][]string{}
+		o   = ko.Get(path)
+	)
+	if o == nil {
+		return out
+	}
+
+	mp, ok := o.(map[string]interface{})
+	if !ok {
+		return out
+	}
+	out = make(map[string][]string, len(mp))
+	for k, v := range mp {
+		switch s := v.(type) {
+		case []interface{}:
+			for _, v := range s {
+				switch sv := v.(type) {
+				case string:
+					out[k] = append(out[k], sv)
+				default:
+					return map[string][]string{}
+				}
+			}
+		default:
+			// There's a non []interface type. Return.
+			return map[string][]string{}
+		}
+	}
+
+	return out
+}
+
+// MustStringsMap returns the map[string][]string value of a given key path or panics
+// if the value is not set or set to default value.
+func (ko *Koanf) MustStringsMap(path string) map[string][]string {
+	val := ko.StringsMap(path)
+	if len(val) == 0 {
+		panic(fmt.Sprintf("invalid value: %s=%v", path, val))
+	}
+	return val
+}
+
 // Bytes returns the []byte value of a given key path or an empty
 // []byte slice if the path does not exist or if the value is not a valid string.
 func (ko *Koanf) Bytes(path string) []byte {

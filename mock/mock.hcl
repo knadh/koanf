@@ -34,6 +34,10 @@
     "key2" = "val2"
     "key3" = "val3"
   }
+  "strsmap" = {
+    "key1" = ["val1", "val2", "val3"]
+    "key2" = ["val4", "val5"]
+  }
 }
 "parent2" = {
   "child2" = {
