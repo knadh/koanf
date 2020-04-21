@@ -64,6 +64,8 @@ var testKeys = []string{
 	"parent1.strmap.key1",
 	"parent1.strmap.key2",
 	"parent1.strmap.key3",
+	"parent1.strsmap.key1",
+	"parent1.strsmap.key2",
 	"parent2.child2.empty",
 	"parent2.child2.grandchild2.ids",
 	"parent2.child2.grandchild2.on",
@@ -108,6 +110,9 @@ var testKeyMap = map[string][]string{
 	"parent1.strmap.key1":            {"parent1", "strmap", "key1"},
 	"parent1.strmap.key2":            {"parent1", "strmap", "key2"},
 	"parent1.strmap.key3":            {"parent1", "strmap", "key3"},
+	"parent1.strsmap":                {"parent1", "strsmap"},
+	"parent1.strsmap.key1":           {"parent1", "strsmap", "key1"},
+	"parent1.strsmap.key2":           {"parent1", "strsmap", "key2"},
 	"parent2":                        {"parent2"},
 	"parent2.child2":                 {"parent2", "child2"},
 	"parent2.child2.empty":           {"parent2", "child2", "empty"},
@@ -148,6 +153,8 @@ parent1.name -> parent1
 parent1.strmap.key1 -> val1
 parent1.strmap.key2 -> val2
 parent1.strmap.key3 -> val3
+parent1.strsmap.key1 -> [val1 val2 val3]
+parent1.strsmap.key2 -> [val4 val5]
 parent2.child2.empty -> map[]
 parent2.child2.grandchild2.ids -> [4 5 6]
 parent2.child2.grandchild2.on -> true
@@ -708,6 +715,7 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.Strings("orphan"))
 
 		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.StringMap("parent1.strmap"))
+		assert.Equal(map[string][]string{"key1": []string{"val1", "val2", "val3"}, "key2": []string{"val4", "val5"}}, c.koanf.StringsMap("parent1.strsmap"))
 		assert.Equal(map[string]string{}, c.koanf.StringMap("xxxx"))
 		assert.Equal(map[string]string{}, c.koanf.StringMap("parent1.intmap"))
 
@@ -795,6 +803,7 @@ func TestMustGetTypes(t *testing.T) {
 		assert.Panics(func() { c.koanf.MustStringMap("xxxx") })
 		assert.Panics(func() { c.koanf.MustStringMap("parent1.intmap") })
 		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.MustStringMap("parent1.strmap"))
+		assert.Equal(map[string][]string{"key1": []string{"val1", "val2", "val3"}, "key2": []string{"val4", "val5"}}, c.koanf.MustStringsMap("parent1.strsmap"))
 
 		// // Bools.
 		assert.Panics(func() { c.koanf.MustBools("xxxx") })
