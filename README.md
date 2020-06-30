@@ -582,6 +582,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 koanf is a light weight alternative to the popular [spf13/viper](https://github.com/spf13/viper). It does not aim to do everything viper does (such as mutating config maps and writing them back to files), but provides simpler primitives for reading and accessing configuration. It was written as a result of multiple stumbling blocks encountered with some of viper's fundamental flaws.
 
 - viper breaks JSON, YAML, TOML, HCL language specs by [forcibly lowercasing keys](https://github.com/spf13/viper/pull/635).
+- Significantly bloats [build sizes](https://github.com/knadh/koanf/wiki/Comparison-with-spf13-viper).
 - Tightly couples config parsing with file extensions.
 - Has poor semantics and abstractions. Commandline, env, file etc. and various parses are hardcoded in the core. There are no primitives that can be extended.
 - Pulls a large number of [third party dependencies](https://github.com/spf13/viper/issues/707) into the core package. For instance, even if you do not use YAML or flags, the dependencies are still pulled as a result of the coupling.
