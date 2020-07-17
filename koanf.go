@@ -70,7 +70,7 @@ func (ko *Koanf) Load(p Provider, pa Parser) error {
 		err error
 	)
 
-	// No Parser is given. Call the Provider's Read() methid to get
+	// No Parser is given. Call the Provider's Read() method to get
 	// the config map.
 	if pa == nil {
 		mp, err = p.Read()
@@ -345,10 +345,9 @@ func toInt64(v interface{}) (int64, error) {
 	return int64(f), nil
 }
 
-// toInt64 takes an interface v interface{}value and if it is a float type,
-// converts and returns float6v interface{}4. If it's any other type,
-// forces it to a string and av interface{}ttempts to an strconv.ParseFloat
-// to get a float out.
+// toInt64 takes a `v interface{}` value and if it is a float type,
+// converts and returns a `float64`. If it's any other type, forces it to a
+// string and attempts to get a float out using `strconv.ParseFloat`.
 func toFloat64(v interface{}) (float64, error) {
 	switch i := v.(type) {
 	case float32:
@@ -383,7 +382,7 @@ func toBool(v interface{}) (bool, error) {
 }
 
 // populateKeyParts iterates a key map and generates all possible
-// traveral paths. For instance, `parent.child.key` generates
+// traversal paths. For instance, `parent.child.key` generates
 // `parent`, and `parent.child`.
 func populateKeyParts(m KeyMap, delim string) KeyMap {
 	out := make(KeyMap)
