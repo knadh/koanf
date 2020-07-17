@@ -27,12 +27,12 @@ koanf comes with built in support for reading configuration from files, command 
 
 ### Concepts
 
-- `koanf.Provider` is a generic interface that provides configuration, for example, from files, enviornment variables, HTTP sources, or anywhere. The configuration can either be raw bytes that a parser can parse, or it can be a nested map[string]interface{} that can be directly loaded.
+- `koanf.Provider` is a generic interface that provides configuration, for example, from files, environment variables, HTTP sources, or anywhere. The configuration can either be raw bytes that a parser can parse, or it can be a nested map[string]interface{} that can be directly loaded.
 - `koanf.Parser` is a generic interface that takes raw bytes, parses, and returns a nested map[string]interface{} representation. For example, JSON and YAML parsers.
 - Once loaded into koanf, configuration are values queried by a delimited key path syntax. eg: `app.server.port`. Any delimiter can be chosen.
 - Configuration from multiple sources can be loaded and merged into a koanf instance, for example, load from a file first and override certain values with flags from the command line.
 
-With these two interface implementations, koanf can obtain configuration from multiple sources and parse any format and make it available to an application.
+With these two interface implementations, koanf can obtain a configuration from multiple sources and parse any format and make it available to an application.
 
 ### Reading config from files
 
@@ -269,7 +269,7 @@ func main() {
 ```
 
 ### Unmarshalling and marshalling
-`Parser`s can be used to unmarshal and scan the values in a Koanf instance into a struct based on the field tags, and also to marshal a Koanf instance back into serialized bytes, for example, back to JSON or YAML, to write back to files.
+`Parser`s can be used to unmarshal and scan the values in a Koanf instance into a struct based on the field tags, and to marshal a Koanf instance back into serialized bytes, for example, back to JSON or YAML, to write back to files.
 
 ```go
 package main
@@ -500,7 +500,7 @@ func main() {
 
 ### Order of merge and key case senstivity
 
-- Config keys are case sensitive in koanf. For example, `app.server.port` and `APP.SERVER.port` are not the same.
+- Config keys are case-sensitive in koanf. For example, `app.server.port` and `APP.SERVER.port` are not the same.
 - koanf does not impose any ordering on loading config from various providers. Every successive `Load()` or `Load()` merges new config into existing config. That means it is possible to load environment variables first, then files on top of it, and then command line variables on top of it, or any such order.
 
 ### Custom Providers and Parsers
@@ -517,11 +517,11 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | providers/file      | `file.Provider(filepath string)`                              | Reads a file and returns the raw bytes to be parsed.                                                                                                                                  |
 | providers/basicflag | `basicflag.Provider(f *flag.FlagSet, delim string)`           | Takes an stdlib `flag.FlagSet`                                                                                                                                                        |
-| providers/posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spft3/pflag.FlagSet` (advanced POSIX compatiable flags with multiple types) and provides a nested config map based on delim.                                                |
+| providers/posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spft3/pflag.FlagSet` (advanced POSIX compatible flags with multiple types) and provides a nested config map based on delim.                                                 |
 | providers/env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
 | providers/confmap   | `confmap.Provider(mp map[string]interface{}, delim string)`   | Takes a premade `map[string]interface{}` conf map. If delim is provided, the keys are assumed to be flattened, thus unflattened using delim.                                          |
-| providers/structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                           |
-| providers/s3   | `s3.Provider(s3.S3Config{})`                 | Takes a s3 config struct.                                           |
+| providers/structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                                                                                                                                        |
+| providers/s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
 | providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
 
 ### Bundled parsers
@@ -553,34 +553,34 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 
 ### Getter functions
 
-|                                              |                                                                                                                                                                                            |
-| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Get(path string) interface{}`               | Returns the value for the given key path, and if it doesn’t exist, returns nil                                                                                                             |
-| `Exists(path string) bool`                   | Returns true if the given key path exists in the conf map                                                                                                                                  |
-| `Int64(path string) int64`                   |                                                                                                                                                                                            |
-| `Int64s(path string) []int64`                |                                                                                                                                                                                            |
-| `Int64Map(path string) map[string]int64`     |                                                                                                                                                                                            |
-| `Int(path string) int`                       |                                                                                                                                                                                            |
-| `Ints(path string) []int`                    |                                                                                                                                                                                            |
-| `IntMap(path string) map[string]int`         |                                                                                                                                                                                            |
-| `Float64(path string) float64`               |                                                                                                                                                                                            |
-| `Float64s(path string) []float64`            |                                                                                                                                                                                            |
-| `Float64Map(path string) map[string]float64` |                                                                                                                                                                                            |
-| `Duration(path string) time.Duration`        | Returns the time.Duration value of the given key path if it’s numeric (attempts a parse+convert if string) or a string representation like "3s".                                                                                  |
-| `Time(path, layout string) time.Time`        | Parses the string value of the the given key path with the given layout format and returns time.Time. If the key path is numeric, treats it as a UNIX timestamp and returns its time.Time. |
-| `String(path string) string`                 |                                                                                                                                                                                            |
-| `Strings(path string) []string`              |                                                                                                                                                                                            |
-| `StringMap(path string) map[string]string`   |                                                                                                                                                                                            |
-| `StringsMap(path string) map[string][]string`   |                                                                                                                                                                                            |
-| `Byte(path string) []byte`                   |                                                                                                                                                                                            |
-| `Bool(path string) bool`                     |                                                                                                                                                                                            |
-| `Bools(path string) []bool`                  |                                                                                                                                                                                            |
-| `BoolMap(path string) map[string]bool`       |                                                                                                                                                                                            |
-| `MapKeys(path string) []string`              | Returns the list of keys in any map                                                                                                                                                        |
+|                                               |                                                                                                                                                                                            |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Get(path string) interface{}`                | Returns the value for the given key path, and if it doesn’t exist, returns nil                                                                                                             |
+| `Exists(path string) bool`                    | Returns true if the given key path exists in the conf map                                                                                                                                  |
+| `Int64(path string) int64`                    |                                                                                                                                                                                            |
+| `Int64s(path string) []int64`                 |                                                                                                                                                                                            |
+| `Int64Map(path string) map[string]int64`      |                                                                                                                                                                                            |
+| `Int(path string) int`                        |                                                                                                                                                                                            |
+| `Ints(path string) []int`                     |                                                                                                                                                                                            |
+| `IntMap(path string) map[string]int`          |                                                                                                                                                                                            |
+| `Float64(path string) float64`                |                                                                                                                                                                                            |
+| `Float64s(path string) []float64`             |                                                                                                                                                                                            |
+| `Float64Map(path string) map[string]float64`  |                                                                                                                                                                                            |
+| `Duration(path string) time.Duration`         | Returns the time.Duration value of the given key path if it’s numeric (attempts a parse+convert if string) or a string representation like "3s".                                           |
+| `Time(path, layout string) time.Time`         | Parses the string value of the the given key path with the given layout format and returns time.Time. If the key path is numeric, treats it as a UNIX timestamp and returns its time.Time. |
+| `String(path string) string`                  |                                                                                                                                                                                            |
+| `Strings(path string) []string`               |                                                                                                                                                                                            |
+| `StringMap(path string) map[string]string`    |                                                                                                                                                                                            |
+| `StringsMap(path string) map[string][]string` |                                                                                                                                                                                            |
+| `Byte(path string) []byte`                    |                                                                                                                                                                                            |
+| `Bool(path string) bool`                      |                                                                                                                                                                                            |
+| `Bools(path string) []bool`                   |                                                                                                                                                                                            |
+| `BoolMap(path string) map[string]bool`        |                                                                                                                                                                                            |
+| `MapKeys(path string) []string`               | Returns the list of keys in any map                                                                                                                                                        |
 
 ### Alternative to viper
 
-koanf is a light weight alternative to the popular [spf13/viper](https://github.com/spf13/viper). It does not aim to do everything viper does (such as mutating config maps and writing them back to files), but provides simpler primitives for reading and accessing configuration. It was written as a result of multiple stumbling blocks encountered with some of viper's fundamental flaws.
+koanf is a lightweight alternative to the popular [spf13/viper](https://github.com/spf13/viper). It does not aim to do everything viper does (such as mutating config maps and writing them back to files), but provides simpler primitives for reading and accessing configuration. It was written as a result of multiple stumbling blocks encountered with some of viper's fundamental flaws.
 
 - viper breaks JSON, YAML, TOML, HCL language specs by [forcibly lowercasing keys](https://github.com/spf13/viper/pull/635).
 - Significantly bloats [build sizes](https://github.com/knadh/koanf/wiki/Comparison-with-spf13-viper).
