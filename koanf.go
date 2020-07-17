@@ -175,6 +175,25 @@ func (ko *Koanf) Merge(in *Koanf) {
 	ko.merge(in.Raw())
 }
 
+// MergeAt merges the config map of a given Koanf instance into
+// the current instance as a sub map, at the given key path.
+// If all or part of the key path is missing, it will be created.
+// If the key path is `""`, this is equivalent to Merge.
+func (ko *Koanf) MergeAt(in *Koanf, path string) {
+	// No path. Merge the two config maps.
+	if path == "" {
+		ko.Merge(in)
+		return
+	}
+
+	// Unflatten the config map with the given key path.
+	n := maps.Unflatten(map[string]interface{}{
+		path: in.Raw(),
+	}, ko.delim)
+
+	ko.merge(n)
+}
+
 // Marshal takes a Parser implementation and marshals the config map into bytes,
 // for example, to TOML or JSON bytes.
 func (ko *Koanf) Marshal(p Parser) ([]byte, error) {

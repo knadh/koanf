@@ -530,6 +530,50 @@ func TestMerge(t *testing.T) {
 	assert.Equal(cut1.All(), k2.All(), "conf map mismatch")
 }
 
+func TestMergeAt(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
+		"error loading file")
+
+	// Get expected koanf, and root data
+	var (
+		expected = k.Cut("parent2")
+		rootData = map[string]interface{}{
+			"name": k.String("parent2.name"),
+			"id":   k.Int("parent2.id"),
+		}
+	)
+
+	// Get nested test data to merge at path
+	child2 := koanf.New(delim)
+	assert.Nil(child2.Load(confmap.Provider(map[string]interface{}{
+		"name":  k.String("parent2.child2.name"),
+		"empty": k.Get("parent2.child2.empty"),
+	}, delim), nil))
+	grandChild := k.Cut("parent2.child2.grandchild2")
+
+	// Create test koanf
+	ordered  := koanf.New(delim)
+	assert.Nil(ordered.Load(confmap.Provider(rootData, delim), nil))
+
+	// Merge at path in order, first child2, then child2.grandchild2
+	ordered.MergeAt(child2, "child2")
+	ordered.MergeAt(grandChild, "child2.grandchild2")
+	assert.Equal(expected.Get(""), ordered.Get(""), "conf map mismatch")
+
+	// Create test koanf
+	reversed := koanf.New(delim)
+	assert.Nil(reversed.Load(confmap.Provider(rootData, delim), nil))
+
+	// Merge at path in reverse order, first child2.grandchild2, then child2
+	reversed.MergeAt(grandChild, "child2.grandchild2")
+	reversed.MergeAt(child2, "child2")
+	assert.Equal(expected.Get(""), reversed.Get(""), "conf map mismatch")
+}
+
 func TestUnmarshal(t *testing.T) {
 	assert := assert.New(t)
 
