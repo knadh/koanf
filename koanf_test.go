@@ -1,6 +1,7 @@
 package koanf_test
 
 import (
+	encjson "encoding/json"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -556,7 +557,7 @@ func TestMergeAt(t *testing.T) {
 	grandChild := k.Cut("parent2.child2.grandchild2")
 
 	// Create test koanf
-	ordered  := koanf.New(delim)
+	ordered := koanf.New(delim)
 	assert.Nil(ordered.Load(confmap.Provider(rootData, delim), nil))
 
 	// Merge at path in order, first child2, then child2.grandchild2
@@ -705,6 +706,36 @@ func TestGetExists(t *testing.T) {
 			fmt.Sprintf("path resolution failed: %s", c.path))
 		assert.Equal(c.exists, cases[0].koanf.Get(c.path) != nil,
 			fmt.Sprintf("path resolution failed: %s", c.path))
+	}
+}
+
+func TestSlices(t *testing.T) {
+	assert := assert.New(t)
+
+	// Load a slice of confmaps [{}, {}].
+	var mp map[string]interface{}
+	err := encjson.Unmarshal([]byte(`{
+		"parent": [
+			{"value": 1, "sub": {"value": "1"}},
+			{"value": 2, "sub": {"value": "2"}}
+		],
+		"another": "123"
+	}`), &mp)
+	assert.NoError(err, "error marshalling test payload")
+	k := koanf.New(delim)
+	assert.NoError(k.Load(confmap.Provider(mp, "."), nil))
+
+	assert.Empty(k.Slices("x"))
+	assert.Empty(k.Slices("parent.value"))
+	assert.Empty(k.Slices("parent.value.sub"))
+
+	slices := k.Slices("parent")
+	assert.NotNil(slices, "got nil slice of confmap")
+	assert.NotEmpty(slices, "got empty confmap slice")
+
+	for i, s := range slices {
+		assert.Equal(s.Int("value"), i+1)
+		assert.Equal(s.String("sub.value"), fmt.Sprintf("%d", i+1))
 	}
 }
 

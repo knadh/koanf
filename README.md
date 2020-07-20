@@ -577,6 +577,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | `Bools(path string) []bool`                   |                                                                                                                                                                                            |
 | `BoolMap(path string) map[string]bool`        |                                                                                                                                                                                            |
 | `MapKeys(path string) []string`               | Returns the list of keys in any map                                                                                                                                                        |
+| `Slices(path string) []Koanf`                 | Returns `[]map[string]interface{}`, a slice of confmaps loaded into a slice of new Koanf instances.							                                                                           |
 
 ### Alternative to viper
 

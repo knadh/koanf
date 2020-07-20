@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf/providers/confmap"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -276,6 +277,34 @@ func (ko *Koanf) Get(path string) interface{} {
 	var out interface{}
 	b, _ := json.Marshal(res)
 	json.Unmarshal(b, &out)
+	return out
+}
+
+// Slices returns a list of Koanf instances constructed out of a
+// []map[string]interface{} interface at the given path.
+func (ko *Koanf) Slices(path string) []*Koanf {
+	out := []*Koanf{}
+	if path == "" {
+		return out
+	}
+
+	// Does the path exist?
+	sl, ok := ko.Get(path).([]interface{})
+	if !ok {
+		return out
+	}
+
+	for _, s := range sl {
+		v, ok := s.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		k := New(ko.delim)
+		k.Load(confmap.Provider(v, ""), nil)
+		out = append(out, k)
+	}
+
 	return out
 }
 
