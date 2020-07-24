@@ -64,6 +64,10 @@ func (e *Env) Read() (map[string]interface{}, error) {
 		// run it through every string.
 		if e.cb != nil {
 			parts[0] = e.cb(parts[0])
+			// If the callback blanked the key, it should be omitted
+			if parts[0] == "" {
+				continue
+			}
 		}
 		mp[parts[0]] = parts[1]
 	}
