@@ -26,8 +26,10 @@ type Env struct {
 // If prefix is specified (case sensitive), only the env vars with
 // the prefix are captured. cb is an optional callback that takes
 // a string and returns a string (the env variable name) in case
-// transformatios have to be applied, for instance, to lowercase
+// transformations have to be applied, for instance, to lowercase
 // everything, strip prefixes and replace _ with . etc.
+// If the callback returns an empty string, the variable will be
+// ignored.
 func Provider(prefix, delim string, cb func(s string) string) *Env {
 	return &Env{
 		prefix: prefix,
@@ -64,6 +66,10 @@ func (e *Env) Read() (map[string]interface{}, error) {
 		// run it through every string.
 		if e.cb != nil {
 			parts[0] = e.cb(parts[0])
+			// If the callback blanked the key, it should be omitted
+			if parts[0] == "" {
+				continue
+			}
 		}
 		mp[parts[0]] = parts[1]
 	}
