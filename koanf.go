@@ -198,7 +198,7 @@ func (ko *Koanf) MergeAt(in *Koanf, path string) {
 // Marshal takes a Parser implementation and marshals the config map into bytes,
 // for example, to TOML or JSON bytes.
 func (ko *Koanf) Marshal(p Parser) ([]byte, error) {
-	return p.Marshal(ko.All())
+	return p.Marshal(ko.Raw())
 }
 
 // Unmarshal unmarshals a given key path into the given struct using

@@ -30,5 +30,5 @@ func (p *TOML) Marshal(o map[string]interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []byte(out.String()), nil
+	return out.Marshal()
 }
