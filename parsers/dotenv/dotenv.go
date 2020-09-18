@@ -7,16 +7,16 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// DOTENV implements a DOTENV parser.
-type DOTENV struct{}
+// DotEnv implements a DotEnv parser.
+type DotEnv struct{}
 
 // Parser returns a DOTENV Parser.
-func Parser() *DOTENV {
-	return &DOTENV{}
+func Parser() *DotEnv {
+	return &DotEnv{}
 }
 
 // Unmarshal parses the given DOTENV bytes.
-func (p *DOTENV) Unmarshal(b []byte) (map[string]interface{}, error) {
+func (p *DotEnv) Unmarshal(b []byte) (map[string]interface{}, error) {
 	// Unmarshal DOTENV from []byte
 	r, err := godotenv.Unmarshal(string(b))
 	if err != nil {
@@ -33,7 +33,7 @@ func (p *DOTENV) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to DOTENV bytes.
-func (p *DOTENV) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *DotEnv) Marshal(o map[string]interface{}) ([]byte, error) {
 	// Convert a map[string]interface{} to a map[string]string
 	mp := make(map[string]string)
 	for k, v := range o {
