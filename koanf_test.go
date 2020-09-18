@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/toml"
@@ -31,13 +32,43 @@ import (
 const (
 	delim = "."
 
-	mockDir  = "mock"
-	mockJSON = mockDir + "/mock.json"
-	mockYAML = mockDir + "/mock.yml"
-	mockTOML = mockDir + "/mock.toml"
-	mockHCL  = mockDir + "/mock.hcl"
-	mockProp = mockDir + "/mock.prop"
+	mockDir    = "mock"
+	mockJSON   = mockDir + "/mock.json"
+	mockYAML   = mockDir + "/mock.yml"
+	mockTOML   = mockDir + "/mock.toml"
+	mockHCL    = mockDir + "/mock.hcl"
+	mockProp   = mockDir + "/mock.prop"
+	mockDotEnv = mockDir + "/mock.env"
 )
+
+// Ordered list of fields in the 'flat' test confs.
+var flatTestKeys = []string{
+	"COMMENT",
+	"MORE",
+	"MiXeD",
+	"UPPER",
+	"empty",
+	"lower",
+	"quotedSpecial",
+}
+
+var flatTestKeyMap = map[string][]string{
+	"COMMENT":       {"COMMENT"},
+	"MORE":          {"MORE"},
+	"MiXeD":         {"MiXeD"},
+	"UPPER":         {"UPPER"},
+	"empty":         {"empty"},
+	"lower":         {"lower"},
+	"quotedSpecial": {"quotedSpecial"},
+}
+
+var flatTestAll = `COMMENT -> AFTER
+MORE -> vars
+MiXeD -> CaSe
+UPPER -> CASE
+empty -> 
+lower -> case
+quotedSpecial -> j18120734xn2&*@#*&R#d1j23d*(*)`
 
 // Ordered list of fields in the test confs.
 var testKeys = []string{
@@ -213,6 +244,12 @@ type Case struct {
 	typeName string
 }
 
+// 'Flat' Case instances to be used in multiple tests. These will not be
+// mutated.
+var flatCases = []Case{
+	{koanf: koanf.New(delim), file: mockDotEnv, parser: dotenv.Parser(), typeName: "dotenv"},
+}
+
 // Case instances to be used in multiple tests. These will not be mutated.
 var cases = []Case{
 	{koanf: koanf.New(delim), file: mockJSON, parser: json.Parser(), typeName: "json"},
@@ -235,6 +272,11 @@ func init() {
 	if err := cases[3].koanf.Load(file.Provider(cases[3].file), hcl.Parser(true)); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
+
+	// Preload 1 'flat' Koanf instances with their providers and config.
+	if err := flatCases[0].koanf.Load(file.Provider(flatCases[0].file), dotenv.Parser()); err != nil {
+		log.Fatalf("error loading config file: %v", err)
+	}
 }
 
 func TestLoadFile(t *testing.T) {
@@ -245,6 +287,23 @@ func TestLoadFile(t *testing.T) {
 	// Load a valid file.
 	_, err = file.Provider(mockJSON).ReadBytes()
 	assert.Nil(t, err, "error loading file")
+}
+
+func TestLoadFlatFileAllKeys(t *testing.T) {
+	assert := assert.New(t)
+	re, _ := regexp.Compile("(.+?)?type \\-> (.*)\n")
+	for _, c := range flatCases {
+		// Check against testKeys.
+		assert.Equal(flatTestKeys, c.koanf.Keys(), fmt.Sprintf("loaded keys mismatch: %v", c.typeName))
+
+		// Check against keyMap.
+		assert.EqualValues(flatTestKeyMap, c.koanf.KeyMap(), "keymap doesn't match")
+
+		// Replace the "type" fields that varies across different files
+		// to do a complete key -> value map match with testAll.
+		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
+		assert.Equal(flatTestAll, s, fmt.Sprintf("key -> value list mismatch: %v", c.typeName))
+	}
 }
 
 func TestLoadFileAllKeys(t *testing.T) {
