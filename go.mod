@@ -6,6 +6,7 @@ require (
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/hashicorp/hcl v1.0.0
+	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/mitchellh/mapstructure v1.2.2
 	github.com/pelletier/go-toml v1.7.0
 	github.com/rhnvrm/simples3 v0.5.0
