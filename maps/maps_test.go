@@ -141,6 +141,38 @@ func TestMerge(t *testing.T) {
 }
 
 func TestErase(t *testing.T) {
+	testMap := map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key":          123,
+				"key.with.dot": 456,
+			},
+		},
+		"top":   789,
+		"empty": map[string]interface{}{},
+	}
+	testMap2 := map[string]interface{}{
+		"list": []interface{}{
+			map[string]interface{}{
+				"child": map[string]interface{}{
+					"key": 123,
+				},
+			},
+			map[string]interface{}{
+				"child": map[string]interface{}{
+					"key": 123,
+				},
+			},
+		},
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+			},
+		},
+		"top":   789,
+		"empty": map[string]interface{}{},
+	}
+
 	Erase(testMap, []string{"parent", "child"})
 	assert.Equal(t, map[string]interface{}{
 		"top":   789,
