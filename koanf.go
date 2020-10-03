@@ -246,6 +246,79 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 	return d.Decode(mp)
 }
 
+// Erase removes all nested values from a given path.
+// Clears all keys/values if no path is specified.
+// Every empty, key on the path, is recursively deleted.
+func (ko *Koanf) Erase(path string) {
+	// No path. Erase the entire map.
+	if path == "" {
+		ko.confMap = make(map[string]interface{})
+		ko.confMapFlat = make(map[string]interface{})
+		ko.keyMap = make(KeyMap)
+		return
+	}
+
+	// Does the path exist?
+	p, ok := ko.keyMap[path]
+	if !ok {
+		return
+	}
+
+	var delFunc func(map[string]interface{}, []string, []string)
+	delFunc = func(mp map[string]interface{}, path []string, key []string) {
+		if len(path) == 0 {
+			// Erase all paths from children within the map.
+			for kv, next := range mp {
+				kps := append(key, kv)
+				kp := strings.Join(kps, ko.delim)
+
+				switch next.(type) {
+				case map[string]interface{}:
+					// Erase all children paths within the child.
+					delFunc(next.(map[string]interface{}), nil, kps)
+				}
+				// Erase child path.
+				delete(ko.confMapFlat, kp)
+				delete(ko.keyMap, kp)
+			}
+
+		} else {
+			next := mp[path[0]]
+			kps := append(key, path[0])
+			kp := strings.Join(kps, ko.delim)
+
+			if len(path) > 1 {
+				// 'next' will be of type map since,
+				// the initial given path is valid.
+				delFunc(next.(map[string]interface{}), path[1:], kps)
+				if len(next.(map[string]interface{})) == 0 {
+					// child map 'next' is empty; delete it
+					delete(mp, path[0])
+				}
+			} else {
+				// There is exactly 1 nesting remaining in path[].
+				switch next.(type) {
+				case map[string]interface{}:
+					// delete all paths from children of the nested map.
+					delFunc(next.(map[string]interface{}), path[1:], kps)
+					// delete the nested map.
+					delete(mp, path[0])
+				}
+
+				delete(ko.confMapFlat, kp)
+				delete(ko.keyMap, kp)
+			}
+			// If current map does not have any children.
+			if len(mp) == 0 && len(key) > 0 {
+				tmp := strings.Join(key, ko.delim)
+				delete(ko.confMap, tmp)
+				delete(ko.keyMap, tmp)
+			}
+		}
+	}
+	delFunc(ko.confMap, p, nil)
+}
+
 // Get returns the raw, uncast interface{} value of a given key path
 // in the config map. If the key path does not exist, nil is returned.
 func (ko *Koanf) Get(path string) interface{} {

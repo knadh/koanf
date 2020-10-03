@@ -962,3 +962,17 @@ func TestMustGetTypes(t *testing.T) {
 		assert.Equal(time.Date(1970, 1, 1, 0, 20, 34, 0, time.UTC), c.koanf.MustTime("parent1.id", "").UTC())
 	}
 }
+
+func TestErase(t *testing.T) {
+	assert := assert.New(t)
+	for _, c := range cases {
+		c.koanf.Erase("parent2.child2.grandchild2")
+		assert.Equal(false, c.koanf.Exists("parent2.child2.grandchild2.on"))
+		assert.Equal(false, c.koanf.Exists("parent2.child2.grandchild2.ids.5"))
+		assert.Equal(true, c.koanf.Exists("parent2.child2.name"))
+
+		c.koanf.Erase("")
+		assert.Equal(false, c.koanf.Exists("duration"))
+		assert.Equal(false, c.koanf.Exists("empty"))
+	}
+}
