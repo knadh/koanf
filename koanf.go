@@ -263,60 +263,11 @@ func (ko *Koanf) Erase(path string) {
 	if !ok {
 		return
 	}
+	maps.Erase(ko.confMap, p)
 
-	var delFunc func(map[string]interface{}, []string, []string)
-	delFunc = func(mp map[string]interface{}, path []string, key []string) {
-		if len(path) == 0 {
-			// Erase all paths from children within the map.
-			for kv, next := range mp {
-				kps := append(key, kv)
-				kp := strings.Join(kps, ko.delim)
-
-				switch next.(type) {
-				case map[string]interface{}:
-					// Erase all children paths within the child.
-					delFunc(next.(map[string]interface{}), nil, kps)
-				}
-				// Erase child path.
-				delete(ko.confMapFlat, kp)
-				delete(ko.keyMap, kp)
-			}
-
-		} else {
-			next := mp[path[0]]
-			kps := append(key, path[0])
-			kp := strings.Join(kps, ko.delim)
-
-			if len(path) > 1 {
-				// 'next' will be of type map since,
-				// the initial given path is valid.
-				delFunc(next.(map[string]interface{}), path[1:], kps)
-				if len(next.(map[string]interface{})) == 0 {
-					// child map 'next' is empty; delete it
-					delete(mp, path[0])
-				}
-			} else {
-				// There is exactly 1 nesting remaining in path[].
-				switch next.(type) {
-				case map[string]interface{}:
-					// delete all paths from children of the nested map.
-					delFunc(next.(map[string]interface{}), path[1:], kps)
-					// delete the nested map.
-					delete(mp, path[0])
-				}
-
-				delete(ko.confMapFlat, kp)
-				delete(ko.keyMap, kp)
-			}
-			// If current map does not have any children.
-			if len(mp) == 0 && len(key) > 0 {
-				tmp := strings.Join(key, ko.delim)
-				delete(ko.confMap, tmp)
-				delete(ko.keyMap, tmp)
-			}
-		}
-	}
-	delFunc(ko.confMap, p, nil)
+	// Update the flattened version as well.
+	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim)
+	ko.keyMap = populateKeyParts(ko.keyMap, ko.delim)
 }
 
 // Get returns the raw, uncast interface{} value of a given key path
