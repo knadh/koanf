@@ -966,12 +966,12 @@ func TestMustGetTypes(t *testing.T) {
 func TestErase(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
-		c.koanf.Erase("parent2.child2.grandchild2")
+		c.koanf.Delete("parent2.child2.grandchild2")
 		assert.Equal(false, c.koanf.Exists("parent2.child2.grandchild2.on"))
 		assert.Equal(false, c.koanf.Exists("parent2.child2.grandchild2.ids.5"))
 		assert.Equal(true, c.koanf.Exists("parent2.child2.name"))
 
-		c.koanf.Erase("")
+		c.koanf.Delete("")
 		assert.Equal(false, c.koanf.Exists("duration"))
 		assert.Equal(false, c.koanf.Exists("empty"))
 	}

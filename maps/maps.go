@@ -132,29 +132,29 @@ func Merge(a, b map[string]interface{}) {
 	}
 }
 
-// Erase erases the value present at a given path, from the map. The path
+// Delete removes the entry present at a given path, from the map. The path
 // is the key map slice, for eg:, parent.child.key -> [parent child key].
 // Any empty, nested map on the path, is recursively deleted.
 //
 // It's important to note that all nested maps should be
 // map[string]interface{} and not map[interface{}]interface{}.
 // Use IntfaceKeysToStrings() to convert if necessary.
-func Erase(mp map[string]interface{}, path []string) {
+func Delete(mp map[string]interface{}, path []string) {
 	next, ok := mp[path[0]]
 	if ok {
 		if len(path) == 1 {
 			delete(mp, path[0])
 			return
 		}
-		switch next.(type) {
+		switch nval := next.(type) {
 		case map[string]interface{}:
-			Erase(next.(map[string]interface{}), path[1:])
-			if len(next.(map[string]interface{})) == 0 {
+			Delete(nval, path[1:])
+			// Delete map if it has no keys.
+			if len(nval) == 0 {
 				delete(mp, path[0])
 			}
 		}
 	}
-	return
 }
 
 // Search recursively searches a map for a given path. The path is

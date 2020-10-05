@@ -173,14 +173,14 @@ func TestErase(t *testing.T) {
 		"empty": map[string]interface{}{},
 	}
 
-	Erase(testMap, []string{"parent", "child"})
+	Delete(testMap, []string{"parent", "child"})
 	assert.Equal(t, map[string]interface{}{
 		"top":   789,
 		"empty": map[string]interface{}{},
 	}, testMap)
 
-	Erase(testMap2, []string{"list"})
-	Erase(testMap2, []string{"empty"})
+	Delete(testMap2, []string{"list"})
+	Delete(testMap2, []string{"empty"})
 	assert.Equal(t, map[string]interface{}{
 		"parent": map[string]interface{}{
 			"child": map[string]interface{}{
