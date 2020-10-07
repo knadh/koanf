@@ -963,7 +963,7 @@ func TestMustGetTypes(t *testing.T) {
 	}
 }
 
-func TestErase(t *testing.T) {
+func TestDelete(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
 		c.koanf.Delete("parent2.child2.grandchild2")

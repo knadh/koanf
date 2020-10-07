@@ -140,7 +140,7 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, out, m1)
 }
 
-func TestErase(t *testing.T) {
+func TestDelete(t *testing.T) {
 	testMap := map[string]interface{}{
 		"parent": map[string]interface{}{
 			"child": map[string]interface{}{
