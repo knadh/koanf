@@ -246,6 +246,30 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 	return d.Decode(mp)
 }
 
+// Delete removes all nested values from a given path.
+// Clears all keys/values if no path is specified.
+// Every empty, key on the path, is recursively deleted.
+func (ko *Koanf) Delete(path string) {
+	// No path. Erase the entire map.
+	if path == "" {
+		ko.confMap = make(map[string]interface{})
+		ko.confMapFlat = make(map[string]interface{})
+		ko.keyMap = make(KeyMap)
+		return
+	}
+
+	// Does the path exist?
+	p, ok := ko.keyMap[path]
+	if !ok {
+		return
+	}
+	maps.Delete(ko.confMap, p)
+
+	// Update the flattened version as well.
+	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim)
+	ko.keyMap = populateKeyParts(ko.keyMap, ko.delim)
+}
+
 // Get returns the raw, uncast interface{} value of a given key path
 // in the config map. If the key path does not exist, nil is returned.
 func (ko *Koanf) Get(path string) interface{} {

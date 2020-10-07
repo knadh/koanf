@@ -140,6 +140,57 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, out, m1)
 }
 
+func TestDelete(t *testing.T) {
+	testMap := map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key":          123,
+				"key.with.dot": 456,
+			},
+		},
+		"top":   789,
+		"empty": map[string]interface{}{},
+	}
+	testMap2 := map[string]interface{}{
+		"list": []interface{}{
+			map[string]interface{}{
+				"child": map[string]interface{}{
+					"key": 123,
+				},
+			},
+			map[string]interface{}{
+				"child": map[string]interface{}{
+					"key": 123,
+				},
+			},
+		},
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+			},
+		},
+		"top":   789,
+		"empty": map[string]interface{}{},
+	}
+
+	Delete(testMap, []string{"parent", "child"})
+	assert.Equal(t, map[string]interface{}{
+		"top":   789,
+		"empty": map[string]interface{}{},
+	}, testMap)
+
+	Delete(testMap2, []string{"list"})
+	Delete(testMap2, []string{"empty"})
+	assert.Equal(t, map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+			},
+		},
+		"top": 789,
+	}, testMap2)
+}
+
 func TestSearch(t *testing.T) {
 	assert.Equal(t, 123, Search(testMap, []string{"parent", "child", "key"}))
 	assert.Equal(t, map[string]interface{}{
@@ -169,7 +220,7 @@ func TestCopy(t *testing.T) {
 func TestLookupMaps(t *testing.T) {
 	assert.Equal(t, map[string]bool{"a": true, "b": true}, StringSliceToLookupMap([]string{"a", "b"}))
 	assert.Equal(t, map[string]bool{}, StringSliceToLookupMap(nil))
-	assert.Equal(t, map[int64]bool{1: true, 2: true}, Int64SliceToLookupMap([]int64{1,2}))
+	assert.Equal(t, map[int64]bool{1: true, 2: true}, Int64SliceToLookupMap([]int64{1, 2}))
 	assert.Equal(t, map[int64]bool{}, Int64SliceToLookupMap(nil))
 
 }

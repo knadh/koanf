@@ -537,21 +537,22 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | parsers/hcl  | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
 ### Instance functions
 
-| Method                                                                 | Description                                                                                                                            |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `Load(p Provider, pa Parser) error`                                    | Loads config from a Provider. If a koanf.Parser is provided, the config is assumed to be raw bytes that's then parsed with the Parser. |
-| `Keys() []string`                                                      | Returns the list of flattened key paths that can be used to access config values                                                       |
-| `KeyMap() map[string][]string`                                         | Returns a map of all possible key path combinations possible in the loaded nested conf map                                             |
-| `All() map[string]interface{}`                                         | Returns a flat map of flattened key paths and their corresponding config values                                                        |
-| `Raw() map[string]interface{}`                                         | Returns a copy of the raw nested conf map                                                                                              |
-| `Print()`                                                              | Prints a human readable copy of the flattened key paths and their values for debugging                                                 |
-| `Sprint()`                                                             | Returns a human readable copy of the flattened key paths and their values for debugging                                                |
-| `Cut(path string) *Koanf`                                              | Cuts the loaded nested conf map at the given path and returns a new Koanf instance with the children                                   |
-| `Copy() *Koanf`                                                        | Returns a copy of the Koanf instance                                                                                                   |
-| `Merge(*Koanf)`                                                        | Merges the config map of a Koanf instance into the current instance                                                                    |
-| `MergeAt(in *Koanf, path string)`                                      | Merges the config map of a Koanf instance into the current instance, at the given key path.                                            |
-| `Unmarshal(path string, o interface{}) error`                          | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag                  |
-| `UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                                                                                           |
+| Method                                                       | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `Load(p Provider, pa Parser) error`                          | Loads config from a Provider. If a koanf.Parser is provided, the config is assumed to be raw bytes that's then parsed with the Parser. |
+| `Keys() []string`                                            | Returns the list of flattened key paths that can be used to access config values |
+| `KeyMap() map[string][]string`                               | Returns a map of all possible key path combinations possible in the loaded nested conf map |
+| `All() map[string]interface{}`                               | Returns a flat map of flattened key paths and their corresponding config values |
+| `Raw() map[string]interface{}`                               | Returns a copy of the raw nested conf map                    |
+| `Print()`                                                    | Prints a human readable copy of the flattened key paths and their values for debugging |
+| `Sprint()`                                                   | Returns a human readable copy of the flattened key paths and their values for debugging |
+| `Cut(path string) *Koanf`                                    | Cuts the loaded nested conf map at the given path and returns a new Koanf instance with the children |
+| `Copy() *Koanf`                                              | Returns a copy of the Koanf instance                         |
+| `Merge(*Koanf)`                                              | Merges the config map of a Koanf instance into the current instance |
+| `Delete(path string)`                                        | Delete the value at the given path, and does nothing if path doesn't exist. |
+| `MergeAt(in *Koanf, path string)`                            | Merges the config map of a Koanf instance into the current instance, at the given key path. |
+| `Unmarshal(path string, o interface{}) error`                | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag |
+| `UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                 |
 
 ### Getter functions
 
