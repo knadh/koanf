@@ -41,10 +41,9 @@ func Provider(prefix, delim string, cb func(s string) string) *Env {
 }
 
 // ProviderWithValue works exactly the same as Provider except the callback
-// takes a (key, value) which will provide the environment variable key
-// and value and allows you to modify both the key and the value.
-// This is useful for cases where you may want to return other types like
-// a string slice instead of just a string.
+// takes a (key, value) with the variable name and value and allows you
+// to modify both. This is useful for cases where you may want to return
+// other types like a string slice instead of just a string.
 func ProviderWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *Env {
 	return &Env{
 		prefix: prefix,
