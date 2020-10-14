@@ -14,7 +14,7 @@ import (
 type Env struct {
 	prefix string
 	delim  string
-	cb     func(s string) string
+	cb     func(key string, value string) (string, interface{})
 }
 
 // Provider returns an environment variables provider that returns
@@ -31,6 +31,21 @@ type Env struct {
 // If the callback returns an empty string, the variable will be
 // ignored.
 func Provider(prefix, delim string, cb func(s string) string) *Env {
+	return &Env{
+		prefix: prefix,
+		delim:  delim,
+		cb: func(key string, value string) (string, interface{}) {
+			return cb(key), value
+		},
+	}
+}
+
+// ProviderWithValue works exactly the same as Provider except the callback
+// takes a (key, value) which will provide the environment variable key
+// and value and allows you to modify both the key and the value.
+// This is useful for cases where you may want to return other types like
+// a string slice instead of just a string.
+func ProviderWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *Env {
 	return &Env{
 		prefix: prefix,
 		delim:  delim,
@@ -62,16 +77,19 @@ func (e *Env) Read() (map[string]interface{}, error) {
 	for _, k := range keys {
 		parts := strings.SplitN(k, "=", 2)
 
-		// If there's a string transformation callback,
-		// run it through every string.
+		// If there's a transformation callback,
+		// run it through every key/value.
 		if e.cb != nil {
-			parts[0] = e.cb(parts[0])
+			key, value := e.cb(parts[0], parts[1])
 			// If the callback blanked the key, it should be omitted
-			if parts[0] == "" {
+			if key == "" {
 				continue
 			}
+			mp[key] = value
+		} else {
+			mp[parts[0]] = parts[1]
 		}
-		mp[parts[0]] = parts[1]
+
 	}
 
 	return maps.Unflatten(mp, e.delim), nil
