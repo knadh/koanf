@@ -230,6 +230,29 @@ func main() {
 }
 ```
 
+You can also use the `env.ProviderWithValue` with a callback that supports mutating both the key and value
+to return types other than a string.
+
+```go
+
+	// Load environment variables and merge into the loaded config.
+	// "MYVAR" is the prefix to filter the env vars by just as the example above but
+	// in this case we check the existing type of the value (if it exists)
+	// If it's a slice, we convert the environment variable to a string slice
+	k.Load(env.ProviderWithValue("MYVAR_", ".", func(s string, v string) (string, interface{}) {
+		// Convert the environment variable key to the koanf key format
+		key := strings.Replace(strings.ToLower(strings.TrimPrefix(s, "MYVAR_")), "_", ".", -1)
+		// Check to exist if we have a configuration option already and see if it's a slice
+		switch k.Get(key).(type) {
+		case []interface{}, []string:
+			// Convert our environment variable to a slice by splitting on space
+			return key, strings.Split(v, " ")
+		}
+		return key, s // Otherwise return the new key with the unaltered value
+	}), nil)
+}
+```
+
 ### Reading from an S3 bucket
 
 ```go
