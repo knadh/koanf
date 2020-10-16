@@ -451,15 +451,6 @@ func TestLoadMerge(t *testing.T) {
 	assert.Nil(err, "error loading env with value")
 	assert.Equal("ENV", k.String("parent1.child1.type"), "types don't match")
 
-	// Test the env provider will ignore changes when returning empty string
-	os.Setenv("PREFIX_PARENT1.CHILD1.TYPE", "env")
-	err = k.Load(env.ProviderWithValue("PREFIX_", ".", func(k string, v string) (string, interface{}) {
-		return "", nil // no change
-	}), nil)
-
-	assert.Nil(err, "error loading env with value no change")
-	assert.Equal("ENV", k.String("parent1.child1.type"), "types don't match")
-
 	// Override with the confmap provider.
 	k.Load(confmap.Provider(map[string]interface{}{
 		"parent1.child1.type": "confmap",
