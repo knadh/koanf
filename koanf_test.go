@@ -436,11 +436,28 @@ func TestLoadMerge(t *testing.T) {
 
 	// Load env provider and override value.
 	os.Setenv("PREFIX_PARENT1.CHILD1.TYPE", "env")
-	err := k.Load(env.ProviderWithValue("PREFIX_", ".", func(k string, v string) (string, interface{}) {
-		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
+	err := k.Load(env.Provider("PREFIX_", ".", func(k string) string {
+		return strings.Replace(strings.ToLower(k), "prefix_", "", -1)
 	}), nil)
 
 	assert.Nil(err, "error loading env")
+	assert.Equal("env", k.String("parent1.child1.type"), "types don't match")
+
+	// Test the env provider than can mutate the value to upper case
+	err = k.Load(env.ProviderWithValue("PREFIX_", ".", func(k string, v string) (string, interface{}) {
+		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
+	}), nil)
+
+	assert.Nil(err, "error loading env with value")
+	assert.Equal("ENV", k.String("parent1.child1.type"), "types don't match")
+
+	// Test the env provider will ignore changes when returning empty string
+	os.Setenv("PREFIX_PARENT1.CHILD1.TYPE", "env")
+	err = k.Load(env.ProviderWithValue("PREFIX_", ".", func(k string, v string) (string, interface{}) {
+		return "", nil // no change
+	}), nil)
+
+	assert.Nil(err, "error loading env with value no change")
 	assert.Equal("ENV", k.String("parent1.child1.type"), "types don't match")
 
 	// Override with the confmap provider.
