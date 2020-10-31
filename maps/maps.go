@@ -29,9 +29,10 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 	for key, val := range m {
 		// Copy the incoming key paths into a fresh list
 		// and append the current key in the iteration.
+		// Escape delimiter if present in key.
 		kp := make([]string, 0, len(keys)+1)
 		kp = append(kp, keys...)
-		kp = append(kp, key)
+		kp = append(kp, strings.ReplaceAll(key, delim, delim+delim))
 
 		switch cur := val.(type) {
 		case map[string]interface{}:
@@ -75,9 +76,30 @@ func Unflatten(m map[string]interface{}, delim string) map[string]interface{} {
 	// Iterate through the flat conf map.
 	for k, v := range m {
 		var (
-			keys = strings.Split(k, delim)
+			keys = make([]string, 0, strings.Count(k, ".")+1)
 			next = out
 		)
+
+		// Split key path using delim. Also handle
+		// escaped delims. Delims are escaped when
+		// two delims characters are consecutive.
+		curr, prevIsDelim := 0, false
+		for _, c := range k {
+			if string(c) == delim {
+				if !prevIsDelim {
+					curr++
+					prevIsDelim = true
+
+					continue
+				}
+
+				curr--
+			}
+
+			keys = keys[:curr+1]
+			keys[curr] += string(c)
+			prevIsDelim = false
+		}
 
 		// Iterate through key parts, for eg:, parent.child.key
 		// will be ["parent", "child", "key"]
