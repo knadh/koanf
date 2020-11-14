@@ -36,7 +36,7 @@ func Flatten(m map[string]interface{}, keys []string, delim, delimEscape string)
 		escKey := key
 		// Escape delim in key, if delim is valid.
 		if strings.Contains(delimEscape, delim) {
-			escKey = strings.ReplaceAll(key, delim, delimEscape)
+			escKey = strings.Replace(key, delim, delimEscape, -1)
 		}
 		kp = append(kp, escKey)
 
