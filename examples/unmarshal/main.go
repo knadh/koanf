@@ -11,7 +11,7 @@ import (
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
 var (
-	k      = koanf.New(".")
+	k      = koanf.New(".", "")
 	parser = json.Parser()
 )
 

@@ -12,9 +12,10 @@ import (
 
 // Env implements an environment variables provider.
 type Env struct {
-	prefix string
-	delim  string
-	cb     func(key string, value string) (string, interface{})
+	prefix      string
+	delim       string
+	delimEscape string
+	cb          func(key string, value string) (string, interface{})
 }
 
 // Provider returns an environment variables provider that returns
@@ -91,7 +92,7 @@ func (e *Env) Read() (map[string]interface{}, error) {
 
 	}
 
-	return maps.Unflatten(mp, e.delim), nil
+	return maps.Unflatten(mp, e.delim, e.delimEscape), nil
 }
 
 // Watch is not supported.

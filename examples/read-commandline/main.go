@@ -13,7 +13,7 @@ import (
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
-var k = koanf.New(".")
+var k = koanf.New(".", "")
 
 func main() {
 	// Use the POSIX compliant pflag lib instead of Go's flag lib.

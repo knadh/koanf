@@ -12,7 +12,7 @@ import (
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
-var k = koanf.New(".")
+var k = koanf.New(".", "")
 
 func main() {
 	// Load default values using the confmap provider.
@@ -21,7 +21,7 @@ func main() {
 	k.Load(confmap.Provider(map[string]interface{}{
 		"parent1.name": "Default Name",
 		"parent3.name": "New name here",
-	}, "."), nil)
+	}, ".", ""), nil)
 
 	// Load JSON config on top of the default values.
 	if err := k.Load(file.Provider("mock/mock.json"), json.Parser()); err != nil {

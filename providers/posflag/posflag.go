@@ -13,9 +13,10 @@ import (
 
 // Posflag implements a pflag command line provider.
 type Posflag struct {
-	delim   string
-	flagset *pflag.FlagSet
-	ko      *koanf.Koanf
+	delim       string
+	delimEscape string
+	flagset     *pflag.FlagSet
+	ko          *koanf.Koanf
 }
 
 // Provider returns a commandline flags provider that returns
@@ -86,7 +87,7 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 
 		mp[f.Name] = v
 	})
-	return maps.Unflatten(mp, p.delim), nil
+	return maps.Unflatten(mp, p.delim, p.delimEscape), nil
 }
 
 // ReadBytes is not supported by the env koanf.

@@ -11,6 +11,7 @@ import (
 
 // Flatten takes a map[string]interface{} and traverses it and flattens
 // nested children into keys delimited by delim.
+// Use delimEscape to include a literal delim in the key.
 //
 // It's important to note that all nested maps should be
 // map[string]interface{} and not map[interface{}]interface{}.
@@ -21,7 +22,7 @@ import (
 // a slice of key parts, for eg: { "parent.child": ["parent", "child"] }. This
 // parts list is used to remember the key path's original structure to
 // unflatten later.
-func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]interface{}, map[string][]string) {
+func Flatten(m map[string]interface{}, keys []string, delim, delimEscape string) (map[string]interface{}, map[string][]string) {
 	var (
 		out    = make(map[string]interface{})
 		keyMap = make(map[string][]string)
@@ -29,10 +30,15 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 	for key, val := range m {
 		// Copy the incoming key paths into a fresh list
 		// and append the current key in the iteration.
-		// Escape delimiter if present in key.
 		kp := make([]string, 0, len(keys)+1)
 		kp = append(kp, keys...)
-		kp = append(kp, strings.ReplaceAll(key, delim, delim+delim))
+
+		escKey := key
+		// Escape delim in key, if delim is valid.
+		if strings.Contains(delimEscape, delim) {
+			escKey = strings.ReplaceAll(key, delim, delimEscape)
+		}
+		kp = append(kp, escKey)
 
 		switch cur := val.(type) {
 		case map[string]interface{}:
@@ -45,7 +51,7 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 			}
 
 			// It's a nested map. Flatten it recursively.
-			next, parts := Flatten(cur, kp, delim)
+			next, parts := Flatten(cur, kp, delim, delimEscape)
 
 			// Copy the resultant key parts and the value maps.
 			for k, p := range parts {
@@ -70,35 +76,48 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 // It's important to note that all nested maps should be
 // map[string]interface{} and not map[interface{}]interface{}.
 // Use IntfaceKeysToStrings() to convert if necessary.
-func Unflatten(m map[string]interface{}, delim string) map[string]interface{} {
+func Unflatten(m map[string]interface{}, delim, delimEscape string) map[string]interface{} {
 	out := make(map[string]interface{})
 
 	// Iterate through the flat conf map.
 	for k, v := range m {
 		var (
-			keys = make([]string, 0, strings.Count(k, ".")+1)
+			keys = make([]string, 0)
 			next = out
 		)
 
-		// Split key path using delim. Also handle
-		// escaped delims. Delims are escaped when
-		// two delims characters are consecutive.
-		curr, prevIsDelim := 0, false
-		for _, c := range k {
-			if string(c) == delim {
-				if !prevIsDelim {
-					curr++
-					prevIsDelim = true
-
-					continue
+		// Handle escaped delims in key.
+		if strings.Contains(delimEscape, delim) {
+			nk, isEscaped := k, make(map[int]bool)
+			// Replace each delimEscape with delim (unescape).
+			for prev := 0; ; {
+				i := strings.Index(nk[prev:], delimEscape)
+				if i == -1 {
+					break
 				}
+				i += prev
 
-				curr--
+				prev = i + len(delim)
+				isEscaped[i] = true
+				nk = strings.Replace(nk, delimEscape, delim, 1)
 			}
+			// Split unescaped key by delim.
+			for last, prev := 0, 0; ; {
+				i := strings.Index(nk[prev:], delim)
+				if i == -1 {
+					keys = append(keys, nk[last:])
+					break
+				}
+				i += prev
 
-			keys = keys[:curr+1]
-			keys[curr] += string(c)
-			prevIsDelim = false
+				prev = i + len(delim)
+				if !isEscaped[i] {
+					keys = append(keys, nk[last:i])
+					last = i + len(delim)
+				}
+			}
+		} else {
+			keys = strings.Split(k, delim)
 		}
 
 		// Iterate through key parts, for eg:, parent.child.key

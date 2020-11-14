@@ -7,7 +7,7 @@ import (
 	"github.com/knadh/koanf/providers/structs"
 )
 
-var k = koanf.New(".")
+var k = koanf.New(".", "")
 
 type parentStruct struct {
 	Name   string      `koanf:"name"`

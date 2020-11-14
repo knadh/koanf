@@ -11,8 +11,9 @@ import (
 
 // Pflag implements a pflag command line provider.
 type Pflag struct {
-	delim   string
-	flagset *flag.FlagSet
+	delim       string
+	delimEscape string
+	flagset     *flag.FlagSet
 }
 
 // Provider returns a commandline flags provider that returns
@@ -33,7 +34,7 @@ func (p *Pflag) Read() (map[string]interface{}, error) {
 	p.flagset.VisitAll(func(f *flag.Flag) {
 		mp[f.Name] = f.Value.String()
 	})
-	return maps.Unflatten(mp, p.delim), nil
+	return maps.Unflatten(mp, p.delim, p.delimEscape), nil
 }
 
 // ReadBytes is not supported by the env koanf.

@@ -11,7 +11,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 )
 
-var k = koanf.New(".")
+var k = koanf.New(".", "")
 
 func main() {
 	// Load JSON config.

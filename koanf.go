@@ -19,6 +19,7 @@ type Koanf struct {
 	confMapFlat map[string]interface{}
 	keyMap      KeyMap
 	delim       string
+	delimEscape string
 }
 
 // KeyMap represents a map of flattened delimited keys and the non-delimited
@@ -53,9 +54,10 @@ type UnmarshalConf struct {
 // New returns a new instance of Koanf. delim is the delimiter to use
 // when specifying config key paths, for instance a . for `parent.child.key`
 // or a / for `parent/child/key`.
-func New(delim string) *Koanf {
+func New(delim, delimEscape string) *Koanf {
 	return &Koanf{
 		delim:       delim,
+		delimEscape: delimEscape,
 		confMap:     make(map[string]interface{}),
 		confMapFlat: make(map[string]interface{}),
 		keyMap:      make(KeyMap),
@@ -160,7 +162,7 @@ func (ko *Koanf) Cut(path string) *Koanf {
 		out = v
 	}
 
-	n := New(ko.delim)
+	n := New(ko.delim, ko.delimEscape)
 	n.merge(out)
 	return n
 }
@@ -190,7 +192,7 @@ func (ko *Koanf) MergeAt(in *Koanf, path string) {
 	// Unflatten the config map with the given key path.
 	n := maps.Unflatten(map[string]interface{}{
 		path: in.Raw(),
-	}, ko.delim)
+	}, ko.delim, ko.delimEscape)
 
 	ko.merge(n)
 }
@@ -238,7 +240,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 	mp := ko.Get(path)
 	if c.FlatPaths {
 		if f, ok := mp.(map[string]interface{}); ok {
-			fmp, _ := maps.Flatten(f, nil, ko.delim)
+			fmp, _ := maps.Flatten(f, nil, ko.delim, ko.delimEscape)
 			mp = fmp
 		}
 	}
@@ -266,7 +268,7 @@ func (ko *Koanf) Delete(path string) {
 	maps.Delete(ko.confMap, p)
 
 	// Update the flattened version as well.
-	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim)
+	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim, ko.delimEscape)
 	ko.keyMap = populateKeyParts(ko.keyMap, ko.delim)
 }
 
@@ -324,8 +326,8 @@ func (ko *Koanf) Slices(path string) []*Koanf {
 			continue
 		}
 
-		k := New(ko.delim)
-		k.Load(confmap.Provider(v, ""), nil)
+		k := New(ko.delim, ko.delimEscape)
+		k.Load(confmap.Provider(v, "", ""), nil)
 		out = append(out, k)
 	}
 
@@ -367,7 +369,7 @@ func (ko *Koanf) merge(c map[string]interface{}) {
 	maps.Merge(c, ko.confMap)
 
 	// Maintain a flattened version as well.
-	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim)
+	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim, ko.delimEscape)
 	ko.keyMap = populateKeyParts(ko.keyMap, ko.delim)
 }
 

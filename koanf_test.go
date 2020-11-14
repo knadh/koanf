@@ -30,7 +30,8 @@ import (
 )
 
 const (
-	delim = "."
+	delim       = "."
+	delimEscape = ""
 
 	mockDir    = "mock"
 	mockJSON   = mockDir + "/mock.json"
@@ -247,15 +248,15 @@ type Case struct {
 // 'Flat' Case instances to be used in multiple tests. These will not be
 // mutated.
 var flatCases = []Case{
-	{koanf: koanf.New(delim), file: mockDotEnv, parser: dotenv.Parser(), typeName: "dotenv"},
+	{koanf: koanf.New(delim, delimEscape), file: mockDotEnv, parser: dotenv.Parser(), typeName: "dotenv"},
 }
 
 // Case instances to be used in multiple tests. These will not be mutated.
 var cases = []Case{
-	{koanf: koanf.New(delim), file: mockJSON, parser: json.Parser(), typeName: "json"},
-	{koanf: koanf.New(delim), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
-	{koanf: koanf.New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
-	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
+	{koanf: koanf.New(delim, delimEscape), file: mockJSON, parser: json.Parser(), typeName: "json"},
+	{koanf: koanf.New(delim, delimEscape), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
+	{koanf: koanf.New(delim, delimEscape), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
+	{koanf: koanf.New(delim, delimEscape), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
 }
 
 func init() {
@@ -326,7 +327,7 @@ func TestLoadFileAllKeys(t *testing.T) {
 func TestWatchFile(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = koanf.New(delim, delimEscape)
 	)
 
 	// Create a tmp config file.
@@ -367,7 +368,7 @@ func TestWatchFile(t *testing.T) {
 func TestWatchFileSymlink(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = koanf.New(delim, delimEscape)
 	)
 
 	// Create a symlink.
@@ -419,7 +420,7 @@ func TestLoadMerge(t *testing.T) {
 	var (
 		assert = assert.New(t)
 		// Load several types into a fresh Koanf instance.
-		k = koanf.New(delim)
+		k = koanf.New(delim, delimEscape)
 	)
 	for _, c := range cases {
 		assert.Nil(k.Load(file.Provider(c.file), c.parser),
@@ -455,7 +456,7 @@ func TestLoadMerge(t *testing.T) {
 	k.Load(confmap.Provider(map[string]interface{}{
 		"parent1.child1.type": "confmap",
 		"type":                "confmap",
-	}, "."), nil)
+	}, ".", ""), nil)
 	assert.Equal("confmap", k.String("parent1.child1.type"), "types don't match")
 	assert.Equal("confmap", k.String("type"), "types don't match")
 
@@ -469,7 +470,7 @@ func TestLoadMerge(t *testing.T) {
 func TestFlags(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = koanf.New(delim, delimEscape)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	k2 := k.Copy()
@@ -516,7 +517,7 @@ func TestFlags(t *testing.T) {
 func TestConfMapValues(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = koanf.New(delim, delimEscape)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	var (
@@ -525,7 +526,7 @@ func TestConfMapValues(t *testing.T) {
 		r1  = k.Cut("parent2").Raw()
 	)
 
-	k = koanf.New(delim)
+	k = koanf.New(delim, delimEscape)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	var (
 		c2  = k.All()
@@ -542,7 +543,7 @@ func TestCutCopy(t *testing.T) {
 	// Instance 1.
 	var (
 		assert = assert.New(t)
-		k1     = koanf.New(delim)
+		k1     = koanf.New(delim, delimEscape)
 	)
 	assert.Nil(k1.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
@@ -553,7 +554,7 @@ func TestCutCopy(t *testing.T) {
 	)
 
 	// Instance 2.
-	k2 := koanf.New(delim)
+	k2 := koanf.New(delim, delimEscape)
 	assert.Nil(k2.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
 	var (
@@ -577,7 +578,7 @@ func TestCutCopy(t *testing.T) {
 func TestMerge(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = koanf.New(delim, delimEscape)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
@@ -591,7 +592,7 @@ func TestMerge(t *testing.T) {
 	assert.NotEqual(cut1.Sprint(), cut2.Sprint(), "different cuts incorrectly match")
 
 	// Create an empty Koanf instance.
-	k2 := koanf.New(delim)
+	k2 := koanf.New(delim, delimEscape)
 
 	// Merge cut1 into it and check if they match.
 	k2.Merge(cut1)
@@ -601,7 +602,7 @@ func TestMerge(t *testing.T) {
 func TestMergeAt(t *testing.T) {
 	var (
 		assert = assert.New(t)
-		k      = koanf.New(delim)
+		k      = koanf.New(delim, delimEscape)
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
 		"error loading file")
@@ -616,16 +617,16 @@ func TestMergeAt(t *testing.T) {
 	)
 
 	// Get nested test data to merge at path
-	child2 := koanf.New(delim)
+	child2 := koanf.New(delim, delimEscape)
 	assert.Nil(child2.Load(confmap.Provider(map[string]interface{}{
 		"name":  k.String("parent2.child2.name"),
 		"empty": k.Get("parent2.child2.empty"),
-	}, delim), nil))
+	}, delim, delimEscape), nil))
 	grandChild := k.Cut("parent2.child2.grandchild2")
 
 	// Create test koanf
-	ordered := koanf.New(delim)
-	assert.Nil(ordered.Load(confmap.Provider(rootData, delim), nil))
+	ordered := koanf.New(delim, delimEscape)
+	assert.Nil(ordered.Load(confmap.Provider(rootData, delim, delimEscape), nil))
 
 	// Merge at path in order, first child2, then child2.grandchild2
 	ordered.MergeAt(child2, "child2")
@@ -633,8 +634,8 @@ func TestMergeAt(t *testing.T) {
 	assert.Equal(expected.Get(""), ordered.Get(""), "conf map mismatch")
 
 	// Create test koanf
-	reversed := koanf.New(delim)
-	assert.Nil(reversed.Load(confmap.Provider(rootData, delim), nil))
+	reversed := koanf.New(delim, delimEscape)
+	assert.Nil(reversed.Load(confmap.Provider(rootData, delim, delimEscape), nil))
 
 	// Merge at path in reverse order, first child2.grandchild2, then child2
 	reversed.MergeAt(grandChild, "child2.grandchild2")
@@ -667,7 +668,7 @@ func TestUnmarshal(t *testing.T) {
 	// Unmarshal and check all parsers.
 	for _, c := range cases {
 		var (
-			k  = koanf.New(delim)
+			k  = koanf.New(delim, delimEscape)
 			ts testStruct
 		)
 		assert.Nil(k.Load(file.Provider(c.file), c.parser),
@@ -704,7 +705,7 @@ func TestUnmarshalFlat(t *testing.T) {
 
 	// Unmarshal and check all parsers.
 	for _, c := range cases {
-		k := koanf.New(delim)
+		k := koanf.New(delim, delimEscape)
 		assert.Nil(k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 		ts := testStructFlat{}
@@ -725,7 +726,7 @@ func TestMarshal(t *testing.T) {
 		}
 
 		// Load config.
-		k := koanf.New(delim)
+		k := koanf.New(delim, delimEscape)
 		assert.NoError(k.Load(file.Provider(c.file), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 
@@ -734,7 +735,7 @@ func TestMarshal(t *testing.T) {
 		assert.NoError(err, "error marshalling")
 
 		// Reload raw serialize bytes into a new koanf instance.
-		k = koanf.New(delim)
+		k = koanf.New(delim, delimEscape)
 		assert.NoError(k.Load(rawbytes.Provider(b), c.parser),
 			fmt.Sprintf("error loading: %v", c.file))
 
@@ -789,8 +790,8 @@ func TestSlices(t *testing.T) {
 		"another": "123"
 	}`), &mp)
 	assert.NoError(err, "error marshalling test payload")
-	k := koanf.New(delim)
-	assert.NoError(k.Load(confmap.Provider(mp, "."), nil))
+	k := koanf.New(delim, delimEscape)
+	assert.NoError(k.Load(confmap.Provider(mp, ".", ""), nil))
 
 	assert.Empty(k.Slices("x"))
 	assert.Empty(k.Slices("parent.value"))

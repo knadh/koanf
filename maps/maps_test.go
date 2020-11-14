@@ -42,9 +42,10 @@ var testMap2 = map[string]interface{}{
 }
 
 const delim = "."
+const delimEscape = ".."
 
 func TestFlatten(t *testing.T) {
-	f, k := Flatten(testMap, nil, delim)
+	f, k := Flatten(testMap, nil, delim, delimEscape)
 	assert.Equal(t, map[string]interface{}{
 		"parent.child.key":            123,
 		"parent.child.key..with..dot": 456,
@@ -60,12 +61,12 @@ func TestFlatten(t *testing.T) {
 }
 
 func TestUnflatten(t *testing.T) {
-	m, _ := Flatten(testMap, nil, delim)
-	um := Unflatten(m, delim)
+	m, _ := Flatten(testMap, nil, delim, delimEscape)
+	um := Unflatten(m, delim, delimEscape)
 	assert.Equal(t, um, testMap)
 
-	m, _ = Flatten(testMap2, nil, delim)
-	um = Unflatten(m, delim)
+	m, _ = Flatten(testMap2, nil, delim, delimEscape)
+	um = Unflatten(m, delim, delimEscape)
 	assert.Equal(t, um, testMap2)
 }
 
