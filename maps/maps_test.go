@@ -64,6 +64,14 @@ func TestUnflatten(t *testing.T) {
 	m, _ = Flatten(testMap2, nil, delim)
 	um = Unflatten(m, delim)
 	assert.Equal(t, um, testMap2)
+
+	const delim = "."
+	assert.Equal(t,
+		map[string]interface{}{"foo": map[string]interface{}{"bar": "baz"}},
+		Unflatten(map[string]interface{}{
+			"foo":     nil,
+			"foo.bar": "baz",
+		}, delim))
 }
 
 func TestIntfaceKeysToStrings(t *testing.T) {
