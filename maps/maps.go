@@ -83,8 +83,9 @@ func Unflatten(m map[string]interface{}, delim string) map[string]interface{} {
 		// will be ["parent", "child", "key"]
 		for _, k := range keys[:len(keys)-1] {
 			sub, ok := next[k]
-			if !ok {
-				// If the key does not exist in the map, create it.
+			if !ok || sub == nil {
+				// If the key does not exist in the map, or it is empty
+				// we create it.
 				sub = make(map[string]interface{})
 				next[k] = sub
 			}
