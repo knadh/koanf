@@ -55,8 +55,3 @@ func (r *Consul) ReadBytes() ([]byte, error) {
 func (r *Consul) Read() (map[string]interface{}, error) {
 	return nil, errors.New("Consul provider does not support this method")
 }
-
-// Watch is not supported.
-func (r *Consul) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("Consul provider does not support this method")
-}
