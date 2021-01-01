@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/hashicorp/consul/api v1.8.1
 	github.com/hashicorp/hcl v1.0.0
 	github.com/joho/godotenv v1.3.0
 	github.com/mitchellh/mapstructure v1.2.2
