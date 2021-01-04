@@ -5,7 +5,6 @@ package consul
 
 import (
 	"errors"
-	"log"
 
 	"github.com/hashicorp/consul/api"
 )
@@ -28,11 +27,10 @@ type Consul struct {
 	cfg    Config
 }
 
-// Provider returns a provider that takes a simples3 config.
+// Provider returns a provider that takes a Consul config.
 func Provider(cfg Config) *Consul {
 	consulClient, err := api.NewClient(&api.Config{Address: cfg.Address, Token: cfg.Token})
 	if err != nil {
-		log.Println(err)
 		return nil
 	}
 	return &Consul{consul: consulClient, cfg: cfg}
@@ -44,7 +42,6 @@ func (r *Consul) ReadBytes() ([]byte, error) {
 	pair, _, err := kv.Get(r.cfg.Key, nil)
 
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
