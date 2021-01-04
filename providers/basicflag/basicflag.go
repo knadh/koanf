@@ -36,7 +36,7 @@ func (p *Pflag) Read() (map[string]interface{}, error) {
 	return maps.Unflatten(mp, p.delim), nil
 }
 
-// ReadBytes is not supported by the env koanf.
+// ReadBytes is not supported by the basicflag koanf.
 func (p *Pflag) ReadBytes() ([]byte, error) {
 	return nil, errors.New("basicflag provider does not support this method")
 }
