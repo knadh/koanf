@@ -25,7 +25,7 @@ koanf comes with built in support for reading configuration from files, command 
 - [Setting default values](#setting-default-values)
 - [Order of merge and key case senstivity](#order-of-merge-and-key-case-senstivity)
 - [Custom Providers and Parsers](#custom-providers-and-parsers)
-- [API](#api)
+- [List of Providers, Parsers, and functions](#api)
 
 ### Concepts
 
