@@ -473,6 +473,7 @@ func TestFlags(t *testing.T) {
 	)
 	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()), "error loading file")
 	k2 := k.Copy()
+	k3 := k.Copy()
 
 	// Override with the posflag provider.
 	f := pflag.NewFlagSet("test", pflag.ContinueOnError)
@@ -498,6 +499,12 @@ func TestFlags(t *testing.T) {
 	assert.Equal([]string{"a", "b", "c"}, k.Strings("stringslice"), "value doesn't match")
 	assert.Equal([]int{1, 2, 3}, k.Ints("intslice"), "value doesn't match")
 
+	// Test the posflag provider can mutate the value to upper case
+	assert.Nil(k3.Load(posflag.ProviderWithValue(f, ".", nil, func(k string, v string) (string, interface{}) {
+		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
+	}), nil), "error loading posflag")
+	assert.Equal("FLAG", k3.String("parent1.child1.type"), "types don't match")
+
 	// Test without passing the Koanf instance where default values will not merge.
 	assert.Nil(k2.Load(posflag.Provider(f, ".", nil), nil), "error loading posflag")
 	assert.Equal("flag", k2.String("parent1.child1.type"), "types don't match")
@@ -510,6 +517,15 @@ func TestFlags(t *testing.T) {
 	bf.Set("parent1.child1.type", "basicflag")
 	assert.Nil(k.Load(basicflag.Provider(bf, "."), nil), "error loading basicflag")
 	assert.Equal("basicflag", k.String("parent1.child1.type"), "types don't match")
+
+	// Test the basicflag provider can mutate the value to upper case
+	bf2 := flag.NewFlagSet("test", flag.ContinueOnError)
+	bf2.String("parent1.child1.type", "flag", "")
+	bf2.Set("parent1.child1.type", "basicflag")
+	assert.Nil(k.Load(basicflag.ProviderWithValue(bf2, ".", func(k string, v string) (string, interface{}) {
+		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
+	}), nil), "error loading basicflag")
+	assert.Equal("BASICFLAG", k.String("parent1.child1.type"), "types don't match")
 
 }
 

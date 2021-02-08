@@ -13,6 +13,7 @@ import (
 type Pflag struct {
 	delim   string
 	flagset *flag.FlagSet
+	cb      func(key string, value string) (string, interface{})
 }
 
 // Provider returns a commandline flags provider that returns
@@ -27,11 +28,32 @@ func Provider(f *flag.FlagSet, delim string) *Pflag {
 	}
 }
 
+// ProviderWithValue works exactly the same as Provider except the callback
+// takes a (key, value) with the variable name and value and allows you
+// to modify both. This is useful for cases where you may want to return
+// other types like a string slice instead of just a string.
+func ProviderWithValue(f *flag.FlagSet, delim string, cb func(key string, value string) (string, interface{})) *Pflag {
+	return &Pflag{
+		flagset: f,
+		delim:   delim,
+		cb:      cb,
+	}
+}
+
 // Read reads the flag variables and returns a nested conf map.
 func (p *Pflag) Read() (map[string]interface{}, error) {
 	mp := make(map[string]interface{})
 	p.flagset.VisitAll(func(f *flag.Flag) {
-		mp[f.Name] = f.Value.String()
+		if p.cb != nil {
+			key, value := p.cb(f.Name, f.Value.String())
+			// If the callback blanked the key, it should be omitted
+			if key == "" {
+				return
+			}
+			mp[key] = value
+		} else {
+			mp[f.Name] = f.Value.String()
+		}
 	})
 	return maps.Unflatten(mp, p.delim), nil
 }

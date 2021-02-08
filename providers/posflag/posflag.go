@@ -16,6 +16,7 @@ type Posflag struct {
 	delim   string
 	flagset *pflag.FlagSet
 	ko      *koanf.Koanf
+	cb      func(key string, value string) (string, interface{})
 }
 
 // Provider returns a commandline flags provider that returns
@@ -34,6 +35,19 @@ func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 		flagset: f,
 		delim:   delim,
 		ko:      ko,
+	}
+}
+
+// ProviderWithValue works exactly the same as Provider except the callback
+// takes a (key, value) with the variable name and value and allows you
+// to modify both. This is useful for cases where you may want to return
+// other types like a string slice instead of just a string.
+func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(key string, value string) (string, interface{})) *Posflag {
+	return &Posflag{
+		flagset: f,
+		delim:   delim,
+		ko:      ko,
+		cb:      cb,
 	}
 }
 
@@ -81,7 +95,16 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 		case "intSlice":
 			v, _ = p.flagset.GetIntSlice(f.Name)
 		default:
-			v = f.Value.String()
+			if p.cb != nil {
+				key, value := p.cb(f.Name, f.Value.String())
+				if key == "" {
+					return
+				}
+				mp[key] = value
+				return
+			} else {
+				v = f.Value.String()
+			}
 		}
 
 		mp[f.Name] = v
