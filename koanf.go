@@ -71,6 +71,10 @@ func (ko *Koanf) Load(p Provider, pa Parser) error {
 		err error
 	)
 
+	if p == nil {
+		return fmt.Errorf("load received a nil provider")
+	}
+
 	// No Parser is given. Call the Provider's Read() method to get
 	// the config map.
 	if pa == nil {
