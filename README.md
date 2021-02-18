@@ -268,6 +268,22 @@ if err := k.Load(s3.Provider(s3.Config{
 }
 ```
 
+### Reading from an AWS Secrets Manager
+
+```go
+// Load secrets in JSON string from AWS Secrets Manager.
+s, err := Provider(Config{
+SecretName: os.Getenv("AWS_REGION"),,
+Region:     os.Getenv("AWS_SECRET_NAME"),
+})
+if err != nil {
+    log.Fatalf("error loading AwsSecrets Manager Provider: %v", err)
+}
+if err := k.Load(s, json.Parser()); err != nil {
+	log.Fatalf("error loading config: %v", err)
+}
+```
+
 ### Reading raw bytes
 
 The bundled `rawbytes` Provider can be used to read arbitrary bytes from a source, like a database or an HTTP call.
