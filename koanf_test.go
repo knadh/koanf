@@ -323,6 +323,58 @@ func TestLoadFileAllKeys(t *testing.T) {
 	}
 }
 
+func TestLoadMergeYamlJson(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.NoError(k.Load(file.Provider(mockYAML), yaml.Parser()),
+		"error loading file")
+	// loading json after yaml causes the intbools to be loaded as []float64
+	assert.NoError(k.Load(file.Provider(mockJSON), yaml.Parser()),
+		"error loading file")
+
+	// checking that there is no issues with expecting it to be an []int64
+	v := k.Int64s("intbools")
+	assert.Len(v, 3)
+
+	defer func() {
+		if err := recover(); err != nil {
+			assert.Failf("panic", "received panic: %v", err)
+		}
+	}()
+
+	v2 := k.MustInt64s("intbools")
+	assert.Len(v2, 3)
+}
+
+func TestLoadMergeJsonYaml(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.NoError(k.Load(file.Provider(mockJSON), yaml.Parser()),
+		"error loading file")
+	// loading yaml after json causes the intbools to be loaded as []int after json loaded it with []float64
+	assert.NoError(k.Load(file.Provider(mockYAML), yaml.Parser()),
+		"error loading file")
+
+	// checking that there is no issues with expecting it to be an []float64
+	v := k.Float64s("intbools")
+	assert.Len(v, 3)
+
+	defer func() {
+		if err := recover(); err != nil {
+			assert.Failf("panic", "received panic: %v", err)
+		}
+	}()
+
+	v2 := k.MustFloat64s("intbools")
+	assert.Len(v2, 3)
+}
+
 func TestWatchFile(t *testing.T) {
 	var (
 		assert = assert.New(t)
