@@ -624,7 +624,7 @@ func TestRaw_YamlTypes(t *testing.T) {
 		"error loading file")
 	raw := k.Raw()
 
-	i, ok := raw["ints"]
+	i, ok := raw["intbools"]
 	assert.True(ok, "ints key does not exist in the map")
 
 	arr, ok := i.([]interface{})
@@ -665,7 +665,7 @@ func TestMergeAt(t *testing.T) {
 		assert = assert.New(t)
 		k      = koanf.New(delim)
 	)
-	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
+	assert.Nil(k.Load(file.Provider(mockYAML), yaml.Parser()),
 		"error loading file")
 
 	// Get expected koanf, and root data

@@ -69,4 +69,3 @@ strbools:
 strbool: "1"
 time: "2019-01-01"
 duration: "3s"
-ints: [1,2,3]

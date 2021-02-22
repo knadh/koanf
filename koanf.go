@@ -301,6 +301,9 @@ func (ko *Koanf) Get(path string) interface{} {
 	}
 
 	out, _ := copystructure.Copy(&res)
+	if ptrOut, ok := out.(*interface{}); ok {
+		return *ptrOut
+	}
 	return out
 }
 
