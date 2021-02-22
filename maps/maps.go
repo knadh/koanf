@@ -182,9 +182,7 @@ func Search(mp map[string]interface{}, path []string) interface{} {
 	return nil
 }
 
-// Copy returns a copy of a conf map by doing a JSON marshal+unmarshal
-// pass. Inefficient, but creates a true deep copy. There is a side
-// effect, that is, all numeric types change to float64.
+// Copy returns a deep copy of a conf map.
 //
 // It's important to note that all nested maps should be
 // map[string]interface{} and not map[interface{}]interface{}.
