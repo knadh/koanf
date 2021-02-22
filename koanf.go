@@ -2,8 +2,8 @@ package koanf
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"github.com/mitchellh/copystructure"
 	"sort"
 	"strconv"
 	"strings"
@@ -300,11 +300,7 @@ func (ko *Koanf) Get(path string) interface{} {
 		return maps.Copy(v)
 	}
 
-	// Inefficient, but marshal and unmarshal to create a copy
-	// of reference types to not expose  internal references to slices and maps.
-	var out interface{}
-	b, _ := json.Marshal(res)
-	json.Unmarshal(b, &out)
+	out, _ := copystructure.Copy(&res)
 	return out
 }
 
