@@ -4,6 +4,7 @@ import (
 	encjson "encoding/json"
 	"flag"
 	"fmt"
+	"github.com/knadh/koanf/maps"
 	"io/ioutil"
 	"log"
 	"os"
@@ -612,6 +613,74 @@ func TestMerge(t *testing.T) {
 	// Merge cut1 into it and check if they match.
 	k2.Merge(cut1)
 	assert.Equal(cut1.All(), k2.All(), "conf map mismatch")
+}
+
+func TestMergeStrictError(t *testing.T) {
+	var (
+		assert = assert.New(t)
+	)
+
+	ks := koanf.NewWithConf(koanf.Conf{
+		Delim:       delim,
+		StrictMerge: true,
+	})
+
+	assert.Nil(ks.Load(confmap.Provider(map[string]interface{}{
+		"parent2": map[string]interface{}{
+			"child2": map[string]interface{}{
+				"grandchild2": map[string]interface{}{
+					"ids": 123,
+				},
+			},
+		},
+	}, delim), nil))
+
+	err := ks.Load(file.Provider(mockYAML), yaml.Parser())
+	assert.Error(err)
+	assert.IsType(&maps.MergeStrictError{}, err)
+	assert.True(strings.HasPrefix(err.Error(), "incorrect types at key parent2.child2.grandchild2"))
+}
+
+func TestMergeStrict(t *testing.T) {
+	var (
+		assert = assert.New(t)
+	)
+
+	ks := koanf.NewWithConf(koanf.Conf{
+		Delim:       delim,
+		StrictMerge: true,
+	})
+
+	assert.Nil(ks.Load(confmap.Provider(map[string]interface{}{
+		"parent2": map[string]interface{}{
+			"child2": map[string]interface{}{
+				"grandchild2": map[string]interface{}{
+					"ids": []int{5,6,7},
+				},
+			},
+		},
+	}, delim), nil))
+
+	err := ks.Load(file.Provider(mockYAML), yaml.Parser())
+	assert.NoError(err)
+}
+
+
+func TestMergeStrictJsonYamlError(t *testing.T) {
+	var (
+		assert = assert.New(t)
+	)
+
+	ks := koanf.NewWithConf(koanf.Conf{
+		Delim:       delim,
+		StrictMerge: true,
+	})
+
+
+	assert.NoError(ks.Load(file.Provider(mockJSON), json.Parser()))
+	err := ks.Load(file.Provider(mockYAML), yaml.Parser())
+	assert.Error(err)
+	assert.IsType(&maps.MergeStrictError{}, err)
 }
 
 func TestMergeAt(t *testing.T) {

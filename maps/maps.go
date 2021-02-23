@@ -6,8 +6,21 @@ package maps
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 )
+
+type MergeStrictError struct {
+	Errors []error
+}
+
+func (m *MergeStrictError) Error() string {
+	var msg string
+	for _, err := range m.Errors {
+		msg += fmt.Sprintf("%v\n", err.Error())
+	}
+	return msg
+}
 
 // Flatten takes a map[string]interface{} and traverses it and flattens
 // nested children into keys delimited by delim.
@@ -126,6 +139,51 @@ func Merge(a, b map[string]interface{}) {
 		switch v := bVal.(type) {
 		case map[string]interface{}:
 			Merge(val.(map[string]interface{}), v)
+		default:
+			b[key] = val
+		}
+	}
+}
+
+func MergeStrict(a, b map[string]interface{}) error {
+	mergeError := MergeStrictError{Errors: []error{}}
+	mergeStrict(a, b, &mergeError, "")
+	if len(mergeError.Errors) > 0 {
+		return &mergeError
+	}
+	return nil
+}
+
+func mergeStrict(a, b map[string]interface{}, mergeError *MergeStrictError, fullKey string) {
+	for key, val := range a {
+		// Does the key exist in the target map?
+		// If no, add it and move on.
+		bVal, ok := b[key]
+		if !ok {
+			b[key] = val
+			continue
+		}
+
+		newFullKey := key
+		if fullKey != "" {
+			newFullKey = fmt.Sprintf("%v.%v", fullKey, key)
+		}
+
+		// If the incoming val is not a map, do a direct merge between the same types.
+		if _, ok := val.(map[string]interface{}); !ok {
+			if reflect.TypeOf(b[key]) == reflect.TypeOf(val) {
+				b[key] = val
+			} else {
+				err := fmt.Errorf("incorrect types at key %v, type %T != %T", fullKey, b[key], val)
+				mergeError.Errors = append(mergeError.Errors, err)
+			}
+			continue
+		}
+
+		// The source key and target keys are both maps. Merge them.
+		switch v := bVal.(type) {
+		case map[string]interface{}:
+			mergeStrict(val.(map[string]interface{}), v, mergeError, newFullKey)
 		default:
 			b[key] = val
 		}
