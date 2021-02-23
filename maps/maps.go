@@ -4,8 +4,8 @@
 package maps
 
 import (
-	"encoding/json"
 	"fmt"
+	"github.com/mitchellh/copystructure"
 	"strings"
 )
 
@@ -182,18 +182,17 @@ func Search(mp map[string]interface{}, path []string) interface{} {
 	return nil
 }
 
-// Copy returns a copy of a conf map by doing a JSON marshal+unmarshal
-// pass. Inefficient, but creates a true deep copy. There is a side
-// effect, that is, all numeric types change to float64.
+// Copy returns a deep copy of a conf map.
 //
 // It's important to note that all nested maps should be
 // map[string]interface{} and not map[interface{}]interface{}.
 // Use IntfaceKeysToStrings() to convert if necessary.
 func Copy(mp map[string]interface{}) map[string]interface{} {
-	var out map[string]interface{}
-	b, _ := json.Marshal(mp)
-	json.Unmarshal(b, &out)
-	return out
+	out, _ := copystructure.Copy(&mp)
+	if res, ok := out.(*map[string]interface{}); ok {
+		return *res
+	}
+	return map[string]interface{}{}
 }
 
 // IntfaceKeysToStrings recursively converts map[interface{}]interface{} to

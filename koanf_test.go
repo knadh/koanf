@@ -323,6 +323,58 @@ func TestLoadFileAllKeys(t *testing.T) {
 	}
 }
 
+func TestLoadMergeYamlJson(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.NoError(k.Load(file.Provider(mockYAML), yaml.Parser()),
+		"error loading file")
+	// loading json after yaml causes the intbools to be loaded as []float64
+	assert.NoError(k.Load(file.Provider(mockJSON), yaml.Parser()),
+		"error loading file")
+
+	// checking that there is no issues with expecting it to be an []int64
+	v := k.Int64s("intbools")
+	assert.Len(v, 3)
+
+	defer func() {
+		if err := recover(); err != nil {
+			assert.Failf("panic", "received panic: %v", err)
+		}
+	}()
+
+	v2 := k.MustInt64s("intbools")
+	assert.Len(v2, 3)
+}
+
+func TestLoadMergeJsonYaml(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.NoError(k.Load(file.Provider(mockJSON), yaml.Parser()),
+		"error loading file")
+	// loading yaml after json causes the intbools to be loaded as []int after json loaded it with []float64
+	assert.NoError(k.Load(file.Provider(mockYAML), yaml.Parser()),
+		"error loading file")
+
+	// checking that there is no issues with expecting it to be an []float64
+	v := k.Float64s("intbools")
+	assert.Len(v, 3)
+
+	defer func() {
+		if err := recover(); err != nil {
+			assert.Failf("panic", "received panic: %v", err)
+		}
+	}()
+
+	v2 := k.MustFloat64s("intbools")
+	assert.Len(v2, 3)
+}
+
 func TestWatchFile(t *testing.T) {
 	var (
 		assert = assert.New(t)
@@ -614,12 +666,58 @@ func TestMerge(t *testing.T) {
 	assert.Equal(cut1.All(), k2.All(), "conf map mismatch")
 }
 
+func TestRaw_YamlTypes(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.Nil(k.Load(file.Provider(mockYAML), yaml.Parser()),
+		"error loading file")
+	raw := k.Raw()
+
+	i, ok := raw["intbools"]
+	assert.True(ok, "ints key does not exist in the map")
+
+	arr, ok := i.([]interface{})
+	assert.True(ok, "arr slice is not array of integers")
+
+	for _, integer := range arr {
+		if _, ok := integer.(int); !ok {
+			assert.Failf("failure", "%v not an integer but %T", integer, integer)
+		}
+	}
+}
+
+func TestRaw_JsonTypes(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
+		"error loading file")
+	raw := k.Raw()
+
+	i, ok := raw["intbools"]
+	assert.True(ok, "ints key does not exist in the map")
+
+	arr, ok := i.([]interface{})
+	assert.True(ok, "arr slice is not array of integers")
+
+	for _, integer := range arr {
+		if _, ok := integer.(float64); !ok {
+			assert.Failf("failure", "%v not an integer but %T", integer, integer)
+		}
+	}
+}
+
 func TestMergeAt(t *testing.T) {
 	var (
 		assert = assert.New(t)
 		k      = koanf.New(delim)
 	)
-	assert.Nil(k.Load(file.Provider(mockJSON), json.Parser()),
+	assert.Nil(k.Load(file.Provider(mockYAML), yaml.Parser()),
 		"error loading file")
 
 	// Get expected koanf, and root data
