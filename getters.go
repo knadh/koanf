@@ -36,6 +36,21 @@ func (ko *Koanf) Int64s(path string) []int64 {
 
 	var out []int64
 	switch v := o.(type) {
+	case []int64:
+		return v
+	case []int:
+		out = make([]int64, 0, len(v))
+		for _, vi := range v {
+			i, err := toInt64(vi)
+
+			// On error, return as it's not a valid
+			// int slice.
+			if err != nil {
+				return []int64{}
+			}
+			out = append(out, i)
+		}
+		return out
 	case []interface{}:
 		out = make([]int64, 0, len(v))
 		for _, vi := range v {
@@ -128,16 +143,37 @@ func (ko *Koanf) MustInt(path string) int {
 // empty []int slice if the path does not exist or if the value
 // is not a valid int slice.
 func (ko *Koanf) Ints(path string) []int {
-	ints := ko.Int64s(path)
-	if len(ints) == 0 {
+	o := ko.Get(path)
+	if o == nil {
 		return []int{}
 	}
 
-	out := make([]int, len(ints))
-	for i, v := range ints {
-		out[i] = int(v)
+	var out []int
+	switch v := o.(type) {
+	case []int:
+		return v
+	case []int64:
+		out = make([]int, 0, len(v))
+		for _, vi := range v {
+			out = append(out, int(vi))
+		}
+		return out
+	case []interface{}:
+		out = make([]int, 0, len(v))
+		for _, vi := range v {
+			i, err := toInt64(vi)
+
+			// On error, return as it's not a valid
+			// int slice.
+			if err != nil {
+				return []int{}
+			}
+			out = append(out, int(i))
+		}
+		return out
 	}
-	return out
+
+	return []int{}
 }
 
 // MustInts returns the []int slice value of a given key path or panics
@@ -205,6 +241,8 @@ func (ko *Koanf) Float64s(path string) []float64 {
 
 	var out []float64
 	switch v := o.(type) {
+	case []float64:
+		return v
 	case []interface{}:
 		out = make([]float64, 0, len(v))
 		for _, vi := range v {
@@ -215,7 +253,7 @@ func (ko *Koanf) Float64s(path string) []float64 {
 			if err != nil {
 				return []float64{}
 			}
-			out = append(out, float64(i))
+			out = append(out, i)
 		}
 		return out
 	}
@@ -379,6 +417,7 @@ func (ko *Koanf) Strings(path string) []string {
 		copy(out[:], v[:])
 		return out
 	}
+
 	return []string{}
 }
 
