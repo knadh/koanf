@@ -130,7 +130,7 @@ func main() {
 
 ### Reading from command line
 
-The following example shows the use of `posflag.Provider`, a wrapper over [spf13/pflag](/spf13/pflag) library, an advanced commandline lib. For Go's built in `flag` package, use `basicflag.Provider`.
+The following example shows the use of `posflag.Provider`, a wrapper over the [spf13/pflag](https://github.com/spf13/pflag) library, an advanced commandline lib. For Go's built in `flag` package, use `basicflag.Provider`.
 
 ```go
 package main
