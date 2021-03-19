@@ -74,33 +74,33 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 		var v interface{}
 		switch f.Value.Type() {
 		case "int":
-			i, _ := p.flagset.GetInt(flagName)
+			i, _ := p.flagset.GetInt(f.Name)
 			v = int64(i)
 		case "int8":
-			i, _ := p.flagset.GetInt8(flagName)
+			i, _ := p.flagset.GetInt8(f.Name)
 			v = int64(i)
 		case "int16":
-			i, _ := p.flagset.GetInt16(flagName)
+			i, _ := p.flagset.GetInt16(f.Name)
 			v = int64(i)
 		case "int32":
-			i, _ := p.flagset.GetInt32(flagName)
+			i, _ := p.flagset.GetInt32(f.Name)
 			v = int64(i)
 		case "int64":
-			i, _ := p.flagset.GetInt64(flagName)
+			i, _ := p.flagset.GetInt64(f.Name)
 			v = int64(i)
 		case "float32":
-			v, _ = p.flagset.GetFloat32(flagName)
+			v, _ = p.flagset.GetFloat32(f.Name)
 		case "float":
-			v, _ = p.flagset.GetFloat64(flagName)
+			v, _ = p.flagset.GetFloat64(f.Name)
 		case "bool":
-			v, _ = p.flagset.GetBool(flagName)
+			v, _ = p.flagset.GetBool(f.Name)
 		case "stringSlice":
-			v, _ = p.flagset.GetStringSlice(flagName)
+			v, _ = p.flagset.GetStringSlice(f.Name)
 		case "intSlice":
-			v, _ = p.flagset.GetIntSlice(flagName)
+			v, _ = p.flagset.GetIntSlice(f.Name)
 		default:
 			if p.cb != nil {
-				key, value := p.cb(flagName, f.Value.String())
+				key, value := p.cb(f.Name, f.Value.String())
 				if key == "" {
 					return
 				}
