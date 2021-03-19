@@ -394,7 +394,6 @@ func TestWatchFile(t *testing.T) {
 	k.Load(f, json.Parser())
 
 	// Watch for changes.
-	changedName := ""
 	f.Watch(func(event interface{}, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
@@ -405,7 +404,6 @@ func TestWatchFile(t *testing.T) {
 		}
 		// Reload the config.
 		k.Load(f, json.Parser())
-		changedName = k.String("parent.name")
 	})
 
 	// Wait a second and change the file.
@@ -413,7 +411,7 @@ func TestWatchFile(t *testing.T) {
 	ioutil.WriteFile(out.Name(), []byte(`{"parent": {"name": "name2"}}`), 0644)
 	time.Sleep(1 * time.Second)
 
-	assert.Equal("name2", changedName, "file watch reload didn't change config")
+	assert.Equal("name2", k.String("parent.name"), "file watch reload didn't change config")
 }
 
 func TestWatchFileSymlink(t *testing.T) {
@@ -544,7 +542,7 @@ func TestFlags(t *testing.T) {
 
 	// Initialize the provider with the Koanf instance passed where default values
 	// will merge if the keys are not present in the conf map.
-	assert.Nil(k.Load(posflag.Provider(f, ".", k), nil), "error loading posflag")
+	assert.Nil(k.Load(posflag.Provider(f, ".", posflag.WithKoanf(k)), nil), "error loading posflag")
 	assert.Equal("flag", k.String("parent1.child1.type"), "types don't match")
 	assert.Equal("flag", k.String("flagkey"), "value doesn't match")
 	assert.NotEqual("flag", k.String("parent1.name"), "value doesn't match")
@@ -557,8 +555,19 @@ func TestFlags(t *testing.T) {
 	}), nil), "error loading posflag")
 	assert.Equal("FLAG", k3.String("parent1.child1.type"), "types don't match")
 
+	// Test the provider can remap flag to keys with different names
+	pf := pflag.NewFlagSet("test", pflag.ContinueOnError)
+	pf.String("type", "flag", "")
+	pf.Set("type", "basicflag")
+	pf.String("out", "defout", "")
+	remap := map[string]*pflag.Flag{
+		"parent7.type": pf.Lookup("type"),
+	}
+	assert.Nil(k.Load(posflag.Provider(pf, ".", posflag.WithKoanf(k), posflag.WithRenameKeys(remap)), nil), "error loading basicflag")
+	assert.Equal("basicflag", k.String("parent1.child1.type"), "types don't match")
+
 	// Test without passing the Koanf instance where default values will not merge.
-	assert.Nil(k2.Load(posflag.Provider(f, ".", nil), nil), "error loading posflag")
+	assert.Nil(k2.Load(posflag.Provider(f, "."), nil), "error loading posflag")
 	assert.Equal("flag", k2.String("parent1.child1.type"), "types don't match")
 	assert.Equal("", k2.String("flagkey"), "value doesn't match")
 	assert.NotEqual("", k2.String("parent1.name"), "value doesn't match")
@@ -578,7 +587,6 @@ func TestFlags(t *testing.T) {
 		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
 	}), nil), "error loading basicflag")
 	assert.Equal("BASICFLAG", k.String("parent1.child1.type"), "types don't match")
-
 }
 
 func TestConfMapValues(t *testing.T) {

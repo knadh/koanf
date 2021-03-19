@@ -177,7 +177,7 @@ func main() {
 	// Passing the Koanf instance to posflag helps it deal with default command
 	// line flag values that are not present in conf maps from previously loaded
 	// providers.
-	if err := k.Load(posflag.Provider(f, ".", k), nil); err != nil {
+	if err := k.Load(posflag.Provider(f, ".", posflag.WithKoanf(k)), nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
