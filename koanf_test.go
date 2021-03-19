@@ -394,7 +394,6 @@ func TestWatchFile(t *testing.T) {
 	k.Load(f, json.Parser())
 
 	// Watch for changes.
-	changedName := ""
 	f.Watch(func(event interface{}, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
@@ -405,7 +404,6 @@ func TestWatchFile(t *testing.T) {
 		}
 		// Reload the config.
 		k.Load(f, json.Parser())
-		changedName = k.String("parent.name")
 	})
 
 	// Wait a second and change the file.
@@ -413,7 +411,7 @@ func TestWatchFile(t *testing.T) {
 	ioutil.WriteFile(out.Name(), []byte(`{"parent": {"name": "name2"}}`), 0644)
 	time.Sleep(1 * time.Second)
 
-	assert.Equal("name2", changedName, "file watch reload didn't change config")
+	assert.Equal("name2", k.String("parent.name"), "file watch reload didn't change config")
 }
 
 func TestWatchFileSymlink(t *testing.T) {
