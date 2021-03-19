@@ -564,7 +564,7 @@ func TestFlags(t *testing.T) {
 		"parent7.type": pf.Lookup("type"),
 	}
 	assert.Nil(k.Load(posflag.Provider(pf, ".", posflag.WithKoanf(k), posflag.WithRenameKeys(remap)), nil), "error loading basicflag")
-	assert.Equal("basicflag", k.String("parent1.child1.type"), "types don't match")
+	assert.Equal("basicflag", k.String("parent7.type"), "types don't match")
 
 	// Test without passing the Koanf instance where default values will not merge.
 	assert.Nil(k2.Load(posflag.Provider(f, "."), nil), "error loading posflag")
