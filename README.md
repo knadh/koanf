@@ -564,16 +564,6 @@ func main() {
 
 	jsonPath := "mock/mock.json"
 	if err := k.Load(file.Provider(jsonPath), json.Parser()); err != nil {
-		// go version <= v1.12
-		if strictErr := err.(*maps.MergeStrictError); strictErr != nil {
-			log.Fatalf("error merging config %v: %v", jsonPath, err)
-		}
-		// go version > v1.12
-		var strictErr *maps.MergeStrictError
-		if errors.As(err, &strictErr) {
-			log.Fatalf("error merging config %v: %v", jsonPath, err)
-		}
-
 		log.Fatalf("error loading config: %v", err)
 	}
 }

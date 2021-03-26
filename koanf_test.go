@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/maps"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/json"
@@ -735,7 +734,6 @@ func TestMergeStrictError(t *testing.T) {
 
 	err := ks.Load(file.Provider(mockYAML), yaml.Parser())
 	assert.Error(err)
-	assert.IsType(&maps.MergeStrictError{}, err)
 	assert.True(strings.HasPrefix(err.Error(), "incorrect types at key parent2.child2.grandchild2"))
 }
 

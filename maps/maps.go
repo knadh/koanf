@@ -10,17 +10,6 @@ import (
 	"strings"
 )
 
-type MergeStrictError struct {
-	Errors []error
-}
-
-func (m *MergeStrictError) Error() string {
-	var msg string
-	for _, err := range m.Errors {
-		msg += fmt.Sprintf("%v\n", err.Error())
-	}
-	return msg
-}
 
 // Flatten takes a map[string]interface{} and traverses it and flattens
 // nested children into keys delimited by delim.
@@ -145,16 +134,19 @@ func Merge(a, b map[string]interface{}) {
 	}
 }
 
+// MergeStrict recursively merges map a into b (left to right), mutating
+// and expanding map b. Note that there's no copying involved, so
+// map b will retain references to map a.
+// If an equal key in either of the maps has a different value type, it will return the first error.
+//
+// It's important to note that all nested maps should be
+// map[string]interface{} and not map[interface{}]interface{}.
+// Use IntfaceKeysToStrings() to convert if necessary.
 func MergeStrict(a, b map[string]interface{}) error {
-	mergeError := MergeStrictError{Errors: []error{}}
-	mergeStrict(a, b, &mergeError, "")
-	if len(mergeError.Errors) > 0 {
-		return &mergeError
-	}
-	return nil
+	return mergeStrict(a, b, "")
 }
 
-func mergeStrict(a, b map[string]interface{}, mergeError *MergeStrictError, fullKey string) {
+func mergeStrict(a, b map[string]interface{}, fullKey string) error {
 	for key, val := range a {
 		// Does the key exist in the target map?
 		// If no, add it and move on.
@@ -174,8 +166,7 @@ func mergeStrict(a, b map[string]interface{}, mergeError *MergeStrictError, full
 			if reflect.TypeOf(b[key]) == reflect.TypeOf(val) {
 				b[key] = val
 			} else {
-				err := fmt.Errorf("incorrect types at key %v, type %T != %T", fullKey, b[key], val)
-				mergeError.Errors = append(mergeError.Errors, err)
+				return fmt.Errorf("incorrect types at key %v, type %T != %T", fullKey, b[key], val)
 			}
 			continue
 		}
@@ -183,11 +174,12 @@ func mergeStrict(a, b map[string]interface{}, mergeError *MergeStrictError, full
 		// The source key and target keys are both maps. Merge them.
 		switch v := bVal.(type) {
 		case map[string]interface{}:
-			mergeStrict(val.(map[string]interface{}), v, mergeError, newFullKey)
+			return mergeStrict(val.(map[string]interface{}), v, newFullKey)
 		default:
 			b[key] = val
 		}
 	}
+	return nil
 }
 
 // Delete removes the entry present at a given path, from the map. The path

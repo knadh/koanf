@@ -68,15 +68,10 @@ type UnmarshalConf struct {
 // when specifying config key paths, for instance a . for `parent.child.key`
 // or a / for `parent/child/key`.
 func New(delim string) *Koanf {
-	return &Koanf{
-		confMap:     make(map[string]interface{}),
-		confMapFlat: make(map[string]interface{}),
-		keyMap:      make(KeyMap),
-		conf: Conf{
-			Delim:       delim,
-			StrictMerge: false,
-		},
-	}
+	return NewWithConf(Conf{
+		Delim: delim,
+		StrictMerge: false,
+	})
 }
 
 // NewWithConf returns a new instance of Koanf based on the Conf.
@@ -393,8 +388,7 @@ func (ko *Koanf) MapKeys(path string) []string {
 func (ko *Koanf) merge(c map[string]interface{}) error{
 	maps.IntfaceKeysToStrings(c)
 	if ko.conf.StrictMerge {
-		err := maps.MergeStrict(c, ko.confMap)
-		if err != nil {
+		if err := maps.MergeStrict(c, ko.confMap); err != nil {
 			return err
 		}
 	} else {
