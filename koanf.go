@@ -18,7 +18,21 @@ type Koanf struct {
 	confMap     map[string]interface{}
 	confMapFlat map[string]interface{}
 	keyMap      KeyMap
-	delim       string
+	conf        Conf
+}
+
+// Conf is the Koanf configuration.
+type Conf struct {
+	// Delim is the delimiter to use
+	// when specifying config key paths, for instance a . for `parent.child.key`
+	// or a / for `parent/child/key`.
+	Delim string
+
+	// StrictMerge makes the merging behavior strict.
+	// Meaning when loading two files that have the same key,
+	// the first loaded file will define the desired type, and if the second file loads
+	// a different type will cause an error.
+	StrictMerge bool
 }
 
 // KeyMap represents a map of flattened delimited keys and the non-delimited
@@ -54,11 +68,19 @@ type UnmarshalConf struct {
 // when specifying config key paths, for instance a . for `parent.child.key`
 // or a / for `parent/child/key`.
 func New(delim string) *Koanf {
+	return NewWithConf(Conf{
+		Delim: delim,
+		StrictMerge: false,
+	})
+}
+
+// NewWithConf returns a new instance of Koanf based on the Conf.
+func NewWithConf(conf Conf) *Koanf {
 	return &Koanf{
-		delim:       delim,
 		confMap:     make(map[string]interface{}),
 		confMapFlat: make(map[string]interface{}),
 		keyMap:      make(KeyMap),
+		conf: conf,
 	}
 }
 
@@ -94,8 +116,7 @@ func (ko *Koanf) Load(p Provider, pa Parser) error {
 		}
 	}
 
-	ko.merge(mp)
-	return nil
+	return ko.merge(mp)
 }
 
 // Keys returns the slice of all flattened keys in the loaded configuration
@@ -164,8 +185,8 @@ func (ko *Koanf) Cut(path string) *Koanf {
 		out = v
 	}
 
-	n := New(ko.delim)
-	n.merge(out)
+	n := New(ko.conf.Delim)
+	_ = n.merge(out)
 	return n
 }
 
@@ -176,27 +197,26 @@ func (ko *Koanf) Copy() *Koanf {
 
 // Merge merges the config map of a given Koanf instance into
 // the current instance.
-func (ko *Koanf) Merge(in *Koanf) {
-	ko.merge(in.Raw())
+func (ko *Koanf) Merge(in *Koanf) error {
+	return ko.merge(in.Raw())
 }
 
 // MergeAt merges the config map of a given Koanf instance into
 // the current instance as a sub map, at the given key path.
 // If all or part of the key path is missing, it will be created.
 // If the key path is `""`, this is equivalent to Merge.
-func (ko *Koanf) MergeAt(in *Koanf, path string) {
+func (ko *Koanf) MergeAt(in *Koanf, path string) error {
 	// No path. Merge the two config maps.
 	if path == "" {
-		ko.Merge(in)
-		return
+		return ko.Merge(in)
 	}
 
 	// Unflatten the config map with the given key path.
 	n := maps.Unflatten(map[string]interface{}{
 		path: in.Raw(),
-	}, ko.delim)
+	}, ko.conf.Delim)
 
-	ko.merge(n)
+	return ko.merge(n)
 }
 
 // Marshal takes a Parser implementation and marshals the config map into bytes,
@@ -242,7 +262,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 	mp := ko.Get(path)
 	if c.FlatPaths {
 		if f, ok := mp.(map[string]interface{}); ok {
-			fmp, _ := maps.Flatten(f, nil, ko.delim)
+			fmp, _ := maps.Flatten(f, nil, ko.conf.Delim)
 			mp = fmp
 		}
 	}
@@ -270,8 +290,8 @@ func (ko *Koanf) Delete(path string) {
 	maps.Delete(ko.confMap, p)
 
 	// Update the flattened version as well.
-	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim)
-	ko.keyMap = populateKeyParts(ko.keyMap, ko.delim)
+	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.conf.Delim)
+	ko.keyMap = populateKeyParts(ko.keyMap, ko.conf.Delim)
 }
 
 // Get returns the raw, uncast interface{} value of a given key path
@@ -327,7 +347,7 @@ func (ko *Koanf) Slices(path string) []*Koanf {
 			continue
 		}
 
-		k := New(ko.delim)
+		k := New(ko.conf.Delim)
 		k.Load(confmap.Provider(v, ""), nil)
 		out = append(out, k)
 	}
@@ -365,13 +385,21 @@ func (ko *Koanf) MapKeys(path string) []string {
 	return out
 }
 
-func (ko *Koanf) merge(c map[string]interface{}) {
+func (ko *Koanf) merge(c map[string]interface{}) error{
 	maps.IntfaceKeysToStrings(c)
-	maps.Merge(c, ko.confMap)
+	if ko.conf.StrictMerge {
+		if err := maps.MergeStrict(c, ko.confMap); err != nil {
+			return err
+		}
+	} else {
+		maps.Merge(c, ko.confMap)
+	}
 
 	// Maintain a flattened version as well.
-	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.delim)
-	ko.keyMap = populateKeyParts(ko.keyMap, ko.delim)
+	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.conf.Delim)
+	ko.keyMap = populateKeyParts(ko.keyMap, ko.conf.Delim)
+
+	return nil
 }
 
 // toInt64 takes an interface value and if it is an integer type,

@@ -712,6 +712,31 @@ func TestRaw_JsonTypes(t *testing.T) {
 	}
 }
 
+func TestMergeStrictError(t *testing.T) {
+	var (
+		assert = assert.New(t)
+	)
+
+	ks := koanf.NewWithConf(koanf.Conf{
+		Delim:       delim,
+		StrictMerge: true,
+	})
+
+	assert.Nil(ks.Load(confmap.Provider(map[string]interface{}{
+		"parent2": map[string]interface{}{
+			"child2": map[string]interface{}{
+				"grandchild2": map[string]interface{}{
+					"ids": 123,
+				},
+			},
+		},
+	}, delim), nil))
+
+	err := ks.Load(file.Provider(mockYAML), yaml.Parser())
+	assert.Error(err)
+	assert.True(strings.HasPrefix(err.Error(), "incorrect types at key parent2.child2.grandchild2"))
+}
+
 func TestMergeAt(t *testing.T) {
 	var (
 		assert = assert.New(t)

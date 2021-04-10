@@ -518,9 +518,62 @@ func main() {
 	fmt.Printf("name is = `%s`\n", k.String("parent1.child1.name"))
 }
 ```
+### Merge behavior
+#### Default behavior
+The default behavior when you create Koanf this way is: `koanf.New(delim)` that the latest loaded configuration will
+merge with the previous one.
 
+For example:
+`first.yml`
+```yaml
+key: [1,2,3]
+```
+`second.yml`
+```yaml
+key: 'string'
+```
+When `second.yml` is loaded it will override the type of the `first.yml`.
 
-### Order of merge and key case senstivity
+If this behavior is not desired, you can merge 'strictly'. In the same scenario, `Load` will return an error.
+
+```go
+package main
+
+import (
+	"errors"
+	"log"
+
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
+)
+
+var conf = koanf.Conf{
+	Delim:       ".",
+	StrictMerge: true,
+}
+var k = koanf.NewWithConf(conf)
+
+func main() {
+	yamlPath := "mock/mock.yml"
+	if err := k.Load(file.Provider(yamlPath), yaml.Parser()); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	jsonPath := "mock/mock.json"
+	if err := k.Load(file.Provider(jsonPath), json.Parser()); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+}
+```
+**Note:** When merging different extensions, each parser can treat his types differently,
+ meaning even though you the load same types there is a probability that it will fail with `StrictMerge: true`.
+
+For example: merging JSON and YAML will most likely fail because JSON treats integers as float64 and YAML treats them as integers.
+
+### Order of merge and key case sensitivity
 
 - Config keys are case-sensitive in koanf. For example, `app.server.port` and `APP.SERVER.port` are not the same.
 - koanf does not impose any ordering on loading config from various providers. Every successive `Load()` or `Load()` merges new config into existing config. That means it is possible to load environment variables first, then files on top of it, and then command line variables on top of it, or any such order.
@@ -532,6 +585,19 @@ A Provider can provide a nested map[string]interface{} config that can be loaded
 Writing Providers and Parsers are easy. See the bundled implementations in the `providers` and `parses` directory.
 
 ## API
+
+### Instantiation methods
+| Method                          | Description                                                                                                                                                                 | 
+| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `New(delim string) *Koanf`      | Returns a new instance of Koanf. delim is the delimiter to use when specifying config key paths, for instance a `.` for `parent.child.key` or a `/` for `parent/child/key`. |
+| `NewWithConf(conf Conf) *Koanf` | Returns a new instance of Koanf depending on the `Koanf.Conf` configurations.                                                                                               |
+
+### Structs
+| Struct                          | Description                                                                                                      |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Koanf                           | Koanf is the configuration apparatus.                                                                            |
+| Conf                            | Conf is the Koanf configuration, that includes `Delim` and `StrictMerge`.                                        |
+| UnmarshalConf                   | UnmarshalConf represents configuration options used by `Unmarshal()` to unmarshal conf maps in arbitrary structs |
 
 ### Bundled providers
 

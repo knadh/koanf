@@ -6,8 +6,10 @@ package maps
 import (
 	"fmt"
 	"github.com/mitchellh/copystructure"
+	"reflect"
 	"strings"
 )
+
 
 // Flatten takes a map[string]interface{} and traverses it and flattens
 // nested children into keys delimited by delim.
@@ -130,6 +132,54 @@ func Merge(a, b map[string]interface{}) {
 			b[key] = val
 		}
 	}
+}
+
+// MergeStrict recursively merges map a into b (left to right), mutating
+// and expanding map b. Note that there's no copying involved, so
+// map b will retain references to map a.
+// If an equal key in either of the maps has a different value type, it will return the first error.
+//
+// It's important to note that all nested maps should be
+// map[string]interface{} and not map[interface{}]interface{}.
+// Use IntfaceKeysToStrings() to convert if necessary.
+func MergeStrict(a, b map[string]interface{}) error {
+	return mergeStrict(a, b, "")
+}
+
+func mergeStrict(a, b map[string]interface{}, fullKey string) error {
+	for key, val := range a {
+		// Does the key exist in the target map?
+		// If no, add it and move on.
+		bVal, ok := b[key]
+		if !ok {
+			b[key] = val
+			continue
+		}
+
+		newFullKey := key
+		if fullKey != "" {
+			newFullKey = fmt.Sprintf("%v.%v", fullKey, key)
+		}
+
+		// If the incoming val is not a map, do a direct merge between the same types.
+		if _, ok := val.(map[string]interface{}); !ok {
+			if reflect.TypeOf(b[key]) == reflect.TypeOf(val) {
+				b[key] = val
+			} else {
+				return fmt.Errorf("incorrect types at key %v, type %T != %T", fullKey, b[key], val)
+			}
+			continue
+		}
+
+		// The source key and target keys are both maps. Merge them.
+		switch v := bVal.(type) {
+		case map[string]interface{}:
+			return mergeStrict(val.(map[string]interface{}), v, newFullKey)
+		default:
+			b[key] = val
+		}
+	}
+	return nil
 }
 
 // Delete removes the entry present at a given path, from the map. The path

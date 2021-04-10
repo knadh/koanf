@@ -104,6 +104,7 @@ func TestMerge(t *testing.T) {
 		},
 		"top":   789,
 		"empty": map[string]interface{}{},
+		"key":   1,
 	}
 	m2 := map[string]interface{}{
 		"parent": map[string]interface{}{
@@ -117,6 +118,7 @@ func TestMerge(t *testing.T) {
 		},
 		"newtop": 999,
 		"empty":  []int{1, 2, 3},
+		"key":    "string",
 	}
 	Merge(m2, m1)
 
@@ -136,8 +138,41 @@ func TestMerge(t *testing.T) {
 		"top":    789,
 		"newtop": 999,
 		"empty":  []int{1, 2, 3},
+		"key":    "string",
 	}
 	assert.Equal(t, out, m1)
+}
+
+func TestMergeStrict(t *testing.T) {
+	m1 := map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": "123",
+			},
+			"child2": map[string]interface{}{
+				"key": 123,
+			},
+		},
+		"top":   789,
+		"empty": []int{},
+		"key":   1,
+	}
+	m2 := map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 456,
+				"val": 789,
+			},
+		},
+		"child": map[string]interface{}{
+			"key": 456,
+		},
+		"newtop": 999,
+		"empty":  []int{1, 2, 3},
+		"key":    "string",
+	}
+	err := MergeStrict(m2, m1)
+	assert.Error(t, err)
 }
 
 func TestDelete(t *testing.T) {
