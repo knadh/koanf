@@ -8,8 +8,8 @@ require (
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/joho/godotenv v1.3.0
-	github.com/mitchellh/copystructure v1.1.1
-	github.com/mitchellh/mapstructure v1.2.2
+	github.com/mitchellh/copystructure v1.2.0
+	github.com/mitchellh/mapstructure v1.4.1
 	github.com/pelletier/go-toml v1.7.0
 	github.com/rhnvrm/simples3 v0.6.1
 	github.com/spf13/pflag v1.0.5
