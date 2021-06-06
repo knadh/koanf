@@ -115,7 +115,9 @@ func main() {
 			return
 		}
 
+		// Throw away the old config and load a fresh copy.
 		log.Println("config changed. Reloading ...")
+		k = koanf.New(".")
 		k.Load(f, json.Parser())
 		k.Print()
 	})
