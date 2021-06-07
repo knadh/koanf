@@ -1,0 +1,285 @@
+{
+  "courier": {
+    "smtp": {
+      "connection_uri": "smtps://test:test@mailslurper:1025/?skip_ssl_verify=true",
+      "from_address": "test-stub@ory.sh"
+    }
+  },
+  "dev": true,
+  "dsn": "memory",
+  "expose-metrics-port": 0,
+  "hashers": {
+    "algorithm": "bcrypt",
+    "argon2": {
+      "dedicated_memory": "1GB",
+      "expected_deviation": "500ms",
+      "expected_duration": "500ms",
+      "iterations": 1,
+      "key_length": 32,
+      "memory": "128MB",
+      "salt_length": 16
+    },
+    "bcrypt": {
+      "cost": 12
+    }
+  },
+  "identity": {
+    "default_schema_url": "base64://ewogICIkc2NoZW1hIjogImh0dHA6Ly9qc29uLXNjaGVtYS5vcmcvZHJhZnQtMDcvc2NoZW1hIyIsCiAgInRpdGxlIjogIlBlcnNvbiIsCiAgInR5cGUiOiAib2JqZWN0IiwKICAicHJvcGVydGllcyI6IHsKICAgICJ0cmFpdHMiOiB7CiAgICAgICJ0eXBlIjogIm9iamVjdCIsCiAgICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJlbWFpbCI6IHsKICAgICAgICAgICJ0eXBlIjogInN0cmluZyIsCiAgICAgICAgICAiZm9ybWF0IjogImVtYWlsIiwKICAgICAgICAgICJ0aXRsZSI6ICJFLU1haWwiLAogICAgICAgICAgIm1pbkxlbmd0aCI6IDMsCiAgICAgICAgICAib3J5LnNoL2tyYXRvcyI6IHsKICAgICAgICAgICAgImNyZWRlbnRpYWxzIjogewogICAgICAgICAgICAgICJwYXNzd29yZCI6IHsKICAgICAgICAgICAgICAgICJpZGVudGlmaWVyIjogdHJ1ZQogICAgICAgICAgICAgIH0KICAgICAgICAgICAgfSwKICAgICAgICAgICAgInZlcmlmaWNhdGlvbiI6IHsKICAgICAgICAgICAgICAidmlhIjogImVtYWlsIgogICAgICAgICAgICB9LAogICAgICAgICAgICAicmVjb3ZlcnkiOiB7CiAgICAgICAgICAgICAgInZpYSI6ICJlbWFpbCIKICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgIm5hbWUiOiB7CiAgICAgICAgICAidHlwZSI6ICJvYmplY3QiLAogICAgICAgICAgInByb3BlcnRpZXMiOiB7CiAgICAgICAgICAgICJmaXJzdCI6IHsKICAgICAgICAgICAgICAidHlwZSI6ICJzdHJpbmciCiAgICAgICAgICAgIH0sCiAgICAgICAgICAgICJsYXN0IjogewogICAgICAgICAgICAgICJ0eXBlIjogInN0cmluZyIKICAgICAgICAgICAgfQogICAgICAgICAgfQogICAgICAgIH0sCiAgICAgICAgImNvbXBhbnkiOiB7CiAgICAgICAgICAidHlwZSI6ICJzdHJpbmciCiAgICAgICAgfQogICAgICB9LAogICAgICAicmVxdWlyZWQiOiBbCiAgICAgICAgImVtYWlsIgogICAgICBdLAogICAgICAiYWRkaXRpb25hbFByb3BlcnRpZXMiOiBmYWxzZQogICAgfQogIH0KfQo"
+  },
+  "log": {
+    "format": "text",
+    "leak_sensitive_values": true,
+    "level": "trace"
+  },
+  "selfservice": {
+    "default_browser_return_url": "https://cloud.ory.sh/",
+    "flows": {
+      "error": {
+        "ui_url": "https://www.ory.sh/kratos/docs/fallback/error"
+      },
+      "login": {
+        "lifespan": "15m",
+        "ui_url": "https://cloud.ory.sh/login"
+      },
+      "recovery": {
+        "enabled": true,
+        "lifespan": "15m",
+        "ui_url": "https://www.ory.sh/kratos/docs/fallback/recovery"
+      },
+      "registration": {
+        "lifespan": "15m",
+        "ui_url": "https://cloud.ory.sh/signup"
+      },
+      "settings": {
+        "lifespan": "15m",
+        "privileged_session_max_age": "5m",
+        "ui_url": "https://www.ory.sh/kratos/docs/fallback/settings"
+      },
+      "verification": {
+        "enabled": true,
+        "lifespan": "15m",
+        "ui_url": "https://www.ory.sh/kratos/docs/fallback/verification"
+      }
+    },
+    "methods": {
+      "link": {
+        "enabled": true
+      },
+      "oidc": {
+        "enabled": false
+      },
+      "password": {
+        "config": {
+          "haveibeenpwned_host": "api.pwnedpasswords.com",
+          "ignore_network_errors": true,
+          "max_breaches": 0
+        },
+        "enabled": true
+      },
+      "profile": {
+        "enabled": true
+      }
+    }
+  },
+  "serve": {
+    "admin": {
+      "base_url": "http://127.0.0.1:4434/",
+      "host": "0.0.0.0",
+      "port": 4434,
+      "socket": {
+        "group": "",
+        "mode": 493,
+        "owner": "",
+        "serve": {
+          "admin": {
+            "base_url": "http://127.0.0.1:4434/",
+            "host": "0.0.0.0",
+            "port": 4434,
+            "socket": {
+              "group": "",
+              "mode": 493,
+              "owner": ""
+            }
+          },
+          "public": {
+            "base_url": "http://127.0.0.1:4433/",
+            "cors": {
+              "allow_credentials": true,
+              "allowed_headers": [
+                "Authorization",
+                "Content-Type",
+                "X-Session-Token"
+              ],
+              "allowed_methods": [
+                "POST",
+                "GET",
+                "PUT",
+                "PATCH",
+                "DELETE"
+              ],
+              "allowed_origins": [
+                "*"
+              ],
+              "debug": false,
+              "enabled": false,
+              "exposed_headers": [
+                "Content-Type"
+              ],
+              "max_age": 0,
+              "options_passthrough": false
+            },
+            "host": "0.0.0.0",
+            "port": 4433,
+            "socket": {
+              "group": "",
+              "mode": 493,
+              "owner": "",
+              "serve": {
+                "admin": {
+                  "base_url": "http://127.0.0.1:4434/",
+                  "host": "0.0.0.0",
+                  "port": 4434,
+                  "socket": {
+                    "group": "",
+                    "mode": 493,
+                    "owner": ""
+                  }
+                },
+                "public": {
+                  "base_url": "http://127.0.0.1:4433/",
+                  "cors": {
+                    "allow_credentials": true,
+                    "allowed_headers": [
+                      "Authorization",
+                      "Content-Type",
+                      "X-Session-Token"
+                    ],
+                    "allowed_methods": [
+                      "POST",
+                      "GET",
+                      "PUT",
+                      "PATCH",
+                      "DELETE"
+                    ],
+                    "allowed_origins": [
+                      "*"
+                    ],
+                    "debug": false,
+                    "enabled": false,
+                    "exposed_headers": [
+                      "Content-Type"
+                    ],
+                    "max_age": 0,
+                    "options_passthrough": false
+                  },
+                  "host": "0.0.0.0",
+                  "port": 4433,
+                  "socket": {
+                    "group": "",
+                    "mode": 493,
+                    "owner": "",
+                    "serve": {
+                      "admin": {
+                        "base_url": "http://127.0.0.1:4434/",
+                        "host": "0.0.0.0",
+                        "port": 4434,
+                        "socket": {
+                          "group": "",
+                          "mode": 493,
+                          "owner": ""
+                        }
+                      },
+                      "public": {
+                        "base_url": "http://127.0.0.1:4433/",
+                        "cors": {
+                          "allow_credentials": true,
+                          "allowed_headers": [
+                            "Authorization",
+                            "Content-Type",
+                            "X-Session-Token"
+                          ],
+                          "allowed_methods": [
+                            "POST",
+                            "GET",
+                            "PUT",
+                            "PATCH",
+                            "DELETE"
+                          ],
+                          "allowed_origins": [
+                            "*"
+                          ],
+                          "debug": false,
+                          "enabled": false,
+                          "exposed_headers": [
+                            "Content-Type"
+                          ],
+                          "max_age": 0,
+                          "options_passthrough": false
+                        },
+                        "host": "0.0.0.0",
+                        "port": 4433,
+                        "socket": {
+                          "group": "",
+                          "mode": 493,
+                          "owner": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "public": {
+      "base_url": "http://127.0.0.1:4433/",
+      "cors": {
+        "allow_credentials": true,
+        "allowed_headers": [
+          "Authorization",
+          "Content-Type",
+          "X-Session-Token"
+        ],
+        "allowed_methods": [
+          "POST",
+          "GET",
+          "PUT",
+          "PATCH",
+          "DELETE"
+        ],
+        "allowed_origins": [
+          "*"
+        ],
+        "debug": false,
+        "enabled": false,
+        "exposed_headers": [
+          "Content-Type"
+        ],
+        "max_age": 0,
+        "options_passthrough": false
+      },
+      "host": "0.0.0.0",
+      "port": 4433,
+      "socket": {
+        "group": "",
+        "mode": 493,
+        "owner": ""
+      }
+    }
+  },
+  "session": {
+    "cookie": {
+      "name": "ory_kratos_session",
+      "path": "/",
+      "persistent": true,
+      "same_site": "Lax"
+    },
+    "lifespan": "24h"
+  },
+  "sqa-opt-out": false,
+  "tablespace": "identities",
+  "version": "v0.5.5-alpha.1",
+  "watch-courier": false
+}
