@@ -6,7 +6,6 @@ import (
 	"github.com/mitchellh/copystructure"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/knadh/koanf/maps"
 	"github.com/knadh/koanf/providers/confmap"
@@ -69,7 +68,7 @@ type UnmarshalConf struct {
 // or a / for `parent/child/key`.
 func New(delim string) *Koanf {
 	return NewWithConf(Conf{
-		Delim: delim,
+		Delim:       delim,
 		StrictMerge: false,
 	})
 }
@@ -80,7 +79,7 @@ func NewWithConf(conf Conf) *Koanf {
 		confMap:     make(map[string]interface{}),
 		confMapFlat: make(map[string]interface{}),
 		keyMap:      make(KeyMap),
-		conf: conf,
+		conf:        conf,
 	}
 }
 
@@ -385,7 +384,7 @@ func (ko *Koanf) MapKeys(path string) []string {
 	return out
 }
 
-func (ko *Koanf) merge(c map[string]interface{}) error{
+func (ko *Koanf) merge(c map[string]interface{}) error {
 	maps.IntfaceKeysToStrings(c)
 	if ko.conf.StrictMerge {
 		if err := maps.MergeStrict(c, ko.confMap); err != nil {
@@ -469,10 +468,19 @@ func toBool(v interface{}) (bool, error) {
 // traversal paths. For instance, `parent.child.key` generates
 // `parent`, and `parent.child`.
 func populateKeyParts(m KeyMap, delim string) KeyMap {
-	out := make(KeyMap)
+	out := make(KeyMap, len(m)) // The size of the result is at very least same to KeyMap
 	for _, parts := range m {
+		// parts is a slice of [parent, child, key]
+		var nk string
+
 		for i := range parts {
-			nk := strings.Join(parts[0:i+1], delim)
+			if i == 0 {
+				// On first iteration only use first part
+				nk = parts[i]
+			} else {
+				// If nk already contains a part (e.g. `parent`) append delim + `child`
+				nk += delim + parts[i]
+			}
 			if _, ok := out[nk]; ok {
 				continue
 			}
