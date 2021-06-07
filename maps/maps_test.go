@@ -102,19 +102,13 @@ var testMap3 = map[string]interface{}{
 const delim = "."
 
 func TestFlatten(t *testing.T) {
-	f, k := Flatten(testMap, nil, delim)
+	f := Flatten(testMap, nil, delim)
 	assert.Equal(t, map[string]interface{}{
 		"parent.child.key":          123,
 		"parent.child.key.with.dot": 456,
 		"top":                       789,
 		"empty":                     map[string]interface{}{},
 	}, f)
-	assert.Equal(t, map[string][]string{
-		"parent.child.key":          {"parent", "child", "key"},
-		"parent.child.key.with.dot": {"parent", "child", "key.with.dot"},
-		"top":                       {"top"},
-		"empty":                     {"empty"},
-	}, k)
 }
 
 func BenchmarkFlatten(b *testing.B) {
@@ -124,11 +118,11 @@ func BenchmarkFlatten(b *testing.B) {
 }
 
 func TestUnflatten(t *testing.T) {
-	m, _ := Flatten(testMap, nil, delim)
+	m := Flatten(testMap, nil, delim)
 	um := Unflatten(m, delim)
 	assert.NotEqual(t, um, testMap)
 
-	m, _ = Flatten(testMap2, nil, delim)
+	m = Flatten(testMap2, nil, delim)
 	um = Unflatten(m, delim)
 	assert.Equal(t, um, testMap2)
 }

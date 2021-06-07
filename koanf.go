@@ -6,6 +6,7 @@ import (
 	"github.com/mitchellh/copystructure"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/knadh/koanf/maps"
 	"github.com/knadh/koanf/providers/confmap"
@@ -16,7 +17,7 @@ import (
 type Koanf struct {
 	confMap     map[string]interface{}
 	confMapFlat map[string]interface{}
-	keyMap      KeyMap
+	knownKeys   map[string]interface{}
 	conf        Conf
 }
 
@@ -78,7 +79,7 @@ func NewWithConf(conf Conf) *Koanf {
 	return &Koanf{
 		confMap:     make(map[string]interface{}),
 		confMapFlat: make(map[string]interface{}),
-		keyMap:      make(KeyMap),
+		knownKeys:   make(map[string]interface{}),
 		conf:        conf,
 	}
 }
@@ -131,13 +132,11 @@ func (ko *Koanf) Keys() []string {
 
 // KeyMap returns a map of flattened keys and the individual parts of the
 // key as slices. eg: "parent.child.key" => ["parent", "child", "key"]
+//
+// Deprecated: This method now uses more memory and CPU to make other tasks
+// more efficient. We recommend not using this method any more.
 func (ko *Koanf) KeyMap() KeyMap {
-	out := make(KeyMap, len(ko.keyMap))
-	for key, parts := range ko.keyMap {
-		out[key] = make([]string, len(parts))
-		copy(out[key][:], parts[:])
-	}
-	return out
+	return populateKeyMap(ko.confMapFlat, ko.conf.Delim)
 }
 
 // All returns a map of all flattened key paths and their values.
@@ -261,7 +260,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 	mp := ko.Get(path)
 	if c.FlatPaths {
 		if f, ok := mp.(map[string]interface{}); ok {
-			fmp, _ := maps.Flatten(f, nil, ko.conf.Delim)
+			fmp := maps.Flatten(f, nil, ko.conf.Delim)
 			mp = fmp
 		}
 	}
@@ -277,20 +276,20 @@ func (ko *Koanf) Delete(path string) {
 	if path == "" {
 		ko.confMap = make(map[string]interface{})
 		ko.confMapFlat = make(map[string]interface{})
-		ko.keyMap = make(KeyMap)
+		ko.knownKeys = make(map[string]interface{})
 		return
 	}
 
 	// Does the path exist?
-	p, ok := ko.keyMap[path]
-	if !ok {
+
+	if _, ok := ko.knownKeys[path]; !ok {
 		return
 	}
-	maps.Delete(ko.confMap, p)
+	maps.Delete(ko.confMap, strings.Split(path, ko.conf.Delim))
 
 	// Update the flattened version as well.
-	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.conf.Delim)
-	ko.keyMap = populateKeyParts(ko.keyMap, ko.conf.Delim)
+	ko.confMapFlat = maps.Flatten(ko.confMap, nil, ko.conf.Delim)
+	ko.knownKeys = enumeratePossibleKeys(ko.confMapFlat, ko.conf.Delim)
 }
 
 // Get returns the raw, uncast interface{} value of a given key path
@@ -302,11 +301,10 @@ func (ko *Koanf) Get(path string) interface{} {
 	}
 
 	// Does the path exist?
-	p, ok := ko.keyMap[path]
-	if !ok {
+	if _, ok := ko.knownKeys[path]; !ok {
 		return nil
 	}
-	res := maps.Search(ko.confMap, p)
+	res := maps.Search(ko.confMap, strings.Split(path, ko.conf.Delim))
 
 	// Non-reference types are okay to return directly.
 	// Other types are "copied" with maps.Copy or json.Marshal
@@ -356,7 +354,7 @@ func (ko *Koanf) Slices(path string) []*Koanf {
 
 // Exists returns true if the given key path exists in the conf map.
 func (ko *Koanf) Exists(path string) bool {
-	_, ok := ko.keyMap[path]
+	_, ok := ko.knownKeys[path]
 	return ok
 }
 
@@ -395,8 +393,8 @@ func (ko *Koanf) merge(c map[string]interface{}) error {
 	}
 
 	// Maintain a flattened version as well.
-	ko.confMapFlat, ko.keyMap = maps.Flatten(ko.confMap, nil, ko.conf.Delim)
-	ko.keyMap = populateKeyParts(ko.keyMap, ko.conf.Delim)
+	ko.confMapFlat = maps.Flatten(ko.confMap, nil, ko.conf.Delim)
+	ko.knownKeys = enumeratePossibleKeys(ko.confMapFlat, ko.conf.Delim)
 
 	return nil
 }
@@ -464,15 +462,16 @@ func toBool(v interface{}) (bool, error) {
 	return b, nil
 }
 
-// populateKeyParts iterates a key map and generates all possible
+// populateKeyMap iterates a key map and generates all possible
 // traversal paths. For instance, `parent.child.key` generates
 // `parent`, and `parent.child`.
-func populateKeyParts(m KeyMap, delim string) KeyMap {
+func populateKeyMap(m map[string]interface{}, delim string) KeyMap {
 	out := make(KeyMap, len(m)) // The size of the result is at very least same to KeyMap
-	for _, parts := range m {
+	for path := range m {
 		// parts is a slice of [parent, child, key]
 		var nk string
 
+		parts := strings.Split(path, delim)
 		for i := range parts {
 			if i == 0 {
 				// On first iteration only use first part
@@ -486,6 +485,32 @@ func populateKeyParts(m KeyMap, delim string) KeyMap {
 			}
 			out[nk] = make([]string, i+1)
 			copy(out[nk][:], parts[0:i+1])
+		}
+	}
+	return out
+}
+
+// enumeratePossibleKeys is similar to populateKeyMap but does not keep a record of all the sub
+// keys in the values.
+func enumeratePossibleKeys(m map[string]interface{}, delim string) map[string]interface{} {
+	out := make(map[string]interface{}, len(m)) // The size of the result is at very least same to KeyMap
+	for path := range m {
+		// parts is a slice of [parent, child, key]
+		var nk string
+
+		parts := strings.Split(path, delim)
+		for i := range parts {
+			if i == 0 {
+				// On first iteration only use first part
+				nk = parts[i]
+			} else {
+				// If nk already contains a part (e.g. `parent`) append delim + `child`
+				nk += delim + parts[i]
+			}
+			if _, ok := out[nk]; ok {
+				continue
+			}
+			out[nk] = nil
 		}
 	}
 	return out
