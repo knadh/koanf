@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-
 // Flatten takes a map[string]interface{} and traverses it and flattens
 // nested children into keys delimited by delim.
 //
@@ -28,6 +27,12 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 		out    = make(map[string]interface{})
 		keyMap = make(map[string][]string)
 	)
+
+	flatten(m, keys, delim, out, keyMap)
+	return out, keyMap
+}
+
+func flatten(m map[string]interface{}, keys []string, delim string, out map[string]interface{}, keyMap map[string][]string) {
 	for key, val := range m {
 		// Copy the incoming key paths into a fresh list
 		// and append the current key in the iteration.
@@ -46,22 +51,13 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 			}
 
 			// It's a nested map. Flatten it recursively.
-			next, parts := Flatten(cur, kp, delim)
-
-			// Copy the resultant key parts and the value maps.
-			for k, p := range parts {
-				keyMap[k] = p
-			}
-			for k, v := range next {
-				out[k] = v
-			}
+			flatten(cur, kp, delim, out, keyMap)
 		default:
 			newKey := strings.Join(kp, delim)
 			out[newKey] = val
 			keyMap[newKey] = kp
 		}
 	}
-	return out, keyMap
 }
 
 // Unflatten takes a flattened key:value map (non-nested with delimited keys)
