@@ -279,6 +279,21 @@ func init() {
 	}
 }
 
+func BenchmarkLoadFile(b *testing.B) {
+	k := koanf.New(delim)
+
+	// Don't use TOML here because it distorts memory benchmarks due to high memory use
+	providers := []*file.File{file.Provider(mockJSON), file.Provider(mockYAML)}
+	parsers := []koanf.Parser{json.Parser(), yaml.Parser()}
+
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		if err := k.Load(providers[n%2], parsers[n%2]); err != nil {
+			b.Fatalf("Unexpected error: %+v", k)
+		}
+	}
+}
+
 func TestLoadFile(t *testing.T) {
 	// Load a non-existent file.
 	_, err := file.Provider("does-not-exist").ReadBytes()
@@ -996,7 +1011,7 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.Strings("orphan"))
 
 		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.StringMap("parent1.strmap"))
-		assert.Equal(map[string][]string{"key1": []string{"val1", "val2", "val3"}, "key2": []string{"val4", "val5"}}, c.koanf.StringsMap("parent1.strsmap"))
+		assert.Equal(map[string][]string{"key1": {"val1", "val2", "val3"}, "key2": {"val4", "val5"}}, c.koanf.StringsMap("parent1.strsmap"))
 		assert.Equal(map[string]string{}, c.koanf.StringMap("xxxx"))
 		assert.Equal(map[string]string{}, c.koanf.StringMap("parent1.intmap"))
 
@@ -1084,7 +1099,7 @@ func TestMustGetTypes(t *testing.T) {
 		assert.Panics(func() { c.koanf.MustStringMap("xxxx") })
 		assert.Panics(func() { c.koanf.MustStringMap("parent1.intmap") })
 		assert.Equal(map[string]string{"key1": "val1", "key2": "val2", "key3": "val3"}, c.koanf.MustStringMap("parent1.strmap"))
-		assert.Equal(map[string][]string{"key1": []string{"val1", "val2", "val3"}, "key2": []string{"val4", "val5"}}, c.koanf.MustStringsMap("parent1.strsmap"))
+		assert.Equal(map[string][]string{"key1": {"val1", "val2", "val3"}, "key2": {"val4", "val5"}}, c.koanf.MustStringsMap("parent1.strsmap"))
 
 		// // Bools.
 		assert.Panics(func() { c.koanf.MustBools("xxxx") })
