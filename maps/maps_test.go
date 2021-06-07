@@ -38,6 +38,67 @@ var testMap2 = map[string]interface{}{
 	"empty": map[string]interface{}{},
 }
 
+var testMap3 = map[string]interface{}{
+	"list": []interface{}{
+		map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+				"child": map[string]interface{}{
+					"key": 123,
+					"child": map[string]interface{}{
+						"key": 123,
+						"child": map[string]interface{}{
+							"key": 123,
+							"child": map[string]interface{}{
+								"key": 123,
+								"child": map[string]interface{}{
+									"key": 123,
+									"child": map[string]interface{}{
+										"key": 123,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		map[string]interface{}{
+			"child": map[string]interface{}{
+				"key": 123,
+				"child": map[string]interface{}{
+					"key": 123,
+				},
+			},
+		},
+	},
+	"parent": map[string]interface{}{
+		"child": map[string]interface{}{
+			"key": 123,
+			"child": map[string]interface{}{
+				"key": 123,
+				"child": map[string]interface{}{
+					"key": 123,
+					"child": map[string]interface{}{
+						"key": 123,
+						"child": map[string]interface{}{
+							"key": 123,
+						},
+					},
+				},
+			},
+		},
+	},
+	"top": 789,
+	"child": map[string]interface{}{
+		"key": 123,
+		"child": map[string]interface{}{
+			"key": 123,
+		},
+	},
+	"empty": map[string]interface{}{},
+}
+
 const delim = "."
 
 func TestFlatten(t *testing.T) {
@@ -54,6 +115,12 @@ func TestFlatten(t *testing.T) {
 		"top":                       {"top"},
 		"empty":                     {"empty"},
 	}, k)
+}
+
+func BenchmarkFlatten(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Flatten(testMap3, nil, delim)
+	}
 }
 
 func TestUnflatten(t *testing.T) {
