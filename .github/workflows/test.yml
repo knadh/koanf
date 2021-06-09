@@ -1,0 +1,27 @@
+name: Run Tests
+
+# Triggers the workflow on push or pull request events
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go: [ '1.14', '1.15', '1.16' ]
+
+    runs-on: ubuntu-20.04
+
+    name: Go ${{ matrix.go }} Tests
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go }}
+
+      - name: Run Test
+        run: go test -v ./...
+
+      - name: Run Coverage
+        run: go test -v -cover ./...
