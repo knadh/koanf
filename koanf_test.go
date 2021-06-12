@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -408,7 +409,9 @@ func TestWatchFile(t *testing.T) {
 	k.Load(f, json.Parser())
 
 	// Watch for changes.
-	changedName := ""
+	changedC := make(chan string, 1)
+	var wg sync.WaitGroup
+	wg.Add(1) // our assurance that cb is called max once
 	f.Watch(func(event interface{}, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
@@ -419,14 +422,18 @@ func TestWatchFile(t *testing.T) {
 		}
 		// Reload the config.
 		k.Load(f, json.Parser())
-		changedName = k.String("parent.name")
+		changedC <- k.String("parent.name")
+		wg.Done()
 	})
 
 	// Wait a second and change the file.
 	time.Sleep(1 * time.Second)
 	ioutil.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600) // TODO: replace with os.WriteFile as of go v1.16
+	wg.Wait()
 
-	assert.Equal("name2", changedName, "file watch reload didn't change config")
+	assert.Condition(func() bool {
+		return strings.Compare(<-changedC, "name2") == 0
+	}, "file watch reload didn't change config")
 }
 
 func TestWatchFileSymlink(t *testing.T) {
@@ -455,7 +462,9 @@ func TestWatchFileSymlink(t *testing.T) {
 	k.Load(f, json.Parser())
 
 	// Watch for changes.
-	changedType := ""
+	changedC := make(chan string, 1)
+	var wg sync.WaitGroup
+	wg.Add(1) // our assurance that cb is called max once
 	f.Watch(func(event interface{}, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
@@ -466,7 +475,8 @@ func TestWatchFileSymlink(t *testing.T) {
 		}
 		// Reload the config.
 		k.Load(f, yaml.Parser())
-		changedType = k.String("type")
+		changedC <- k.String("type")
+		wg.Done()
 	})
 
 	// Wait a second and swap the symlink target from the JSON file to the YAML file.
@@ -474,8 +484,11 @@ func TestWatchFileSymlink(t *testing.T) {
 	// symlink. We do this to avoid removing the symlink and triggering a REMOVE event.
 	time.Sleep(1 * time.Second)
 	assert.NoError(os.Rename(symPath2, symPath), "error swaping symlink to another file type")
+	wg.Wait()
 
-	assert.Equal("yml", changedType, "symlink watch reload didn't change config")
+	assert.Condition(func() bool {
+		return strings.Compare(<-changedC, "yml") == 0
+	}, "symlink watch reload didn't change config")
 }
 
 func TestLoadMerge(t *testing.T) {
