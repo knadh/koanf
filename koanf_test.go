@@ -27,6 +27,7 @@ import (
 	"github.com/knadh/koanf/providers/rawbytes"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -397,15 +398,13 @@ func TestWatchFile(t *testing.T) {
 	)
 
 	// Create a tmp config file.
-	out, err := ioutil.TempFile("", "koanf_mock")
-	if err != nil {
-		log.Fatalf("error creating temp config file: %v", err)
-	}
-	out.Write([]byte(`{"parent": {"name": "name1"}}`))
-	out.Close()
+	tmpDir, _ := ioutil.TempDir("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
+	tmpFile := filepath.Join(tmpDir, "koanf_mock")
+	err := ioutil.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600) // TODO: replace with os.WriteFile as of go v1.16
+	require.NoError(t, err, "error creating temp config file: %v", err)
 
 	// Load the new config and watch it for changes.
-	f := file.Provider(out.Name())
+	f := file.Provider(tmpFile)
 	k.Load(f, json.Parser())
 
 	// Watch for changes.
@@ -425,8 +424,7 @@ func TestWatchFile(t *testing.T) {
 
 	// Wait a second and change the file.
 	time.Sleep(1 * time.Second)
-	ioutil.WriteFile(out.Name(), []byte(`{"parent": {"name": "name2"}}`), 0644)
-	time.Sleep(1 * time.Second)
+	ioutil.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600) // TODO: replace with os.WriteFile as of go v1.16
 
 	assert.Equal("name2", changedName, "file watch reload didn't change config")
 }
@@ -436,12 +434,11 @@ func TestWatchFileSymlink(t *testing.T) {
 		assert = assert.New(t)
 		k      = koanf.New(delim)
 	)
+	tmpDir, _ := ioutil.TempDir("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
 
 	// Create a symlink.
-	symPath := filepath.Join(os.TempDir(), "koanf_test_symlink")
-	os.Remove(symPath)
-	symPath2 := filepath.Join(os.TempDir(), "koanf_test_symlink2")
-	os.Remove(symPath)
+	symPath := filepath.Join(tmpDir, "koanf_test_symlink")
+	symPath2 := filepath.Join(tmpDir, "koanf_test_symlink2")
 
 	wd, err := os.Getwd()
 	assert.NoError(err, "error getting working dir")
@@ -451,6 +448,7 @@ func TestWatchFileSymlink(t *testing.T) {
 
 	// Create a symlink to the JSON file which will be swapped out later.
 	assert.NoError(os.Symlink(jsonFile, symPath), "error creating symlink")
+	assert.NoError(os.Symlink(yamlFile, symPath2), "error creating symlink2")
 
 	// Load the symlink (to the JSON) file.
 	f := file.Provider(symPath)
@@ -475,9 +473,7 @@ func TestWatchFileSymlink(t *testing.T) {
 	// Create a temp symlink to the YAML file and rename the old symlink to the new
 	// symlink. We do this to avoid removing the symlink and triggering a REMOVE event.
 	time.Sleep(1 * time.Second)
-	assert.NoError(os.Symlink(yamlFile, symPath2), "error creating temp symlink")
-	assert.NoError(os.Rename(symPath2, symPath), "error creating temp symlink")
-	time.Sleep(1 * time.Second)
+	assert.NoError(os.Rename(symPath2, symPath), "error swaping symlink to another file type")
 
 	assert.Equal("yml", changedType, "symlink watch reload didn't change config")
 }
