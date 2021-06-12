@@ -415,9 +415,11 @@ func TestWatchFile(t *testing.T) {
 	f.Watch(func(event interface{}, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
-		assert.NoError(err, "watch file event error")
-
 		if err != nil {
+			// TODO: replace make with of Error Wrapping-Scheme and assert.ErrorIs() checks as of go v1.13
+			assert.Condition(func() bool {
+				return strings.Contains(err.Error(), "was removed")
+			}, "received unexpected error. err: %s", err)
 			return
 		}
 		// Reload the config.
@@ -468,9 +470,11 @@ func TestWatchFileSymlink(t *testing.T) {
 	f.Watch(func(event interface{}, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
-		assert.NoError(err, "watch file event error")
-
 		if err != nil {
+			// TODO: make use of Error Wrapping-Scheme and assert.ErrorIs() checks as of go v1.13
+			assert.Condition(func() bool {
+				return strings.Contains(err.Error(), "no such file or directory")
+			}, "received unexpected error. err: %s", err)
 			return
 		}
 		// Reload the config.
