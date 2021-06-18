@@ -1,3 +1,5 @@
+// +build go1.16
+
 package fs_test
 
 import (
