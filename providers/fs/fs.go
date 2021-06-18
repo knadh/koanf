@@ -1,6 +1,9 @@
 // Package fs implements a koanf.Provider that reads raw bytes
 // from given fs.FS to be used with a koanf.Parser to parse
 // into conf maps.
+
+// +build go1.16
+
 package fs
 
 import (
