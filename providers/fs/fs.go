@@ -29,12 +29,9 @@ func (f *FS) ReadBytes() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	buf, err := ioutil.ReadAll(fd)
-	if err != nil {
-		return nil, err
-	}
 	defer fd.Close()
-	return buf, nil
+
+	return ioutil.ReadAll(fd)
 }
 
 // Read is not supported by the fs.FS provider.
