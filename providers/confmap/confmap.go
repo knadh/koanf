@@ -6,6 +6,7 @@ package confmap
 import (
 	"errors"
 
+	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
 )
 
@@ -13,6 +14,8 @@ import (
 type Confmap struct {
 	mp map[string]interface{}
 }
+
+var _ koanf.Provider = (*Confmap)(nil)
 
 // Provider returns a confmap Provider that takes a flat or nested
 // map[string]interface{}. If a delim is provided, it indicates that the

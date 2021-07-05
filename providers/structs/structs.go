@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/fatih/structs"
+	"github.com/knadh/koanf"
 )
 
 // Structs implements a structs provider.
@@ -13,6 +14,8 @@ type Structs struct {
 	s   interface{}
 	tag string
 }
+
+var _ koanf.Provider = (*Structs)(nil)
 
 // Provider returns a provider that takes a  takes a struct and a struct tag
 // and uses structs to parse and provide it to koanf.

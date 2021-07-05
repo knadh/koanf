@@ -5,10 +5,13 @@ import (
 	"fmt"
 
 	"github.com/joho/godotenv"
+	"github.com/knadh/koanf"
 )
 
 // DotEnv implements a DotEnv parser.
 type DotEnv struct{}
+
+var _ koanf.Parser = (*DotEnv)(nil)
 
 // Parser returns a DOTENV Parser.
 func Parser() *DotEnv {

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
 )
 
@@ -16,6 +17,8 @@ type Env struct {
 	delim  string
 	cb     func(key string, value string) (string, interface{})
 }
+
+var _ koanf.Provider = (*Env)(nil)
 
 // Provider returns an environment variables provider that returns
 // a nested map[string]interface{} of environment variable where the

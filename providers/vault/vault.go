@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
+	"github.com/knadh/koanf"
 )
 
 type Config struct {
@@ -28,6 +29,8 @@ type Vault struct {
 	client *api.Client
 	cfg    Config
 }
+
+var _ koanf.Provider = (*Vault)(nil)
 
 func Provider(cfg Config) *Vault {
 	httpClient := &http.Client{Timeout: cfg.Timeout}

@@ -11,12 +11,15 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/knadh/koanf"
 )
 
 // File implements a File provider.
 type File struct {
 	path string
 }
+
+var _ koanf.Provider = (*File)(nil)
 
 // Provider returns a file provider.
 func Provider(path string) *File {

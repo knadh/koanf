@@ -4,11 +4,14 @@ package toml
 import (
 	"bytes"
 
+	"github.com/knadh/koanf"
 	"github.com/pelletier/go-toml"
 )
 
 // TOML implements a TOML parser.
 type TOML struct{}
+
+var _ koanf.Parser = (*TOML)(nil)
 
 // Parser returns a TOML Parser.
 func Parser() *TOML {

@@ -19,6 +19,8 @@ type Posflag struct {
 	cb      func(key string, value string) (string, interface{})
 }
 
+var _ koanf.Provider = (*Posflag)(nil)
+
 // Provider returns a commandline flags provider that returns
 // a nested map[string]interface{} of environment variable where the
 // nesting hierarchy of keys are defined by delim. For instance, the

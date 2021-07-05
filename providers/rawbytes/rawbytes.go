@@ -4,12 +4,16 @@ package rawbytes
 
 import (
 	"errors"
+
+	"github.com/knadh/koanf"
 )
 
 // RawBytes implements a raw bytes provider.
 type RawBytes struct {
 	b []byte
 }
+
+var _ koanf.Provider = (*RawBytes)(nil)
 
 // Provider returns a provider that takes a raw []byte slice to be parsed
 // by a koanf.Parser parser. This should be a nested conf map, like the

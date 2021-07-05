@@ -10,6 +10,8 @@ import (
 	"errors"
 	"io/fs"
 	"io/ioutil"
+
+	"github.com/knadh/koanf"
 )
 
 // FS implements an fs.FS provider.
@@ -17,6 +19,8 @@ type FS struct {
 	fs   fs.FS
 	path string
 }
+
+var _ koanf.Provider = (*FS)(nil)
 
 // Provider returns an fs.FS provider.
 func Provider(fs fs.FS, filepath string) *FS {

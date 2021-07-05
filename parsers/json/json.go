@@ -3,10 +3,14 @@ package json
 
 import (
 	"encoding/json"
+
+	"github.com/knadh/koanf"
 )
 
 // JSON implements a JSON parser.
 type JSON struct{}
+
+var _ koanf.Parser = (*JSON)(nil)
 
 // Parser returns a JSON Parser.
 func Parser() *JSON {
