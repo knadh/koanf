@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 
+	"github.com/knadh/koanf"
 	"github.com/rhnvrm/simples3"
 )
 
@@ -36,6 +37,8 @@ type S3 struct {
 	s3  *simples3.S3
 	cfg Config
 }
+
+var _ koanf.Provider = (*S3)(nil)
 
 // Provider returns a provider that takes a simples3 config.
 func Provider(cfg Config) *S3 {

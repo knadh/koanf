@@ -6,10 +6,13 @@ import (
 	"errors"
 
 	"github.com/hashicorp/hcl"
+	"github.com/knadh/koanf"
 )
 
 // HCL implements a Hashicorp HCL parser.
 type HCL struct{ flattenSlices bool }
+
+var _ koanf.Parser = (*HCL)(nil)
 
 // Parser returns an HCL Parser.
 // flattenSlices flattens HCL structures where maps turn into

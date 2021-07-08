@@ -2,11 +2,14 @@
 package yaml
 
 import (
+	"github.com/knadh/koanf"
 	"gopkg.in/yaml.v2"
 )
 
 // YAML implements a YAML parser.
 type YAML struct{}
+
+var _ koanf.Parser = (*YAML)(nil)
 
 // Parser returns a YAML Parser.
 func Parser() *YAML {

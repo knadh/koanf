@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 
+	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
 )
 
@@ -15,6 +16,8 @@ type Pflag struct {
 	flagset *flag.FlagSet
 	cb      func(key string, value string) (string, interface{})
 }
+
+var _ koanf.Provider = (*Pflag)(nil)
 
 // Provider returns a commandline flags provider that returns
 // a nested map[string]interface{} of environment variable where the
