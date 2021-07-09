@@ -22,17 +22,16 @@ import (
 // a slice of key parts, for eg: { "parent.child": ["parent", "child"] }. This
 // parts list is used to remember the key path's original structure to
 // unflatten later.
-func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]interface{}, map[string][]string) {
+func Flatten(m map[string]interface{}, keys []string, delim string) map[string]interface{} {
 	var (
-		out    = make(map[string]interface{})
-		keyMap = make(map[string][]string)
+		out = make(map[string]interface{})
 	)
 
-	flatten(m, keys, delim, out, keyMap)
-	return out, keyMap
+	flatten(m, keys, delim, out)
+	return out
 }
 
-func flatten(m map[string]interface{}, keys []string, delim string, out map[string]interface{}, keyMap map[string][]string) {
+func flatten(m map[string]interface{}, keys []string, delim string, out map[string]interface{}) {
 	for key, val := range m {
 		// Copy the incoming key paths into a fresh list
 		// and append the current key in the iteration.
@@ -46,16 +45,14 @@ func flatten(m map[string]interface{}, keys []string, delim string, out map[stri
 			if len(cur) == 0 {
 				newKey := strings.Join(kp, delim)
 				out[newKey] = val
-				keyMap[newKey] = kp
 				continue
 			}
 
 			// It's a nested map. Flatten it recursively.
-			flatten(cur, kp, delim, out, keyMap)
+			flatten(cur, kp, delim, out)
 		default:
 			newKey := strings.Join(kp, delim)
 			out[newKey] = val
-			keyMap[newKey] = kp
 		}
 	}
 }
