@@ -12,6 +12,8 @@ koanf comes with built in support for reading configuration from files, command 
 
 `go get -u github.com/knadh/koanf`
 
+**NOTE**: Required `Go` 1.13+.
+
 ### Contents
 
 - [Concepts](#concepts)
