@@ -340,6 +340,14 @@ func TestLoadFileAllKeys(t *testing.T) {
 	}
 }
 
+func TestDelim(t *testing.T) {
+	k1 := koanf.New(".")
+	assert.Equal(t, k1.Delim(), ".")
+
+	k2 := koanf.New("/")
+	assert.Equal(t, k2.Delim(), "/")
+}
+
 func TestLoadMergeYamlJson(t *testing.T) {
 	var (
 		assert = assert.New(t)

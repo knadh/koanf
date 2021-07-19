@@ -383,6 +383,11 @@ func (ko *Koanf) MapKeys(path string) []string {
 	return out
 }
 
+// Delim returns delimiter in used by this instance of Koanf.
+func (ko *Koanf) Delim() string {
+	return ko.conf.Delim
+}
+
 func (ko *Koanf) merge(c map[string]interface{}) error {
 	maps.IntfaceKeysToStrings(c)
 	if ko.conf.StrictMerge {
