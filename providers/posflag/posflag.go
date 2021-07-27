@@ -86,6 +86,12 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 			val, _ = p.flagset.GetStringSlice(key)
 		case "intSlice":
 			val, _ = p.flagset.GetIntSlice(key)
+		case "stringToString":
+			val, _ = p.flagset.GetStringToString(key)
+		case "stringToInt":
+			val, _ = p.flagset.GetStringToInt(key)
+		case "stringToInt64":
+			val, _ = p.flagset.GetStringToInt64(key)
 		default:
 			val = f.Value.String()
 		}
