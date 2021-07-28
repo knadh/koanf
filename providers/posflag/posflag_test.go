@@ -44,3 +44,31 @@ func TestIssue90(t *testing.T) {
 
 	require.Equal(t, exampleKeys, k.All())
 }
+
+type Maps struct {
+	String map[string]string
+	Int    map[string]int
+	Int64  map[string]int64
+}
+
+func TestIssue100(t *testing.T) {
+	var err error
+	examplePosFlags := &pflag.FlagSet{}
+	examplePosFlags.StringToString("string", map[string]string{"k": "v"}, "")
+	examplePosFlags.StringToInt("int", map[string]int{"k": 1}, "")
+	examplePosFlags.StringToInt64("int64", map[string]int64{"k": 2}, "")
+
+	k := koanf.New(".")
+
+	err = k.Load(posflag.Provider(examplePosFlags, ".", k), nil)
+	require.Nil(t, err)
+
+	maps := new(Maps)
+
+	err = k.Unmarshal("", maps)
+	require.Nil(t, err)
+
+	require.Equal(t, map[string]string{"k": "v"}, maps.String)
+	require.Equal(t, map[string]int{"k": 1}, maps.Int)
+	require.Equal(t, map[string]int64{"k": 2}, maps.Int64)
+}
