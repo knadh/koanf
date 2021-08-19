@@ -23,7 +23,7 @@ koanf comes with built in support for reading configuration from files, command 
 - [Unmarshalling and marshalling](#unmarshalling-and-marshalling)
 - [Unmarshalling with flat paths](#unmarshalling-with-flat-paths)
 - [Setting default values](#setting-default-values)
-- [Order of merge and key case senstivity](#order-of-merge-and-key-case-senstivity)
+- [Order of merge and key case senstivity](#order-of-merge-and-key-case-sensitivity)
 - [Custom Providers and Parsers](#custom-providers-and-parsers)
 - [List of Providers, Parsers, and functions](#api)
 
