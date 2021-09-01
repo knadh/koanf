@@ -130,7 +130,7 @@ func TestFSProvider(t *testing.T) {
 		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.Time("time", "2006-01-02"))
 
 		assert.Equal([]string{}, c.koanf.MapKeys("xxxx"), "map keys mismatch")
-		assert.Equal([]string{"bools", "duration", "empty", "intbools", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
+		assert.Equal([]string{"bools", "duration", "empty", "intbools", "negative_int", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
 			c.koanf.MapKeys(""), "map keys mismatch")
 		assert.Equal([]string{"key1", "key2", "key3"}, c.koanf.MapKeys("parent1.strmap"), "map keys mismatch")
 
