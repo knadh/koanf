@@ -319,7 +319,7 @@ func (ko *Koanf) MustFloat64Map(path string) map[string]float64 {
 // that the key contains a valid numeric value.
 func (ko *Koanf) Duration(path string) time.Duration {
 	// Look for a parsable string representation first.
-	if v := ko.Int64(path); v > 0 {
+	if v := ko.Int64(path); v != 0 {
 		return time.Duration(v)
 	}
 
