@@ -35,6 +35,7 @@ func Provider(cfg Config) *Vault {
 	if err != nil {
 		return nil
 	}
+	client.SetToken(cfg.Token)
 
 	return &Vault{client: client, cfg: cfg}
 }
