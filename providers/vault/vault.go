@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
+	"github.com/knadh/koanf/maps"
 )
 
 type Config struct {
@@ -19,6 +20,16 @@ type Config struct {
 
 	// Secret data path
 	Path string
+
+	// If FlatPaths is true, then the loaded configuration is not split into
+	// hierarchical maps based on the delimiter. The keys including the delimiter,
+	// eg: app.db.name stays as-is in the confmap.
+	FlatPaths bool
+
+	// Delim is the delimiter to use
+	// when specifying config key paths, for instance a . for `parent.child.key`
+	// or a / for `parent/child/key`.
+	Delim string
 
 	// Internal HTTP client timeout
 	Timeout time.Duration
@@ -48,6 +59,12 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 	secret, err := r.client.Logical().Read(r.cfg.Path)
 	if err != nil {
 		return nil, err
+	}
+
+	if !r.cfg.FlatPaths {
+		data := maps.Unflatten(secret.Data, r.cfg.Delim)
+
+		return data, nil
 	}
 
 	return secret.Data, nil
