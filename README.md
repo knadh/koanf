@@ -615,6 +615,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | providers/s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
 | providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
 | providers/vault     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
+| providers/appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
 
 ### Bundled parsers
 
@@ -625,6 +626,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | parsers/toml | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
 | parsers/dotenv | `dotenv.Parser()`              | Parses DotEnv bytes into a flat map                                                                                                                       |
 | parsers/hcl  | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
+
 ### Instance functions
 
 | Method                                                       | Description                                                  |
