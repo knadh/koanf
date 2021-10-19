@@ -39,9 +39,9 @@ func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 }
 
 // ProviderWithValue works exactly the same as Provider except the callback
-// takes a (key, value) with the variable name and value and allows you
-// to modify both. This is useful for cases where you may want to return
-// other types like a string slice instead of just a string.
+// takes a (key, value) with the variable name and value and allows their modification.
+// This is useful for cases where complex types like slices separated by
+// custom separators.
 func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(key string, value string) (string, interface{})) *Posflag {
 	return &Posflag{
 		flagset: f,
@@ -55,60 +55,75 @@ func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(
 func (p *Posflag) Read() (map[string]interface{}, error) {
 	mp := make(map[string]interface{})
 	p.flagset.VisitAll(func(f *pflag.Flag) {
-		// If no value was explicitly set in the command line,
-		// check if the default value should be used.
-		if !f.Changed {
-			if p.ko != nil {
-				if p.ko.Exists(f.Name) {
-					return
-				}
-			} else {
-				return
-			}
-		}
+		var (
+			key = f.Name
+			val interface{}
+		)
 
-		var v interface{}
 		switch f.Value.Type() {
 		case "int":
-			i, _ := p.flagset.GetInt(f.Name)
-			v = int64(i)
+			i, _ := p.flagset.GetInt(key)
+			val = int64(i)
 		case "int8":
-			i, _ := p.flagset.GetInt8(f.Name)
-			v = int64(i)
+			i, _ := p.flagset.GetInt8(key)
+			val = int64(i)
 		case "int16":
-			i, _ := p.flagset.GetInt16(f.Name)
-			v = int64(i)
+			i, _ := p.flagset.GetInt16(key)
+			val = int64(i)
 		case "int32":
-			i, _ := p.flagset.GetInt32(f.Name)
-			v = int64(i)
+			i, _ := p.flagset.GetInt32(key)
+			val = int64(i)
 		case "int64":
-			i, _ := p.flagset.GetInt64(f.Name)
-			v = int64(i)
+			i, _ := p.flagset.GetInt64(key)
+			val = int64(i)
 		case "float32":
-			v, _ = p.flagset.GetFloat32(f.Name)
+			val, _ = p.flagset.GetFloat32(key)
 		case "float":
-			v, _ = p.flagset.GetFloat64(f.Name)
+			val, _ = p.flagset.GetFloat64(key)
 		case "bool":
-			v, _ = p.flagset.GetBool(f.Name)
+			val, _ = p.flagset.GetBool(key)
 		case "stringSlice":
-			v, _ = p.flagset.GetStringSlice(f.Name)
+			val, _ = p.flagset.GetStringSlice(key)
 		case "intSlice":
-			v, _ = p.flagset.GetIntSlice(f.Name)
+			val, _ = p.flagset.GetIntSlice(key)
+		case "stringToString":
+			val, _ = p.flagset.GetStringToString(key)
+		case "stringToInt":
+			val, _ = p.flagset.GetStringToInt(key)
+		case "stringToInt64":
+			val, _ = p.flagset.GetStringToInt64(key)
 		default:
-			if p.cb != nil {
-				key, value := p.cb(f.Name, f.Value.String())
-				if key == "" {
+			val = f.Value.String()
+		}
+
+		// If there is a callback set, pass the key and value to
+		// it and use the resultant transformed values instead.
+		if p.cb != nil {
+			k, v := p.cb(key, f.Value.String())
+			if k == "" {
+				return
+			}
+
+			key = k
+			val = v
+		}
+
+		// If the default value of the flag was never changed by the user,
+		// it should not override the value in the conf map (if it exists in the first place).
+		if !f.Changed {
+			if p.ko != nil {
+				if p.ko.Exists(key) {
 					return
 				}
-				mp[key] = value
-				return
 			} else {
-				v = f.Value.String()
+				return
 			}
 		}
 
-		mp[f.Name] = v
+		// No callback. Use the key and value as-is.
+		mp[key] = val
 	})
+
 	return maps.Unflatten(mp, p.delim), nil
 }
 

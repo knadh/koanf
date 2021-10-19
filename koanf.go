@@ -3,12 +3,11 @@ package koanf
 import (
 	"bytes"
 	"fmt"
-	"github.com/mitchellh/copystructure"
 	"sort"
 	"strconv"
 
 	"github.com/knadh/koanf/maps"
-	"github.com/knadh/koanf/providers/confmap"
+	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 )
 
@@ -341,13 +340,13 @@ func (ko *Koanf) Slices(path string) []*Koanf {
 	}
 
 	for _, s := range sl {
-		v, ok := s.(map[string]interface{})
+		mp, ok := s.(map[string]interface{})
 		if !ok {
 			continue
 		}
 
 		k := New(ko.conf.Delim)
-		k.Load(confmap.Provider(v, ""), nil)
+		_ = k.merge(mp)
 		out = append(out, k)
 	}
 
@@ -382,6 +381,11 @@ func (ko *Koanf) MapKeys(path string) []string {
 	}
 	sort.Strings(out)
 	return out
+}
+
+// Delim returns delimiter in used by this instance of Koanf.
+func (ko *Koanf) Delim() string {
+	return ko.conf.Delim
 }
 
 func (ko *Koanf) merge(c map[string]interface{}) error {

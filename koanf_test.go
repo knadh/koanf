@@ -78,6 +78,7 @@ var testKeys = []string{
 	"duration",
 	"empty",
 	"intbools",
+	"negative_int",
 	"orphan",
 	"parent1.boolmap.notok3",
 	"parent1.boolmap.ok1",
@@ -117,6 +118,7 @@ var testKeyMap = map[string][]string{
 	"duration":                       {"duration"},
 	"empty":                          {"empty"},
 	"intbools":                       {"intbools"},
+	"negative_int":                   {"negative_int"},
 	"orphan":                         {"orphan"},
 	"parent1":                        {"parent1"},
 	"parent1.boolmap":                {"parent1", "boolmap"},
@@ -168,6 +170,7 @@ var testAll = `bools -> [true false true]
 duration -> 3s
 empty -> map[]
 intbools -> [1 0 1]
+negative_int -> -1234
 orphan -> [red blue orange]
 parent1.boolmap.notok3 -> false
 parent1.boolmap.ok1 -> true
@@ -338,6 +341,14 @@ func TestLoadFileAllKeys(t *testing.T) {
 		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
 		assert.Equal(testAll, s, fmt.Sprintf("key -> value list mismatch: %v", c.typeName))
 	}
+}
+
+func TestDelim(t *testing.T) {
+	k1 := koanf.New(".")
+	assert.Equal(t, k1.Delim(), ".")
+
+	k2 := koanf.New("/")
+	assert.Equal(t, k2.Delim(), "/")
 }
 
 func TestLoadMergeYamlJson(t *testing.T) {
@@ -1052,7 +1063,7 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.Time("time", "2006-01-02"))
 
 		assert.Equal([]string{}, c.koanf.MapKeys("xxxx"), "map keys mismatch")
-		assert.Equal([]string{"bools", "duration", "empty", "intbools", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
+		assert.Equal([]string{"bools", "duration", "empty", "intbools", "negative_int", "orphan", "parent1", "parent2", "strbool", "strbools", "time", "type"},
 			c.koanf.MapKeys(""), "map keys mismatch")
 		assert.Equal([]string{"key1", "key2", "key3"}, c.koanf.MapKeys("parent1.strmap"), "map keys mismatch")
 
@@ -1067,9 +1078,11 @@ func TestMustGetTypes(t *testing.T) {
 		// Int.
 		assert.Panics(func() { c.koanf.MustInt64("xxxx") })
 		assert.Equal(int64(1234), c.koanf.MustInt64("parent1.id"))
+		assert.Equal(int64(-1234), c.koanf.MustInt64("negative_int"))
 
 		assert.Panics(func() { c.koanf.MustInt("xxxx") })
 		assert.Equal(int(1234), c.koanf.MustInt("parent1.id"))
+		assert.Equal(int(-1234), c.koanf.MustInt("negative_int"))
 
 		assert.Panics(func() { c.koanf.MustInt64s("xxxx") })
 		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
@@ -1128,6 +1141,7 @@ func TestMustGetTypes(t *testing.T) {
 		assert.Panics(func() { c.koanf.MustDuration("xxxx") })
 		assert.Equal(time.Duration(1234), c.koanf.MustDuration("parent1.id"))
 		assert.Equal(time.Second*3, c.koanf.MustDuration("duration"))
+		assert.Equal(time.Duration(-1234), c.koanf.MustDuration("negative_int"))
 
 		assert.Panics(func() { c.koanf.MustTime("xxxx", "2006-01-02") })
 		assert.Equal(time.Date(2019, 1, 1, 0, 0, 0, 0, time.UTC), c.koanf.MustTime("time", "2006-01-02"))

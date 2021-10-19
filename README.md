@@ -25,7 +25,7 @@ koanf comes with built in support for reading configuration from files, command 
 - [Unmarshalling and marshalling](#unmarshalling-and-marshalling)
 - [Unmarshalling with flat paths](#unmarshalling-with-flat-paths)
 - [Setting default values](#setting-default-values)
-- [Order of merge and key case senstivity](#order-of-merge-and-key-case-senstivity)
+- [Order of merge and key case senstivity](#order-of-merge-and-key-case-sensitivity)
 - [Custom Providers and Parsers](#custom-providers-and-parsers)
 - [List of Providers, Parsers, and functions](#api)
 
@@ -608,6 +608,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | Package             | Provider                                                      | Description                                                                                                                                                                           |
 | ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | providers/file      | `file.Provider(filepath string)`                              | Reads a file and returns the raw bytes to be parsed.                                                                                                                                  |
+| providers/fs      | `fs.Provider(f fs.FS, filepath string)`                              | (**Experimental**) Reads a file from fs.FS and returns the raw bytes to be parsed. The provider requires `go v1.16` or higher.                                            |
 | providers/basicflag | `basicflag.Provider(f *flag.FlagSet, delim string)`           | Takes an stdlib `flag.FlagSet`                                                                                                                                                        |
 | providers/posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spft3/pflag.FlagSet` (advanced POSIX compatible flags with multiple types) and provides a nested config map based on delim.                                                 |
 | providers/env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
@@ -616,6 +617,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | providers/s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
 | providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
 | providers/vault     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
+| providers/appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
 
 ### Bundled parsers
 
@@ -626,6 +628,7 @@ Writing Providers and Parsers are easy. See the bundled implementations in the `
 | parsers/toml | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
 | parsers/dotenv | `dotenv.Parser()`              | Parses DotEnv bytes into a flat map                                                                                                                       |
 | parsers/hcl  | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
+
 ### Instance functions
 
 | Method                                                       | Description                                                  |
