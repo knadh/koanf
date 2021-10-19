@@ -1,3 +1,6 @@
+//go:build go1.15
+// +build go1.15
+
 // Package appconfig implements a koanf.Provider for AWS AppConfig
 // and provides it to koanf to be parsed by a koanf.Parser.
 package appconfig
