@@ -591,9 +591,9 @@ func TestFlags(t *testing.T) {
 	assert.Equal([]int{1, 2, 3}, k.Ints("intslice"), "value doesn't match")
 
 	// Test the posflag provider can mutate the value to upper case
-	assert.Nil(k3.Load(posflag.ProviderWithValue(f, ".", nil, func(k string, v string) (string, interface{}) {
+	assert.Nil(k3.Load(posflag.Provider(f, ".", nil, posflag.WithValueFn(func(k string, v string) (string, interface{}) {
 		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
-	}), nil), "error loading posflag")
+	})), nil), "error loading posflag")
 	assert.Equal("FLAG", k3.String("parent1.child1.type"), "types don't match")
 
 	// Test without passing the Koanf instance where default values will not merge.

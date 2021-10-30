@@ -5,6 +5,7 @@ package posflag
 
 import (
 	"errors"
+	"flag"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
@@ -16,7 +17,8 @@ type Posflag struct {
 	delim   string
 	flagset *pflag.FlagSet
 	ko      *koanf.Koanf
-	cb      func(key string, value string) (string, interface{})
+	keyFn   func(key string) string
+	valueFn func(key string, value string) (string, interface{})
 }
 
 // Provider returns a commandline flags provider that returns
@@ -30,11 +32,19 @@ type Posflag struct {
 // a config file. If they are not, then the default values of the flags
 // are merged. If they do exist, the flag values are not merged but only
 // the values that have been explicitly set in the command line are merged.
-func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
+func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf, optFuncs ...optFunc) *Posflag {
+	opts := &opts{}
+
+	for _, optFunc := range optFuncs {
+		optFunc(opts)
+	}
+
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
 		ko:      ko,
+		keyFn:   opts.keyFn,
+		valueFn: opts.valueFn,
 	}
 }
 
@@ -43,11 +53,25 @@ func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 // This is useful for cases where complex types like slices separated by
 // custom separators.
 func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(key string, value string) (string, interface{})) *Posflag {
-	return &Posflag{
-		flagset: f,
-		delim:   delim,
-		ko:      ko,
-		cb:      cb,
+	return Provider(f, delim, ko, WithValueFn(cb))
+}
+
+type optFunc func(*opts)
+
+type opts struct {
+	keyFn   func(key string) string
+	valueFn func(key string, value string) (string, interface{})
+}
+
+func WithKeyFn(fn func(key string) string) optFunc {
+	return func(o *opts) {
+		o.keyFn = fn
+	}
+}
+
+func WithValueFn(fn func(key string, value string) (string, interface{})) optFunc {
+	return func(o *opts) {
+		o.valueFn = fn
 	}
 }
 
@@ -60,52 +84,68 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 			val interface{}
 		)
 
-		switch f.Value.Type() {
-		case "int":
-			i, _ := p.flagset.GetInt(key)
-			val = int64(i)
-		case "int8":
-			i, _ := p.flagset.GetInt8(key)
-			val = int64(i)
-		case "int16":
-			i, _ := p.flagset.GetInt16(key)
-			val = int64(i)
-		case "int32":
-			i, _ := p.flagset.GetInt32(key)
-			val = int64(i)
-		case "int64":
-			i, _ := p.flagset.GetInt64(key)
-			val = int64(i)
-		case "float32":
-			val, _ = p.flagset.GetFloat32(key)
-		case "float":
-			val, _ = p.flagset.GetFloat64(key)
-		case "bool":
-			val, _ = p.flagset.GetBool(key)
-		case "stringSlice":
-			val, _ = p.flagset.GetStringSlice(key)
-		case "intSlice":
-			val, _ = p.flagset.GetIntSlice(key)
-		case "stringToString":
-			val, _ = p.flagset.GetStringToString(key)
-		case "stringToInt":
-			val, _ = p.flagset.GetStringToInt(key)
-		case "stringToInt64":
-			val, _ = p.flagset.GetStringToInt64(key)
-		default:
-			val = f.Value.String()
+		if p.keyFn != nil {
+			key = p.keyFn(key)
 		}
 
 		// If there is a callback set, pass the key and value to
 		// it and use the resultant transformed values instead.
-		if p.cb != nil {
-			k, v := p.cb(key, f.Value.String())
+		if p.valueFn != nil {
+			k, v := p.valueFn(key, f.Value.String())
 			if k == "" {
 				return
 			}
 
 			key = k
 			val = v
+		}
+
+		// if val hasn't been set yet, check if the flag has a Get() method.
+		if val == nil {
+			getter, ok := f.Value.(flag.Getter)
+
+			if ok {
+				val = getter.Get()
+			}
+		}
+
+		// fallback to parsing the value by trying all flag types from pflag
+		if val == nil {
+			switch f.Value.Type() {
+			case "int":
+				i, _ := p.flagset.GetInt(key)
+				val = int64(i)
+			case "int8":
+				i, _ := p.flagset.GetInt8(key)
+				val = int64(i)
+			case "int16":
+				i, _ := p.flagset.GetInt16(key)
+				val = int64(i)
+			case "int32":
+				i, _ := p.flagset.GetInt32(key)
+				val = int64(i)
+			case "int64":
+				i, _ := p.flagset.GetInt64(key)
+				val = int64(i)
+			case "float32":
+				val, _ = p.flagset.GetFloat32(key)
+			case "float":
+				val, _ = p.flagset.GetFloat64(key)
+			case "bool":
+				val, _ = p.flagset.GetBool(key)
+			case "stringSlice":
+				val, _ = p.flagset.GetStringSlice(key)
+			case "intSlice":
+				val, _ = p.flagset.GetIntSlice(key)
+			case "stringToString":
+				val, _ = p.flagset.GetStringToString(key)
+			case "stringToInt":
+				val, _ = p.flagset.GetStringToInt(key)
+			case "stringToInt64":
+				val, _ = p.flagset.GetStringToInt64(key)
+			default:
+				val = f.Value.String()
+			}
 		}
 
 		// If the default value of the flag was never changed by the user,

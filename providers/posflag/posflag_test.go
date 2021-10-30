@@ -39,7 +39,7 @@ func TestIssue90(t *testing.T) {
 	err := k.Load(confmap.Provider(exampleKeys, "."), nil)
 	require.Nil(t, err)
 
-	err = k.Load(posflag.ProviderWithValue(examplePosFlags, ".", k, posflagCallback), nil)
+	err = k.Load(posflag.Provider(examplePosFlags, ".", k, posflag.WithValueFn(posflagCallback)), nil)
 	require.Nil(t, err)
 
 	require.Equal(t, exampleKeys, k.All())
