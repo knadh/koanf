@@ -5,7 +5,6 @@ package s3
 import (
 	"errors"
 	"io/ioutil"
-	"log"
 
 	"github.com/rhnvrm/simples3"
 )
@@ -51,19 +50,16 @@ func (r *S3) ReadBytes() ([]byte, error) {
 		Bucket:    r.cfg.Bucket,
 		ObjectKey: r.cfg.ObjectKey,
 	})
-
 	if err != nil {
-		data, _ := ioutil.ReadAll(resp)
-		log.Println(string(data))
 		return nil, err
 	}
+
+	defer resp.Close()
 
 	data, err := ioutil.ReadAll(resp)
 	if err != nil {
 		return nil, err
 	}
-
-	resp.Close()
 
 	return data, nil
 }
