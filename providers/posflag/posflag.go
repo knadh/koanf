@@ -17,6 +17,7 @@ type Posflag struct {
 	flagset *pflag.FlagSet
 	ko      *koanf.Koanf
 	cb      func(key string, value string) (string, interface{})
+	flagCB  func(f *pflag.Flag) (string, interface{})
 }
 
 // Provider returns a commandline flags provider that returns
@@ -42,12 +43,41 @@ func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 // takes a (key, value) with the variable name and value and allows their modification.
 // This is useful for cases where complex types like slices separated by
 // custom separators.
+// Returning "" for the key causes the particular flag to be disregarded.
 func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(key string, value string) (string, interface{})) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
 		ko:      ko,
 		cb:      cb,
+	}
+}
+
+// ProviderWithFlag takes pflag.FlagSet and a callback that takes *pflag.Flag
+// and applies the callback to all items in the flagset. It does not parse
+// pflag.Flag values and expects the callback to process the keys and values
+// from *pflag.Flag however. FlagVal() can be used in the callbakc to avoid
+// repeating the type-switch block for parsing values.
+// Returning "" for the key causes the particular flag to be disregarded.
+//
+// Example:
+//
+//  p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, interface{}) {
+//     // Transform the key in whatever manner.
+//     key := f.Name
+//
+//     // Use FlagVal() and then transform the value, or don't use it at all
+//     // and add custom logic to parse the value.
+//     val := posflag.FlagVal(flagset, f)
+//
+//     return key, val
+//  })
+func ProviderWithFlag(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(f *pflag.Flag) (string, interface{})) *Posflag {
+	return &Posflag{
+		flagset: f,
+		delim:   delim,
+		ko:      ko,
+		flagCB:  cb,
 	}
 }
 
@@ -60,52 +90,21 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 			val interface{}
 		)
 
-		switch f.Value.Type() {
-		case "int":
-			i, _ := p.flagset.GetInt(key)
-			val = int64(i)
-		case "int8":
-			i, _ := p.flagset.GetInt8(key)
-			val = int64(i)
-		case "int16":
-			i, _ := p.flagset.GetInt16(key)
-			val = int64(i)
-		case "int32":
-			i, _ := p.flagset.GetInt32(key)
-			val = int64(i)
-		case "int64":
-			i, _ := p.flagset.GetInt64(key)
-			val = int64(i)
-		case "float32":
-			val, _ = p.flagset.GetFloat32(key)
-		case "float":
-			val, _ = p.flagset.GetFloat64(key)
-		case "bool":
-			val, _ = p.flagset.GetBool(key)
-		case "stringSlice":
-			val, _ = p.flagset.GetStringSlice(key)
-		case "intSlice":
-			val, _ = p.flagset.GetIntSlice(key)
-		case "stringToString":
-			val, _ = p.flagset.GetStringToString(key)
-		case "stringToInt":
-			val, _ = p.flagset.GetStringToInt(key)
-		case "stringToInt64":
-			val, _ = p.flagset.GetStringToInt64(key)
-		default:
-			val = f.Value.String()
+		// If there is a (key, value) callback set, pass the key and string
+		// value from the flagset to it and use the results.
+		if p.cb != nil {
+			key, val = p.cb(key, f.Value.String())
+		} else if p.flagCB != nil {
+			// If there is a pflag.Flag callback set, pass the flag as-is
+			// to it and use the results from the callback.
+			key, val = p.flagCB(f)
+		} else {
+			// There are no callbacks set. Use the in-built flag value parser.
+			val = FlagVal(p.flagset, f)
 		}
 
-		// If there is a callback set, pass the key and value to
-		// it and use the resultant transformed values instead.
-		if p.cb != nil {
-			k, v := p.cb(key, f.Value.String())
-			if k == "" {
-				return
-			}
-
-			key = k
-			val = v
+		if key == "" {
+			return
 		}
 
 		// If the default value of the flag was never changed by the user,
@@ -135,4 +134,52 @@ func (p *Posflag) ReadBytes() ([]byte, error) {
 // Watch is not supported.
 func (p *Posflag) Watch(cb func(event interface{}, err error)) error {
 	return errors.New("posflag provider does not support this method")
+}
+
+// FlagVal examines a pflag.Flag and returns a typed value as an interface{}
+// from the types that pflag supports. If it is of a type that isn't known
+// for any reason, the value is returned as a string.
+func FlagVal(fs *pflag.FlagSet, f *pflag.Flag) interface{} {
+	var (
+		key = f.Name
+		val interface{}
+	)
+
+	switch f.Value.Type() {
+	case "int":
+		i, _ := fs.GetInt(key)
+		val = int64(i)
+	case "int8":
+		i, _ := fs.GetInt8(key)
+		val = int64(i)
+	case "int16":
+		i, _ := fs.GetInt16(key)
+		val = int64(i)
+	case "int32":
+		i, _ := fs.GetInt32(key)
+		val = int64(i)
+	case "int64":
+		i, _ := fs.GetInt64(key)
+		val = int64(i)
+	case "float32":
+		val, _ = fs.GetFloat32(key)
+	case "float":
+		val, _ = fs.GetFloat64(key)
+	case "bool":
+		val, _ = fs.GetBool(key)
+	case "stringSlice":
+		val, _ = fs.GetStringSlice(key)
+	case "intSlice":
+		val, _ = fs.GetIntSlice(key)
+	case "stringToString":
+		val, _ = fs.GetStringToString(key)
+	case "stringToInt":
+		val, _ = fs.GetStringToInt(key)
+	case "stringToInt64":
+		val, _ = fs.GetStringToInt64(key)
+	default:
+		val = f.Value.String()
+	}
+
+	return val
 }
