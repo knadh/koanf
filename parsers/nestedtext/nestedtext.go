@@ -19,7 +19,7 @@ func Parser() *NT {
 // Unmarshal parses the given NestedText bytes.
 //
 // If the NT content does not reflect a dict (NT allows for top-level lists or strings as well),
-// the content will be wrapped into a dict with a single key named "dict".
+// the content will be wrapped into a dict with a single key named "nestedtext".
 func (p *NT) Unmarshal(b []byte) (map[string]interface{}, error) {
 	r := bytes.NewReader(b)
 	result, err := nestext.Parse(r, nestext.TopLevel("dict"))
