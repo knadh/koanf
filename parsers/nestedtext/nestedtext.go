@@ -3,6 +3,7 @@ package nestedtext
 
 import (
 	"bytes"
+	"errors"
 
 	"github.com/npillmayer/nestext"
 	"github.com/npillmayer/nestext/ntenc"
@@ -26,14 +27,20 @@ func (p *NT) Unmarshal(b []byte) (map[string]interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return result.(map[string]interface{}), nil
-
+	// Given option-parameter TopLevel, nestext.Parse is guaranteed to wrap the return value
+	// in an appropriate type (dict = map[string]interface{} in this case), if necessary.
+	// However, guard against type conversion failure anyway.
+	rmap, ok := result.(map[string]interface{})
+	if !ok {
+		return nil, errors.New("NestedText configuration expected to be a dict at top-level")
+	}
+	return rmap, nil
 }
 
 // Marshal marshals the given config map to NestedText bytes.
 func (p *NT) Marshal(m map[string]interface{}) ([]byte, error) {
-	buf := &bytes.Buffer{}
-	_, err := ntenc.Encode(m, buf)
+	var buf bytes.Buffer
+	_, err := ntenc.Encode(m, &buf)
 	if err != nil {
 		return nil, err
 	}

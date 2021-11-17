@@ -20,9 +20,9 @@ timeout: 20
 	if err != nil {
 		t.Fatal("Unmarshal of NestedText input failed")
 	}
-	t.Logf("config-tree: %#v", c)
 	timeout := c["timeout"]
 	if timeout != "20" {
+		t.Logf("config-tree: %#v", c)
 		t.Errorf("expected timeout-parameter to be 20, is %q", timeout)
 	}
 
@@ -31,8 +31,8 @@ timeout: 20
 	if err != nil {
 		t.Fatal("Marshal of config to NestedText failed")
 	}
-	t.Logf("config-text: %q", string(out))
 	if string(out) != ntsource {
+		t.Logf("config-text: %q", string(out))
 		t.Errorf("expected output of Marshal(…) to equal input to Unmarshal(…); didn't")
 	}
 }
