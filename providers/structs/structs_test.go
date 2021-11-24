@@ -26,10 +26,17 @@ type testStruct struct {
 	Parent1 parentStruct      `koanf:"parent1"`
 }
 
+type testStructWithDelim struct {
+	Endpoint string `koanf:"conf_endpoint"`
+	Username string `koanf:"conf_creds.username"`
+	Password string `koanf:"conf_creds.password"`
+}
+
 func TestStructs_Read(t *testing.T) {
 	type fields struct {
-		s   interface{}
-		tag string
+		s     interface{}
+		tag   string
+		delim string
 	}
 	tests := []struct {
 		name    string
@@ -78,12 +85,33 @@ func TestStructs_Read(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "read delim struct",
+			fields: fields{
+				s: testStructWithDelim{
+					Endpoint: "test_endpoint",
+					Username: "test_username",
+					Password: "test_password",
+				},
+				tag:   "koanf",
+				delim: ".",
+			},
+			want: map[string]interface{}{
+				"conf_creds": map[string]interface{}{
+					"password": "test_password",
+					"username": "test_username",
+				},
+				"conf_endpoint": "test_endpoint",
+			},
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			s := &Structs{
-				s:   tt.fields.s,
-				tag: tt.fields.tag,
+				s:     tt.fields.s,
+				tag:   tt.fields.tag,
+				delim: tt.fields.delim,
 			}
 			got, err := s.Read()
 			if (err != nil) != tt.wantErr {
