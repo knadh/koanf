@@ -92,6 +92,12 @@ func Provider(cfg Config) *AppConfig {
 	return &AppConfig{client: client, config: cfg}
 }
 
+// ProviderWithClient returns an AWS AppConfig provider
+// using an existing AWS appconfig client.
+func ProviderWithClient(cfg Config, client *appconfig.Client) *AppConfig {
+	return &AppConfig{client: client, config: cfg}
+}
+
 // ReadBytes returns the raw bytes for parsing.
 func (ac *AppConfig) ReadBytes() ([]byte, error) {
 	ac.input = appconfig.GetConfigurationInput{
