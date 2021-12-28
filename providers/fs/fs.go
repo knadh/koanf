@@ -2,6 +2,7 @@
 // from given fs.FS to be used with a koanf.Parser to parse
 // into conf maps.
 
+//go:build go1.16
 // +build go1.16
 
 package fs

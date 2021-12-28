@@ -210,6 +210,33 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, out, m1)
 }
 
+func TestMergeArray(t *testing.T) {
+	m1 := map[string]interface{}{
+		"arrInterface":    []interface{}{3, 3, 3, 4},
+		"arrObj":          []int{3, 3, 3, 4},
+		"arrInt":          []interface{}{3, 3, 3, 4},
+		"arrMap":          []map[string]interface{}{{"foo": "bar"}},
+		"arrInterfaceMap": []interface{}{map[string]interface{}{"foo": "bar"}},
+	}
+	m2 := map[string]interface{}{
+		"arrInterface":    []interface{}{1, 2, 3},
+		"arrObj":          []int{1, 2, 3},
+		"arrInt":          []interface{}{1, 2, 3},
+		"arrMap":          []map[string]interface{}{{"baz": "bar"}},
+		"arrInterfaceMap": []interface{}{map[string]interface{}{"baz": "bar"}},
+	}
+	Merge(m2, m1)
+
+	out := map[string]interface{}{
+		"arrInterface":    []interface{}{1, 2, 3, 4},
+		"arrObj":          []int{1, 2, 3, 4},
+		"arrInt":          []interface{}{1, 2, 3, 4},
+		"arrMap":          []map[string]interface{}{{"foo": "bar", "baz": "bar"}},
+		"arrInterfaceMap": []interface{}{map[string]interface{}{"foo": "bar", "baz": "bar"}},
+	}
+	assert.Equal(t, out, m1)
+}
+
 func TestMergeStrict(t *testing.T) {
 	m1 := map[string]interface{}{
 		"parent": map[string]interface{}{
