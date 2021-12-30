@@ -2,6 +2,7 @@ package koanf_test
 
 import (
 	encjson "encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -679,6 +680,28 @@ func TestCutCopy(t *testing.T) {
 	assert.Equal(k1.Cut("type").Keys(), k2.Cut("type").Keys(), "single field cut mismatch")
 	assert.Equal(k1.Cut("xxxx").Keys(), k2.Cut("xxxx").Keys(), "single field cut mismatch")
 	assert.Equal(len(k1.Cut("type").Raw()), 0, "non-map cut returned items")
+}
+
+func TestWithMergeFunc(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	assert.NoError(k.Load(rawbytes.Provider([]byte(`{"foo":"bar"}`)), json.Parser()))
+	assert.NoError(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]interface{}) error {
+		// No merge
+		return nil
+	})))
+
+	assert.Equal(map[string]interface{}{
+		"foo": "bar",
+	}, k.All(), "expects the result of the first load only")
+
+	err := errors.New("stub")
+	assert.ErrorIs(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]interface{}) error {
+		return err
+	})), err, "expects the error thrown by WithMergeFunc")
 }
 
 func TestMerge(t *testing.T) {
