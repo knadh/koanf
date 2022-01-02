@@ -587,10 +587,10 @@ A Provider can provide a nested map[string]interface{} config that can be loaded
 
 Writing Providers and Parsers are easy. See the bundled implementations in the `providers` and `parses` directory.
 
-### Custom Merge Strategies
+### Custom merge strategies
 
-Per default, Koanf will merge only maps (`map[string]interface{}`) and will override any other types (slices, strings, etc).
-If you wish to use your own merge logic, you can supply the `WithMergeFunc` option when calling `Load`:
+By default, when merging two config sources using `Load()`, koanf recursively merges keys of nested maps (`map[string]interface{}`),
+while static values are overwritten (slices, strings, etc). This behaviour can be changed by providing a custom merge function with the `WithMergeFunc` option.
 
 ```go
 package main
