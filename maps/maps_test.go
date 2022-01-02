@@ -1,6 +1,7 @@
 package maps
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -208,6 +209,32 @@ func TestMerge(t *testing.T) {
 		"key":    "string",
 	}
 	assert.Equal(t, out, m1)
+}
+
+func TestMerge2(t *testing.T) {
+	src := map[string]interface{}{
+		"globals": map[string]interface{}{
+			"features": map[string]interface{}{
+				"testing": map[string]interface{}{
+					"enabled": false,
+				},
+			},
+		},
+	}
+
+	dest := map[string]interface{}{
+		"globals": map[string]interface{}{
+			"features": map[string]interface{}{
+				"testing": map[string]interface{}{
+					"enabled":    true,
+					"anotherKey": "value",
+				},
+			},
+		},
+	}
+
+	Merge(src, dest)
+	fmt.Println(dest)
 }
 
 func TestMergeStrict(t *testing.T) {
