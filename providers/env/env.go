@@ -19,11 +19,11 @@ type Env struct {
 
 // Provider returns an environment variables provider that returns
 // a nested map[string]interface{} of environment variable where the
-// nesting hierarchy of keys are defined by delim. For instance, the
+// nesting hierarchy of keys is defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
 //
-// If prefix is specified (case sensitive), only the env vars with
+// If prefix is specified (case-sensitive), only the env vars with
 // the prefix are captured. cb is an optional callback that takes
 // a string and returns a string (the env variable name) in case
 // transformations have to be applied, for instance, to lowercase
@@ -31,13 +31,16 @@ type Env struct {
 // If the callback returns an empty string, the variable will be
 // ignored.
 func Provider(prefix, delim string, cb func(s string) string) *Env {
-	return &Env{
+	e := &Env{
 		prefix: prefix,
 		delim:  delim,
-		cb: func(key string, value string) (string, interface{}) {
-			return cb(key), value
-		},
 	}
+	if cb != nil {
+		e.cb = func(key string, value string) (string, interface{}) {
+			return cb(key), value
+		}
+	}
+	return e
 }
 
 // ProviderWithValue works exactly the same as Provider except the callback
