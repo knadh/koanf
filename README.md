@@ -30,8 +30,8 @@ koanf comes with built in support for reading configuration from files, command 
 
 ### Concepts
 
-- `koanf.Provider` is a generic interface that provides configuration, for example, from files, environment variables, HTTP sources, or anywhere. The configuration can either be raw bytes that a parser can parse, or it can be a nested map[string]interface{} that can be directly loaded.
-- `koanf.Parser` is a generic interface that takes raw bytes, parses, and returns a nested map[string]interface{} representation. For example, JSON and YAML parsers.
+- `koanf.Provider` is a generic interface that provides configuration, for example, from files, environment variables, HTTP sources, or anywhere. The configuration can either be raw bytes that a parser can parse, or it can be a nested `map[string]interface{}` that can be directly loaded.
+- `koanf.Parser` is a generic interface that takes raw bytes, parses, and returns a nested `map[string]interface{}` representation. For example, JSON and YAML parsers.
 - Once loaded into koanf, configuration are values queried by a delimited key path syntax. eg: `app.server.port`. Any delimiter can be chosen.
 - Configuration from multiple sources can be loaded and merged into a koanf instance, for example, load from a file first and override certain values with flags from the command line.
 
@@ -583,7 +583,7 @@ For example: merging JSON and YAML will most likely fail because JSON treats int
 
 ### Custom Providers and Parsers
 
-A Provider can provide a nested map[string]interface{} config that can be loaded into koanf with `koanf.Load()` or raw bytes that can be parsed with a Parser (loaded using `koanf.Load()`.
+A Provider can provide a nested `map[string]interface{}` config that can be loaded into koanf with `koanf.Load()` or raw bytes that can be parsed with a Parser (loaded using `koanf.Load()`.
 
 Writing Providers and Parsers are easy. See the bundled implementations in the `providers` and `parses` directory.
 
