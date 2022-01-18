@@ -93,18 +93,14 @@ func TestProviderWithValue(t *testing.T) {
 			prefix: "TEST_",
 			delim:  ".",
 			cb: func(key string, value string) (string, interface{}) {
-				key = strings.ToLower(key)
-				key = strings.TrimPrefix(key, "test_")
-				key = strings.Replace(key, "_", ".", -1)
+				key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
 				return key, value
 			},
 			want: &Env{
 				prefix: "TEST_",
 				delim:  ".",
 				cb: func(key string, value string) (string, interface{}) {
-					key = strings.ToLower(key)
-					key = strings.TrimPrefix(key, "test_")
-					key = strings.Replace(key, "_", ".", -1)
+					key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
 					return key, value
 				},
 			},
