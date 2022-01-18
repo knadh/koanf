@@ -113,13 +113,12 @@ func TestProviderWithValue(t *testing.T) {
 			if tc.nilCallback {
 				assert.Equal(t, tc.want, got)
 			} else {
-				kGot, vGot := got.cb("test_key_env_1", "test_val")
-				kTc, vTc := tc.want.cb("test_key_env_1", "test_val")
+				keyGot, valGot := got.cb("test_key_env_1", "test_val")
+				keyWant, valWant := tc.want.cb("test_key_env_1", "test_val")
 				assert.Equal(t, tc.prefix, got.prefix)
 				assert.Equal(t, tc.delim, got.delim)
-				assert.Equal(t, kTc, kGot)
-				assert.Equal(t, vTc, vGot)
-				assert.NotNil(t, got.cb)
+				assert.Equal(t, keyWant, keyGot)
+				assert.Equal(t, valWant, valGot)
 			}
 		})
 	}
