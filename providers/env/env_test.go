@@ -2,6 +2,7 @@ package env
 
 import (
 	"github.com/stretchr/testify/assert"
+	"os"
 	"strings"
 	"testing"
 )
@@ -120,6 +121,89 @@ func TestProviderWithValue(t *testing.T) {
 				assert.Equal(t, keyWant, keyGot)
 				assert.Equal(t, valWant, valGot)
 			}
+		})
+	}
+}
+
+func TestRead(t *testing.T) {
+	testCases := []struct {
+		name     string
+		key      string
+		value    string
+		expKey   string
+		expValue string
+		env      *Env
+	}{
+		{
+			name:     "No cb",
+			key:      "TEST_KEY",
+			value:    "TEST_VAL",
+			expKey:   "TEST_KEY",
+			expValue: "TEST_VAL",
+			env: &Env{
+				delim: ".",
+			},
+		},
+		{
+			name:     "cb given",
+			key:      "TEST_KEY",
+			value:    "TEST_VAL",
+			expKey:   "test.key",
+			expValue: "TEST_VAL",
+			env: &Env{
+				delim: "_",
+				cb: func(key string, value string) (string, interface{}) {
+					return strings.Replace(strings.ToLower(key), "_", ".", -1), value
+				},
+			},
+		},
+		{
+			name:     "No cb - prefix given",
+			key:      "TEST_KEY",
+			value:    "TEST_VAL",
+			expKey:   "test.key",
+			expValue: "TEST_VAL",
+			env: &Env{
+				prefix: "TEST",
+				delim:  "/",
+				cb: func(key string, value string) (string, interface{}) {
+					return strings.Replace(strings.ToLower(key), "_", ".", -1), value
+				},
+			},
+		},
+		{
+			name:     "Path value",
+			key:      "TEST_DIR",
+			value:    "/test/dir/file",
+			expKey:   "TEST_DIR",
+			expValue: "/test/dir/file",
+			env: &Env{
+				delim: ".",
+			},
+		},
+		{
+			name:     "Empty value",
+			key:      "KEY",
+			value:    "",
+			expKey:   "KEY",
+			expValue: "",
+			env: &Env{
+				delim: ".",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := os.Setenv(tc.key, tc.value)
+			assert.Nil(t, err)
+			defer os.Unsetenv(tc.key)
+
+			envs, err := tc.env.Read()
+			assert.Nil(t, err)
+			v, ok := envs[tc.expKey]
+			assert.True(t, ok)
+			assert.Equal(t, tc.expValue, v)
 		})
 	}
 }
