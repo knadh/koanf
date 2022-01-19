@@ -182,6 +182,19 @@ func TestRead(t *testing.T) {
 			},
 		},
 		{
+			name:     "Replace value with underscore",
+			key:      "TEST_DIR",
+			value:    "/test/dir/file",
+			expKey:   "TEST_DIR",
+			expValue: "_test_dir_file",
+			env: &Env{
+				delim: ".",
+				cb: func(key string, value string) (string, interface{}) {
+					return key, strings.Replace(strings.ToLower(value), "/", "_", -1)
+				},
+			},
+		},
+		{
 			name:     "Empty value",
 			key:      "KEY",
 			value:    "",
