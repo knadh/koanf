@@ -10,17 +10,36 @@ import (
 func TestProvider(t *testing.T) {
 
 	testCases := []struct {
-		name    string
-		prefix  string
-		delim   string
-		cb      func(key string, value string) (string, interface{})
-		cbInput func(key string) string
-		want    *Env
+		name     string
+		prefix   string
+		delim    string
+		key      string
+		value    string
+		expKey   string
+		expValue string
+		cb       func(key string) string
+		want     *Env
 	}{
 		{
 			name:   "Nil cb",
 			prefix: "TESTVAR_",
 			delim:  ".",
+			want: &Env{
+				prefix: "TESTVAR_",
+				delim:  ".",
+			},
+		},
+		{
+			name:     "Simple cb",
+			prefix:   "TESTVAR_",
+			delim:    ".",
+			key:      "TestKey",
+			value:    "TestVal",
+			expKey:   "testkey",
+			expValue: "TestVal",
+			cb: func(key string) string {
+				return strings.ToLower(key)
+			},
 			want: &Env{
 				prefix: "TESTVAR_",
 				delim:  ".",
@@ -35,12 +54,31 @@ func TestProvider(t *testing.T) {
 				delim:  ".",
 			},
 		},
+		{
+			name:     "Cb is given",
+			prefix:   "",
+			delim:    ".",
+			key:      "test_key",
+			value:    "test_val",
+			expKey:   "TEST.KEY",
+			expValue: "test_val",
+			cb: func(key string) string {
+				return strings.Replace(strings.ToUpper(key), "_", ".", -1)
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			got := Provider(tc.prefix, tc.delim, tc.cbInput)
-			assert.Equal(t, tc.want, got)
+			gotProvider := Provider(tc.prefix, tc.delim, tc.cb)
+			if tc.cb == nil {
+				assert.Equal(t, tc.want, gotProvider)
+			}
+			if tc.cb != nil {
+				k, v := gotProvider.cb(tc.key, tc.value)
+				assert.Equal(t, tc.expKey, k)
+				assert.Equal(t, tc.expValue, v)
+			}
 		})
 	}
 }
