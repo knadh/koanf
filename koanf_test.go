@@ -920,11 +920,6 @@ func TestMarshal(t *testing.T) {
 	assert := assert.New(t)
 
 	for _, c := range cases {
-		// HCL does not support marshalling.
-		if c.typeName == "hcl" {
-			continue
-		}
-
 		// Load config.
 		k := koanf.New(delim)
 		assert.NoError(k.Load(file.Provider(c.file), c.parser),

@@ -3,9 +3,12 @@
 package hcl
 
 import (
-	"errors"
+	"bufio"
+	"bytes"
+	"encoding/json"
 
 	"github.com/hashicorp/hcl"
+	"github.com/hashicorp/hcl/hcl/printer"
 )
 
 // HCL implements a Hashicorp HCL parser.
@@ -38,27 +41,27 @@ func (p *HCL) Unmarshal(b []byte) (map[string]interface{}, error) {
 
 // Marshal marshals the given config map to HCL bytes.
 func (p *HCL) Marshal(o map[string]interface{}) ([]byte, error) {
-	return nil, errors.New("HCL marshalling is not supported")
-	// TODO: Although this is the only way to do it, it's producing empty bytes.
-	// Needs investigation.
 	// The only way to generate HCL is from the HCL node structure.
 	// Turn the map into JSON, then parse it with the HCL lib to create its
 	// structure, and then, encode to HCL.
-	// j, err := json.Marshal(o)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// tree, err := hcl.Parse(string(j))
-	// if err != nil {
-	// 	return nil, err
-	// }
+	j, err := json.Marshal(o)
+	if err != nil {
+		return nil, err
+	}
 
-	// var buf bytes.Buffer
-	// out := bufio.NewWriter(&buf)
-	// if err := printer.Fprint(out, tree.Node); err != nil {
-	// 	return nil, err
-	// }
-	// return buf.Bytes(), err
+	tree, err := hcl.Parse(string(j))
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	out := bufio.NewWriter(&buf)
+	if err := printer.Fprint(out, tree.Node); err != nil {
+		return nil, err
+	}
+	out.Flush()
+
+	return buf.Bytes(), err
 }
 
 // flattenHCL flattens an unmarshalled HCL structure where maps
