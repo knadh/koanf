@@ -6,7 +6,7 @@ import (
 )
 
 func TestJSON_Unmarshal(t *testing.T) {
-	var testCases = []struct {
+	testCases := []struct {
 		name   string
 		input  []byte
 		keys   []string
@@ -32,17 +32,6 @@ func TestJSON_Unmarshal(t *testing.T) {
 			input: []byte(`{
 						"key": "val",`),
 			isErr: true,
-		},
-		{
-			name: "Complex JSON",
-			input: []byte(`{
-						"key": "val",
-						"arr": "[1,2,3,4,5]",
-						"map_arr":"[{'map_key': 'map_val','map_number': '12'},{'map_key': 'map_val','map_number': '13'}]"}`),
-			keys: []string{"key", "arr", "map_arr"},
-			values: []interface{}{"val",
-				"[1,2,3,4,5]",
-				"[{'map_key': 'map_val','map_number': '12'},{'map_key': 'map_val','map_number': '13'}]"},
 		},
 		{
 			name: "Complex JSON - All types",
@@ -100,6 +89,57 @@ func TestJSON_Unmarshal(t *testing.T) {
 					v := out[k]
 					assert.Equal(t, tc.values[i], v)
 				}
+			}
+		})
+	}
+}
+
+func TestJSON_Marshal(t *testing.T) {
+	testCases := []struct {
+		name   string
+		input  map[string]interface{}
+		output []byte
+		isErr  bool
+	}{
+		{
+			name:   "Empty JSON",
+			input:  map[string]interface{}{},
+			output: []byte(`{}`),
+		},
+		{
+			name: "Valid JSON",
+			input: map[string]interface{}{
+				"key":    "val",
+				"name":   "test",
+				"number": 2.0,
+			},
+			output: []byte(`{"key":"val","name":"test","number":2}`),
+		},
+		{
+			name: "Complex JSON - All types",
+			input: map[string]interface{}{
+				"array":   []interface{}{1, 2, 3, 4, 5},
+				"boolean": true,
+				"color":   "gold",
+				"null":    nil,
+				"number":  123,
+				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"string":  "Hello World",
+			},
+			output: []byte(`{"array":[1,2,3,4,5],"boolean":true,"color":"gold","null":null,"number":123,"object":{"a":"b","c":"d"},"string":"Hello World"}`),
+		},
+	}
+
+	j := Parser()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			out, err := j.Marshal(tc.input)
+			if tc.isErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, tc.output, out)
 			}
 		})
 	}
