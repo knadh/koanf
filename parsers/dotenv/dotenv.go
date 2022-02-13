@@ -29,7 +29,7 @@ func (p *DotEnv) Unmarshal(b []byte) (map[string]interface{}, error) {
 		mp[k] = v
 	}
 
-	return mp, err
+	return mp, nil
 }
 
 // Marshal marshals the given config map to DOTENV bytes.
