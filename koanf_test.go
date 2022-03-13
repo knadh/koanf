@@ -1188,3 +1188,36 @@ func TestDelete(t *testing.T) {
 		assert.Equal(false, c.koanf.Exists("empty"))
 	}
 }
+
+func TestGetStringsMap(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+
+	k.Load(confmap.Provider(map[string]interface{}{
+		"str": map[string]string{
+			"k1": "value",
+		},
+		"strs": map[string][]string{
+			"k1": {"value"},
+		},
+		"iface": map[string]interface{}{
+			"k2": "value",
+		},
+		"ifaces": map[string][]interface{}{
+			"k2": {"value"},
+		},
+		"ifaces2": map[string]interface{}{
+			"k2": []interface{}{"value"},
+		},
+		"ifaces3": map[string]interface{}{
+			"k2": []string{"value"},
+		},
+	}, "."), nil)
+	assert.Equal(map[string]string{"k1": "value"}, k.StringMap("str"), "types don't match")
+	assert.Equal(map[string]string{"k2": "value"}, k.StringMap("iface"), "types don't match")
+	assert.Equal(map[string][]string{"k1": {"value"}}, k.StringsMap("strs"), "types don't match")
+	assert.Equal(map[string][]string{"k2": {"value"}}, k.StringsMap("ifaces"), "types don't match")
+	assert.Equal(map[string][]string{"k2": {"value"}}, k.StringsMap("ifaces2"), "types don't match")
+	assert.Equal(map[string][]string{"k2": {"value"}}, k.StringsMap("ifaces3"), "types don't match")
+}
