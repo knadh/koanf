@@ -729,4 +729,5 @@ koanf is a lightweight alternative to the popular [spf13/viper](https://github.c
 - Imposes arbitrary ordering conventions (eg: flag -> env -> config etc.)
 - `Get()` returns references to slices and maps. Mutations made outside change the underlying values inside the conf map.
 - Does non-idiomatic things such as [throwing away O(1) on flat maps](https://github.com/spf13/viper/blob/3b4aca75714a37276c4b1883630bd98c02498b73/viper.go#L1524).
+- Viper treats keys that contain an empty map (eg: `my_key: {}`) as if they were not set (ie: `IsSet("my_key") == false`).
 - There are a large number of [open issues](https://github.com/spf13/viper/issues).
