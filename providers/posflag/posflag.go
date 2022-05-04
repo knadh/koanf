@@ -149,28 +149,77 @@ func FlagVal(fs *pflag.FlagSet, f *pflag.Flag) interface{} {
 	case "int":
 		i, _ := fs.GetInt(key)
 		val = int64(i)
+	case "uint":
+		i, _ := fs.GetUint(key)
+		val = uint64(i)
 	case "int8":
 		i, _ := fs.GetInt8(key)
 		val = int64(i)
+	case "uint8":
+		i, _ := fs.GetUint8(key)
+		val = uint64(i)
 	case "int16":
 		i, _ := fs.GetInt16(key)
 		val = int64(i)
+	case "uint16":
+		i, _ := fs.GetUint16(key)
+		val = uint64(i)
 	case "int32":
 		i, _ := fs.GetInt32(key)
 		val = int64(i)
+	case "uint32":
+		i, _ := fs.GetUint32(key)
+		val = uint64(i)
 	case "int64":
-		i, _ := fs.GetInt64(key)
-		val = int64(i)
+		val, _ = fs.GetInt64(key)
+	case "uint64":
+		val, _ = fs.GetUint64(key)
+	case "float":
+		val, _ = fs.GetFloat64(key)
 	case "float32":
 		val, _ = fs.GetFloat32(key)
-	case "float":
+	case "float64":
 		val, _ = fs.GetFloat64(key)
 	case "bool":
 		val, _ = fs.GetBool(key)
+	case "duration":
+		val, _ = fs.GetDuration(key)
+	case "ip":
+		val, _ = fs.GetIP(key)
+	case "ipMask":
+		val, _ = fs.GetIPv4Mask(key)
+	case "ipNet":
+		val, _ = fs.GetIPNet(key)
+	case "count":
+		val, _ = fs.GetCount(key)
+	case "bytesHex":
+		val, _ = fs.GetBytesHex(key)
+	case "bytesBase64":
+		val, _ = fs.GetBytesBase64(key)
+	case "string":
+		val, _ = fs.GetString(key)
 	case "stringSlice":
 		val, _ = fs.GetStringSlice(key)
 	case "intSlice":
 		val, _ = fs.GetIntSlice(key)
+	case "uintSlice":
+		val, _ = fs.GetUintSlice(key)
+	case "int32Slice":
+		val, _ = fs.GetInt32Slice(key)
+	case "int64Slice":
+		val, _ = fs.GetInt64Slice(key)
+	case "float32Slice":
+		val, _ = fs.GetFloat32Slice(key)
+	case "float64Slice":
+		val, _ = fs.GetFloat64Slice(key)
+	case "boolSlice":
+		val, _ = fs.GetBoolSlice(key)
+	case "durationSlice":
+		val, _ = fs.GetDurationSlice(key)
+	case "ipSlice":
+		val, _ = fs.GetIPSlice(key)
+	case "stringArray":
+		val, _ = fs.GetStringArray(key)
 	case "stringToString":
 		val, _ = fs.GetStringToString(key)
 	case "stringToInt":
