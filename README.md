@@ -10,7 +10,9 @@ koanf comes with built in support for reading configuration from files, command 
 
 ### Installation
 
-`go get -u github.com/knadh/koanf`
+```shell
+go get -u github.com/knadh/koanf
+```
 
 ### Contents
 
