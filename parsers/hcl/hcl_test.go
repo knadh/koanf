@@ -1,6 +1,7 @@
 package hcl
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -108,19 +109,30 @@ func TestHCL_Unmarshal(t *testing.T) {
 func TestHCL_Marshal(t *testing.T) {
 
 	hclParserWithFlatten := Parser(true)
-	// hclParserWithoutFlatten := Parser(false)
 
 	testCases := []struct {
 		name     string
 		input    map[string]interface{}
+		output   []byte
 		isErr    bool
 		function HCL
 	}{
 		{
 			name:     "Empty HCL",
 			input:    map[string]interface{}{},
-			isErr:    true,
+			output:   []byte(nil),
 			function: *hclParserWithFlatten,
+		},
+		{
+			name: "Valid HCL",
+			input: map[string]interface{}{
+				"resource": map[string]interface{}{
+					"aws_instance": map[string]interface{}{
+						"example": map[string]interface{}{
+							"ami": "abc123"}}}},
+			output: []byte(`"resource" "aws_instance" "example" {
+  "ami" = "abc123"
+}`),
 		},
 		{
 			name: "Complex HCL",
@@ -138,17 +150,33 @@ func TestHCL_Marshal(t *testing.T) {
 					}},
 				}},
 			},
-			isErr: true,
+			output: []byte(`"resource" = {
+  "aws_instance" = {
+    "example" = {
+      "ami" = "abc123"
+
+      "count" = 2
+
+      "instance_type" = "t2.micro"
+
+      "lifecycle" = {
+        "create_before_destroy" = true
+      }
+    }
+  }
+}`),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			_, err := tc.function.Marshal(tc.input)
+			out, err := tc.function.Marshal(tc.input)
 			if tc.isErr {
-				assert.EqualError(t, err, "HCL marshalling is not supported")
+				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
+				fmt.Printf("string(out): %v\n", string(out))
+				assert.Equal(t, tc.output, out)
 			}
 		})
 	}
