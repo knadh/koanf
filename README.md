@@ -75,7 +75,9 @@ func main() {
 ### Watching files for changes
 The `koanf.Provider` interface has a `Watch(cb)` method that asks a provider
 to watch for changes and trigger the given callback that can live reload the
-configuration.
+configuration. This is not goroutine safe if there are concurrent `*Get()`
+calls happening on the koanf object while it is doing a `Load()`. Such
+scenarios will need mutex locking.
 
 Currently, `file.Provider` supports this.
 
