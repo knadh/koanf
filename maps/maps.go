@@ -5,9 +5,10 @@ package maps
 
 import (
 	"fmt"
-	"github.com/mitchellh/copystructure"
 	"reflect"
 	"strings"
+
+	"github.com/mitchellh/copystructure"
 )
 
 // Flatten takes a map[string]interface{} and traverses it and flattens
@@ -254,21 +255,27 @@ func IntfaceKeysToStrings(mp map[string]interface{}) {
 			mp[key] = x
 			IntfaceKeysToStrings(x)
 		case []interface{}:
-			for i, v := range cur {
-				switch sub := v.(type) {
-				case map[interface{}]interface{}:
-					x := make(map[string]interface{})
-					for k, v := range sub {
-						x[fmt.Sprintf("%v", k)] = v
-					}
-					cur[i] = x
-					IntfaceKeysToStrings(x)
-				case map[string]interface{}:
-					IntfaceKeysToStrings(sub)
-				}
-			}
+			sliceIntfaceKeysToStrings(cur)
 		case map[string]interface{}:
 			IntfaceKeysToStrings(cur)
+		}
+	}
+}
+
+func sliceIntfaceKeysToStrings(cur []interface{}) {
+	for i, v := range cur {
+		switch sub := v.(type) {
+		case map[interface{}]interface{}:
+			x := make(map[string]interface{})
+			for k, v := range sub {
+				x[fmt.Sprintf("%v", k)] = v
+			}
+			cur[i] = x
+			IntfaceKeysToStrings(x)
+		case []interface{}:
+			sliceIntfaceKeysToStrings(sub)
+		case map[string]interface{}:
+			IntfaceKeysToStrings(sub)
 		}
 	}
 }

@@ -29,6 +29,13 @@ var testMap2 = map[string]interface{}{
 				"key": 123,
 			},
 		},
+		[]interface{}{
+			map[string]interface{}{
+				"child": map[string]interface{}{
+					"key": 123,
+				},
+			},
+		},
 	},
 	"parent": map[string]interface{}{
 		"child": map[string]interface{}{
@@ -145,6 +152,13 @@ func TestIntfaceKeysToStrings(t *testing.T) {
 			map[interface{}]interface{}{
 				"child": map[interface{}]interface{}{
 					"key": 123,
+				},
+			},
+			[]interface{}{
+				map[interface{}]interface{}{
+					"child": map[interface{}]interface{}{
+						"key": 123,
+					},
 				},
 			},
 		},
