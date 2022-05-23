@@ -108,7 +108,6 @@ func TestHCL_Unmarshal(t *testing.T) {
 func TestHCL_Marshal(t *testing.T) {
 
 	hclParserWithFlatten := Parser(true)
-	// hclParserWithoutFlatten := Parser(false)
 
 	testCases := []struct {
 		name     string

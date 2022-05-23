@@ -1,7 +1,6 @@
 package yaml
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -83,7 +82,6 @@ key: #Here is a single-line comment
 				assert.Nil(t, err)
 				for i, k := range tc.keys {
 					v := out[k]
-					fmt.Println(out[k])
 					assert.Equal(t, tc.values[i], v)
 				}
 			}
