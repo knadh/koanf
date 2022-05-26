@@ -7,7 +7,6 @@ import (
 )
 
 func TestTOML_Unmarshal(t *testing.T) {
-
 	testCases := []struct {
 		name   string
 		input  []byte
@@ -79,7 +78,6 @@ func TestTOML_Unmarshal(t *testing.T) {
 }
 
 func TestTOML_Marshal(t *testing.T) {
-
 	testCases := []struct {
 		name   string
 		input  map[string]interface{}
