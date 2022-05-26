@@ -15,11 +15,11 @@ require (
 	github.com/joho/godotenv v1.3.0
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.4.1
-	github.com/npillmayer/nestext v0.1.3 // indirect
+	github.com/npillmayer/nestext v0.1.3
 	github.com/pelletier/go-toml v1.7.0
 	github.com/rhnvrm/simples3 v0.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sys v0.0.0-20200331124033-c3d80250170d // indirect
-	gopkg.in/yaml.v2 v2.2.8
+	gopkg.in/yaml.v3 v3.0.0
 )

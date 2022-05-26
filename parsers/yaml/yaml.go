@@ -2,7 +2,7 @@
 package yaml
 
 import (
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 // YAML implements a YAML parser.
@@ -19,6 +19,7 @@ func (p *YAML) Unmarshal(b []byte) (map[string]interface{}, error) {
 	if err := yaml.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
+
 	return out, nil
 }
 
