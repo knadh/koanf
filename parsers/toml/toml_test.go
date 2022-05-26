@@ -10,13 +10,13 @@ func TestTOML_Unmarshal(t *testing.T) {
 	testCases := []struct {
 		name   string
 		input  []byte
-		keys   []string
-		values []interface{}
+		output map[string]interface{}
 		isErr  bool
 	}{
 		{
-			name:  "Empty TOML",
-			input: []byte(``),
+			name:   "Empty TOML",
+			input:  []byte(``),
+			output: map[string]interface{}{},
 		},
 		{
 			name: "Valid TOML",
@@ -24,8 +24,11 @@ func TestTOML_Unmarshal(t *testing.T) {
 			name = "test"
 			number = 2
 			`),
-			keys:   []string{"key", "name", "number"},
-			values: []interface{}{"val", "test", int64(2)},
+			output: map[string]interface{}{
+				"key":    "val",
+				"name":   "test",
+				"number": int64(2),
+			},
 		},
 		{
 			name:  "Invalid TOML - missing end quotes",
@@ -39,18 +42,17 @@ func TestTOML_Unmarshal(t *testing.T) {
 					color = "gold"
 					number = 123
 					string = "Hello World"
-					
 					[object]
 					a = "b"
 					c = "d"`),
-			keys: []string{"array", "boolean", "color", "null", "number", "object", "string"},
-			values: []interface{}{[]interface{}{int64(1), int64(2), int64(3)},
-				true,
-				"gold",
-				nil,
-				int64(123),
-				map[string]interface{}{"a": "b", "c": "d"},
-				"Hello World"},
+			output: map[string]interface{}{
+				"array":   []interface{}{int64(1), int64(2), int64(3)},
+				"boolean": true,
+				"color":   "gold",
+				"number":  int64(123),
+				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"string":  "Hello World",
+			},
 		},
 		{
 			name:  "Invalid TOML - missing equal",
@@ -68,10 +70,7 @@ func TestTOML_Unmarshal(t *testing.T) {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				for i, k := range tc.keys {
-					v := out[k]
-					assert.Equal(t, tc.values[i], v)
-				}
+				assert.Equal(t, tc.output, out)
 			}
 		})
 	}
