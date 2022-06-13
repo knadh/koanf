@@ -55,15 +55,15 @@ string: Hello World`),
 				"gold",
 				nil,
 				123,
-				map[interface{}]interface{}{"a": "b", "c": "d"},
+				map[string]interface{}{"a": "b", "c": "d"},
 				"Hello World"},
 		},
 		{
 			name: "Valid YAML - With comments",
 			input: []byte(`---
-key: #Here is a single-line comment 
+key: #Here is a single-line comment
 - value line 5
-#Here is a 
+#Here is a
 #multi-line comment
 - value line 13`),
 			keys:   []string{"key"},
@@ -126,18 +126,18 @@ number: 2
 				"string":  "Hello World",
 			},
 			output: []byte(`array:
-- 1
-- 2
-- 3
-- 4
-- 5
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
 boolean: true
 color: gold
 "null": null
 number: 123
 object:
-  a: b
-  c: d
+    a: b
+    c: d
 string: Hello World
 `),
 		},
