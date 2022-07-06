@@ -199,7 +199,7 @@ func main() {
 		DialTimeout: time.Second * 5,
 		Prefix: true,
 		Limit: true,
-		nLimit: 4,
+		NLimit: 4,
 		Keypath: "child",
 	}
 

@@ -22,7 +22,7 @@ type Config struct {
 	Limit bool
 
 	// number of limited pairs
-	nLimit int64
+	NLimit int64
 
 	// key, key with prefix, etc.
 	Keypath string
@@ -64,7 +64,7 @@ func (etcdHandle *Etcd) Read() (map[string]interface{}, error) {
 	if etcdHandle.cfg.Prefix {
 		if etcdHandle.cfg.Limit {
 			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath, clientv3.WithPrefix(), 
-				clientv3.WithLimit(etcdHandle.cfg.nLimit))
+				clientv3.WithLimit(etcdHandle.cfg.NLimit))
 			if err != nil {
 				return nil, err
 			}
