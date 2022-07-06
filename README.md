@@ -662,6 +662,8 @@ func main() {
 | providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
 | providers/vault     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
 | providers/appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
+| providers/etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
+|
 
 ### Bundled parsers
 

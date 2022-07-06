@@ -1,3 +1,5 @@
+# Testing script. Requirements: installed etcd
+
 # setting the directory for the etcd
 CURRENT_DIR=`pwd`
 ETCD_TESTDIR="$CURRENT_DIR/etcdtest"

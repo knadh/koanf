@@ -1,3 +1,5 @@
+// Example and test
+
 package main
 
 import (
@@ -95,6 +97,8 @@ func main() {
 	k_check.Delete("")
 
 	// first request test
+	// analog of the command:
+	// etcdctl get --prefix parent
 
 	if err := k_req.Load(file.Provider("req1.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -138,6 +142,8 @@ func main() {
 	k_check.Delete("")
 
 	// second request test
+	// analog of the command:
+	// etcdctl get --prefix child
 
 	if err := k_req.Load(file.Provider("req2.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -181,6 +187,8 @@ func main() {
 	k_check.Delete("")
 
 	// third (combined prefix + limit) request test
+	// analog of the command:
+	// etcdctl get --prefix child --limit=4
 
 	if err := k_req.Load(file.Provider("req3.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
