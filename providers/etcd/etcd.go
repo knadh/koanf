@@ -22,7 +22,7 @@ type Config struct {
 	Limit bool
 
 	// number of limited pairs
-	NLimit int64
+	nLimit int64
 
 	// key, key with prefix, etc.
 	Keypath string
@@ -35,24 +35,24 @@ type Etcd struct {
 
 func Provider (cfg Config) *Etcd {
 
-	client_cfg := clientv3.Config {
+	clientCfg := clientv3.Config {
 		Endpoints: cfg.Endpoints,
 		DialTimeout: cfg.DialTimeout,
 	}
 
-	new_client, err := clientv3.New(client_cfg)
+	newClient, err := clientv3.New(clientCfg)
 	if err != nil {
 		return nil
 	}
 
-	return &Etcd { client: new_client, cfg: cfg }
+	return &Etcd { client: newClient, cfg: cfg }
 }
 
-func (Etcd_handle *Etcd) ReadBytes() ([]byte, error) {
+func (etcdHandle *Etcd) ReadBytes() ([]byte, error) {
 	return nil, errors.New("etcd provider does not support this method")
 }
 
-func (Etcd_handle *Etcd) Read() (map[string]interface{}, error) {
+func (etcdHandle *Etcd) Read() (map[string]interface{}, error) {
 
 	var mp = make(map[string]interface{})
 
@@ -61,23 +61,23 @@ func (Etcd_handle *Etcd) Read() (map[string]interface{}, error) {
 	var resp *clientv3.GetResponse
 	var err error
 
-	if Etcd_handle.cfg.Prefix {
-		if Etcd_handle.cfg.Limit {
-			resp, err = Etcd_handle.client.Get(ctx, Etcd_handle.cfg.Keypath, clientv3.WithPrefix(), 
-				clientv3.WithLimit(Etcd_handle.cfg.NLimit))
+	if etcdHandle.cfg.Prefix {
+		if etcdHandle.cfg.Limit {
+			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath, clientv3.WithPrefix(), 
+				clientv3.WithLimit(etcdHandle.cfg.nLimit))
 			if err != nil {
 				return nil, err
 			}
 			cancel()
 		} else {
-			resp, err = Etcd_handle.client.Get(ctx, Etcd_handle.cfg.Keypath, clientv3.WithPrefix())
+			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath, clientv3.WithPrefix())
 			if err != nil {
 				return nil, err
 			}
 			cancel()
 		}
 	} else {
-		resp, err = Etcd_handle.client.Get(ctx, Etcd_handle.cfg.Keypath)
+		resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath)
 		if err != nil {
 			return nil, err
 		}
@@ -90,26 +90,3 @@ func (Etcd_handle *Etcd) Read() (map[string]interface{}, error) {
 
 	return mp, nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
