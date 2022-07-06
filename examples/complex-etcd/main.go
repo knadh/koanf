@@ -18,14 +18,14 @@ import (
 )
 
 var (
-	k_data = koanf.New(".")
-	k_req = koanf.New(".")
-	k_check = koanf.New(".")
+	kData = koanf.New(".")
+	kReq = koanf.New(".")
+	kCheck = koanf.New(".")
 )
 
 func main() {
 
-	if err := k_data.Load(file.Provider("data.json"), json.Parser()); err != nil {
+	if err := kData.Load(file.Provider("data.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
@@ -39,11 +39,11 @@ func main() {
 	}
 	defer cli.Close()
 
-	keys_data := k_data.Keys();
+	keysData := kData.Keys();
 
-	for i := 0; i < len(keys_data); i++ {
+	for i := 0; i < len(keysData); i++ {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 2)
-		_, err := cli.Put(ctx, keys_data[i], k_data.String(keys_data[i]))
+		_, err := cli.Put(ctx, keysData[i], kData.String(keysData[i]))
 		cancel()
 
 		if err != nil {
@@ -53,177 +53,177 @@ func main() {
 
 	// single key/value
 
-	var s_key = "single_key"
-	var s_val = "single_val"
+	var sKey = "single_key"
+	var sVal = "single_val"
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 2)
-	_, err = cli.Put(ctx, s_key, s_val)
+	_, err = cli.Put(ctx, sKey, sVal)
 	cancel()
 
 	if err != nil {
 		log.Printf("Couldn't put key.")
 	}
 
-	provider_cfg := etcd.Config {
+	providerCfg := etcd.Config {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: false,
 		Keypath: "single_key",
 	}
 
-	provider := etcd.Provider(provider_cfg)
+	provider := etcd.Provider(providerCfg)
 
-	if err := k_check.Load(provider, nil); err != nil {
+	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	if len(k_check.Keys()) != 1 {
-		fmt.Println(len(k_check.Keys()))
+	if len(kCheck.Keys()) != 1 {
+		fmt.Println(len(kCheck.Keys()))
 		fmt.Printf("Single key: FAILED\n")
 		return
 	}
 
-	if strings.Compare(s_key, k_check.Keys()[0]) != 0 {
+	if strings.Compare(sKey, kCheck.Keys()[0]) != 0 {
 		fmt.Printf("Single key: key comparison FAILED\n")
 		return
 	}
 
-	if strings.Compare(s_val, k_check.String(k_check.Keys()[0])) != 0 {
+	if strings.Compare(sVal, kCheck.String(kCheck.Keys()[0])) != 0 {
 		fmt.Printf("Single key: value comparison FAILED\n")
 		return
 	}
 
 	fmt.Printf("\nSingle key test passed.\n")
-	k_check.Delete("")
+	kCheck.Delete("")
 
 	// first request test
 	// analog of the command:
 	// etcdctl get --prefix parent
 
-	if err := k_req.Load(file.Provider("req1.json"), json.Parser()); err != nil {
+	if err := kReq.Load(file.Provider("req1.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider_cfg = etcd.Config {
+	providerCfg = etcd.Config {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
 		Keypath: "parent",
 	}
 
-	provider = etcd.Provider(provider_cfg)
+	provider = etcd.Provider(providerCfg)
 
-	if err := k_check.Load(provider, nil); err != nil {
+	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	keys_req := k_req.Keys();
-	keys_check := k_check.Keys();
+	keysReq := kReq.Keys();
+	keysCheck := kCheck.Keys();
 
-	if len(keys_req) != len(keys_check) {
+	if len(keysReq) != len(keysCheck) {
 		fmt.Printf("FAILED\n")
 		return
 	}
 
-	for i := 0; i < len(keys_req); i++ {
-		if strings.Compare(keys_req[i], keys_check[i]) != 0 {
+	for i := 0; i < len(keysReq); i++ {
+		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
 			fmt.Printf("FAILED\n")
 			return
 		}
 
-		if strings.Compare(k_req.String(keys_req[i]), k_check.String(keys_check[i])) != 0 {
+		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
 			fmt.Printf("FAILED\n")
 			return
 		}
 	}
 
 	fmt.Printf("First request test passed.\n")
-	k_req.Delete("")
-	k_check.Delete("")
+	kReq.Delete("")
+	kCheck.Delete("")
 
 	// second request test
 	// analog of the command:
 	// etcdctl get --prefix child
 
-	if err := k_req.Load(file.Provider("req2.json"), json.Parser()); err != nil {
+	if err := kReq.Load(file.Provider("req2.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider_cfg = etcd.Config {
+	providerCfg = etcd.Config {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
 		Keypath: "child",
 	}
 
-	provider = etcd.Provider(provider_cfg)
+	provider = etcd.Provider(providerCfg)
 
-	if err := k_check.Load(provider, nil); err != nil {
+	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	keys_req = k_req.Keys();
-	keys_check = k_check.Keys();
+	keysReq = kReq.Keys();
+	keysCheck = kCheck.Keys();
 
-	if len(keys_req) != len(keys_check) {
+	if len(keysReq) != len(keysCheck) {
 		fmt.Printf("FAILED\n")
 		return
 	}
 
-	for i := 0; i < len(keys_req); i++ {
-		if strings.Compare(keys_req[i], keys_check[i]) != 0 {
+	for i := 0; i < len(keysReq); i++ {
+		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
 			fmt.Printf("FAILED\n")
 			return
 		}
 
-		if strings.Compare(k_req.String(keys_req[i]), k_check.String(keys_check[i])) != 0 {
+		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
 			fmt.Printf("FAILED\n")
 			return
 		}
 	}
 
 	fmt.Printf("Second request test passed.\n")
-	k_req.Delete("")
-	k_check.Delete("")
+	kReq.Delete("")
+	kCheck.Delete("")
 
 	// third (combined prefix + limit) request test
 	// analog of the command:
 	// etcdctl get --prefix child --limit=4
 
-	if err := k_req.Load(file.Provider("req3.json"), json.Parser()); err != nil {
+	if err := kReq.Load(file.Provider("req3.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider_cfg = etcd.Config {
+	providerCfg = etcd.Config {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
 		Limit: true,
-		NLimit: 4,
+		nLimit: 4,
 		Keypath: "child",
 	}
 
-	provider = etcd.Provider(provider_cfg)
+	provider = etcd.Provider(providerCfg)
 
-	if err := k_check.Load(provider, nil); err != nil {
+	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	keys_req = k_req.Keys();
-	keys_check = k_check.Keys();
+	keysReq = kReq.Keys();
+	keysCheck = kCheck.Keys();
 
-	if len(keys_req) != len(keys_check) {
+	if len(keysReq) != len(keysCheck) {
 		fmt.Printf("FAILED\n")
 		return
 	}
 
-	for i := 0; i < len(keys_req); i++ {
-		if strings.Compare(keys_req[i], keys_check[i]) != 0 {
+	for i := 0; i < len(keysReq); i++ {
+		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
 			fmt.Printf("FAILED\n")
 			return
 		}
 
-		if strings.Compare(k_req.String(keys_req[i]), k_check.String(keys_check[i])) != 0 {
+		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
 			fmt.Printf("FAILED\n")
 			return
 		}
