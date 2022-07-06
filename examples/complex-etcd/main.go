@@ -11,6 +11,8 @@ import (
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/etcd"
+
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var (
@@ -102,7 +104,7 @@ func main() {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
-		Keypath: "game",
+		Keypath: "parent",
 	}
 
 	provider = etcd.Provider(provider_cfg)
@@ -145,7 +147,7 @@ func main() {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
-		Keypath: "film",
+		Keypath: "child",
 	}
 
 	provider = etcd.Provider(provider_cfg)
@@ -190,7 +192,7 @@ func main() {
 		Prefix: true,
 		Limit: true,
 		NLimit: 4,
-		Keypath: "film",
+		Keypath: "child",
 	}
 
 	provider = etcd.Provider(provider_cfg)
@@ -223,24 +225,3 @@ func main() {
 
 	fmt.Printf("ALL TESTS PASSED\n")
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
