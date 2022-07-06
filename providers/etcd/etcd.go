@@ -25,7 +25,7 @@ type Config struct {
 	NLimit int64
 
 	// key, key with prefix, etc.
-	Keypath string
+	Key string
 }
 
 type Etcd struct {
@@ -63,21 +63,21 @@ func (etcdHandle *Etcd) Read() (map[string]interface{}, error) {
 
 	if etcdHandle.cfg.Prefix {
 		if etcdHandle.cfg.Limit {
-			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath, clientv3.WithPrefix(), 
+			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Key, clientv3.WithPrefix(), 
 				clientv3.WithLimit(etcdHandle.cfg.NLimit))
 			if err != nil {
 				return nil, err
 			}
 			cancel()
 		} else {
-			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath, clientv3.WithPrefix())
+			resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Key, clientv3.WithPrefix())
 			if err != nil {
 				return nil, err
 			}
 			cancel()
 		}
 	} else {
-		resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Keypath)
+		resp, err = etcdHandle.client.Get(ctx, etcdHandle.cfg.Key)
 		if err != nil {
 			return nil, err
 		}

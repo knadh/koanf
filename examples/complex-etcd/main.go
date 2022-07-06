@@ -68,7 +68,7 @@ func main() {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: false,
-		Keypath: "single_key",
+		Key: "single_key",
 	}
 
 	provider := etcd.Provider(providerCfg)
@@ -108,7 +108,7 @@ func main() {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
-		Keypath: "parent",
+		Key: "parent",
 	}
 
 	provider = etcd.Provider(providerCfg)
@@ -121,18 +121,18 @@ func main() {
 	keysCheck := kCheck.Keys();
 
 	if len(keysReq) != len(keysCheck) {
-		fmt.Printf("FAILED\n")
+		fmt.Printf("First request: keys FAILED\n")
 		return
 	}
 
 	for i := 0; i < len(keysReq); i++ {
 		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
-			fmt.Printf("FAILED\n")
-			return
+			fmt.Printf("First request: key comparison FAILED\n") 
+			return 
 		}
 
 		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
-			fmt.Printf("FAILED\n")
+			fmt.Printf("First request: value comparison FAILED\n")
 			return
 		}
 	}
@@ -153,7 +153,7 @@ func main() {
 		Endpoints: []string { "localhost:2379" },
 		DialTimeout: time.Second * 5,
 		Prefix: true,
-		Keypath: "child",
+		Key: "child",
 	}
 
 	provider = etcd.Provider(providerCfg)
@@ -166,18 +166,18 @@ func main() {
 	keysCheck = kCheck.Keys();
 
 	if len(keysReq) != len(keysCheck) {
-		fmt.Printf("FAILED\n")
+		fmt.Printf("Second request: keys FAILED\n")
 		return
 	}
 
 	for i := 0; i < len(keysReq); i++ {
 		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
-			fmt.Printf("FAILED\n")
+			fmt.Printf("Second request: key comparison FAILED\n")
 			return
 		}
 
 		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
-			fmt.Printf("FAILED\n")
+			fmt.Printf("Second request: value comparison FAILED\n")
 			return
 		}
 	}
@@ -200,7 +200,7 @@ func main() {
 		Prefix: true,
 		Limit: true,
 		NLimit: 4,
-		Keypath: "child",
+		Key: "child",
 	}
 
 	provider = etcd.Provider(providerCfg)
@@ -213,18 +213,18 @@ func main() {
 	keysCheck = kCheck.Keys();
 
 	if len(keysReq) != len(keysCheck) {
-		fmt.Printf("FAILED\n")
+		fmt.Printf("Third request: keys FAILED\n")
 		return
 	}
 
 	for i := 0; i < len(keysReq); i++ {
 		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
-			fmt.Printf("FAILED\n")
+			fmt.Printf("Third request: key comparison FAILED\n")
 			return
 		}
 
 		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
-			fmt.Printf("FAILED\n")
+			fmt.Printf("Third request: value comparison FAILED\n")
 			return
 		}
 	}
