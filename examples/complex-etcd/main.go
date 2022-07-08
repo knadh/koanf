@@ -3,35 +3,34 @@
 package main
 
 import (
-	"time"
-	"log"
-	"fmt"
 	"context"
+	"fmt"
+	"log"
 	"strings"
+	"time"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/etcd"
+	"github.com/knadh/koanf/providers/file"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 var (
-	kData = koanf.New(".")
-	kReq = koanf.New(".")
+	kData  = koanf.New(".")
+	kReq   = koanf.New(".")
 	kCheck = koanf.New(".")
 )
 
 func main() {
-
 	if err := kData.Load(file.Provider("data.json"), json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	cli, err := clientv3.New(clientv3.Config {
-		Endpoints:		[]string{ "localhost:2379" },
-		DialTimeout:	time.Second * 2,
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   []string{"localhost:2379"},
+		DialTimeout: time.Second * 2,
 	})
 
 	if err != nil {
@@ -39,10 +38,9 @@ func main() {
 	}
 	defer cli.Close()
 
-	keysData := kData.Keys();
-
+	keysData := kData.Keys()
 	for i := 0; i < len(keysData); i++ {
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second * 2)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 		_, err := cli.Put(ctx, keysData[i], kData.String(keysData[i]))
 		cancel()
 
@@ -51,26 +49,26 @@ func main() {
 		}
 	}
 
-	// single key/value
+	// Single key/value.
+	var (
+		sKey = "single_key"
+		sVal = "single_val"
+	)
 
-	var sKey = "single_key"
-	var sVal = "single_val"
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second * 2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
 	_, err = cli.Put(ctx, sKey, sVal)
-	cancel()
+	defer cancel()
 
 	if err != nil {
 		log.Printf("Couldn't put key.")
 	}
 
-	providerCfg := etcd.Config {
-		Endpoints: []string { "localhost:2379" },
+	providerCfg := etcd.Config{
+		Endpoints:   []string{"localhost:2379"},
 		DialTimeout: time.Second * 5,
-		Prefix: false,
-		Key: "single_key",
+		Prefix:      false,
+		Key:         "single_key",
 	}
-
 	provider := etcd.Provider(providerCfg)
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -104,21 +102,20 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	providerCfg = etcd.Config {
-		Endpoints: []string { "localhost:2379" },
+	providerCfg = etcd.Config{
+		Endpoints:   []string{"localhost:2379"},
 		DialTimeout: time.Second * 5,
-		Prefix: true,
-		Key: "parent",
+		Prefix:      true,
+		Key:         "parent",
 	}
-
 	provider = etcd.Provider(providerCfg)
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	keysReq := kReq.Keys();
-	keysCheck := kCheck.Keys();
+	keysReq := kReq.Keys()
+	keysCheck := kCheck.Keys()
 
 	if len(keysReq) != len(keysCheck) {
 		fmt.Printf("First request: keys FAILED\n")
@@ -127,8 +124,8 @@ func main() {
 
 	for i := 0; i < len(keysReq); i++ {
 		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
-			fmt.Printf("First request: key comparison FAILED\n") 
-			return 
+			fmt.Printf("First request: key comparison FAILED\n")
+			return
 		}
 
 		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
@@ -149,11 +146,11 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	providerCfg = etcd.Config {
-		Endpoints: []string { "localhost:2379" },
+	providerCfg = etcd.Config{
+		Endpoints:   []string{"localhost:2379"},
 		DialTimeout: time.Second * 5,
-		Prefix: true,
-		Key: "child",
+		Prefix:      true,
+		Key:         "child",
 	}
 
 	provider = etcd.Provider(providerCfg)
@@ -162,8 +159,8 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	keysReq = kReq.Keys();
-	keysCheck = kCheck.Keys();
+	keysReq = kReq.Keys()
+	keysCheck = kCheck.Keys()
 
 	if len(keysReq) != len(keysCheck) {
 		fmt.Printf("Second request: keys FAILED\n")
@@ -194,13 +191,13 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	providerCfg = etcd.Config {
-		Endpoints: []string { "localhost:2379" },
+	providerCfg = etcd.Config{
+		Endpoints:   []string{"localhost:2379"},
 		DialTimeout: time.Second * 5,
-		Prefix: true,
-		Limit: true,
-		NLimit: 4,
-		Key: "child",
+		Prefix:      true,
+		Limit:       true,
+		NLimit:      4,
+		Key:         "child",
 	}
 
 	provider = etcd.Provider(providerCfg)
@@ -209,8 +206,8 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	keysReq = kReq.Keys();
-	keysCheck = kCheck.Keys();
+	keysReq = kReq.Keys()
+	keysCheck = kCheck.Keys()
 
 	if len(keysReq) != len(keysCheck) {
 		fmt.Printf("Third request: keys FAILED\n")
@@ -230,6 +227,5 @@ func main() {
 	}
 
 	fmt.Printf("Third (combined) request test passed.\n")
-
 	fmt.Printf("ALL TESTS PASSED\n")
 }
