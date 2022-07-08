@@ -20,6 +20,7 @@ require (
 	github.com/rhnvrm/simples3 v0.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.0
-	golang.org/x/sys v0.0.0-20200331124033-c3d80250170d // indirect
+	go.etcd.io/etcd/client/v3 v3.5.4 // indirect
+	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/yaml.v3 v3.0.0
 )
