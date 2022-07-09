@@ -4,8 +4,8 @@ import (
 	"log"
 	"fmt"
 
-	"kmod/koanf"
-	"kmod/koanf/providers/consul"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/providers/consul"
 )
 
 var k = koanf.New(".")
