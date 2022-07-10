@@ -48,6 +48,14 @@ func (cProvider *CProvider) Read() (map[string]interface{}, error) {
 			return nil, err
 		}
 
+		// Detailed information can be obtained using standard koanf flattened delimited keys:
+		// For example:
+		// "parent1.CreateIndex"
+		// "parent1.Flags"
+		// "parent1.LockIndex"
+		// "parent1.ModifyIndex"
+		// "parent1.Session"
+		// "parent1.Value"
 		if cProvider.cfg.Detailed {
 			for _, pair := range pairs {
 				key_meta := make(map[string]interface{})

@@ -16,6 +16,7 @@ var (
 	kData	= koanf.New(".")
 	kReq	= koanf.New(".")
 	kCheck	= koanf.New(".")
+	kData2 	= koanf.New(".")
 )
 
 func main() {
@@ -160,5 +161,95 @@ func main() {
 	}
 
 	fmt.Printf("Second request test passed.\n")
+
+	if err := kData2.Load(file.Provider("data2.json"), json.Parser()); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	for _, key := range keysData {
+		keyFlags := fmt.Sprintf("%s.age", key)
+		keyName := fmt.Sprintf("%s.name", key)
+		newPair := &api.KVPair{Key: key, Flags: uint64(kData2.Int64(keyFlags)), Value: []byte(kData2.String(keyName))}
+		_, err := kv.Put(newPair, nil)
+		if err != nil {
+			log.Printf("Couldn't put key with flags.")
+		}
+	}
+
+	// Single key detailed test.
+	// analog of the command:
+	// consul kv get -detailed parent1
+
+	sKey = "parent1"
+	sFlags := uint64(kData2.Int64("parent1.age"))
+	sVal = kData2.String("parent1.name")
+
+	provider = consul.Provider(consul.Config {
+		Key: sKey,
+		Recurse: false,
+		Detailed: true,
+	})
+
+	if err := kCheck.Load(provider, nil); err != nil {
+		log.Fatal("error loading config: %v", err)
+	}
+
+	if sFlags != uint64(kCheck.Int64("parent1.Flags")) {
+		fmt.Printf("Single detailed key: flags (metadata: age) comparison FAILED\n")
+		return
+	}
+
+	if strings.Compare(sVal, kCheck.String("parent1.Value")) != 0 {
+		fmt.Printf("Single key: value comparison FAILED\n")
+		return
+	}
+
+	fmt.Printf("\nSingle key test passed.\n")
+
+	kCheck.Delete("")
+
+	// Detailed request (recurse) test.
+	// analog of the command:
+	// consul kv get -detailed -recurse parent
+
+	sKey = "parent"
+
+	provider = consul.Provider(consul.Config {
+		Key: sKey,
+		Recurse: true,
+		Detailed: true,
+	})
+
+	if err := kCheck.Load(provider, nil); err != nil {
+		log.Fatal("error loading config: %v", err)
+	}
+
+	sFlags = uint64(kData2.Int64("parent1.age"))
+	sVal = kData2.String("parent1.name")
+
+	if sFlags != uint64(kCheck.Int64("parent1.Flags")) {
+		fmt.Printf("Single detailed key: flags (metadata: age) comparison FAILED\n")
+		return
+	}
+
+	if strings.Compare(sVal, kCheck.String("parent1.Value")) != 0 {
+		fmt.Printf("Single key: value comparison FAILED\n")
+		return
+	}
+
+	sFlags = uint64(kData2.Int64("parent2.age"))
+	sVal = kData2.String("parent2.name")
+
+	if sFlags != uint64(kCheck.Int64("parent2.Flags")) {
+		fmt.Printf("Single detailed key: flags (metadata: age) comparison FAILED\n")
+		return
+	}
+
+	if strings.Compare(sVal, kCheck.String("parent2.Value")) != 0 {
+		fmt.Printf("Single key: value comparison FAILED\n")
+		return
+	}
+
+	fmt.Printf("\nDetailed request (recurse) test passed.\n")
 	fmt.Printf("ALL TESTS PASSED\n")
 }
