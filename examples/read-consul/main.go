@@ -3,37 +3,162 @@ package main
 import (
 	"log"
 	"fmt"
+	"strings"
 
 	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/consul"
+	"github.com/knadh/koanf/providers/file"
 	"github.com/hashicorp/consul/api"
 )
 
-var k = koanf.New(".")
+var (
+	kData	= koanf.New(".")
+	kReq	= koanf.New(".")
+	kCheck	= koanf.New(".")
+)
 
 func main() {
+	if err := kData.Load(file.Provider("data.json"), json.Parser()); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
 	cli, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
-		panic(err)
+		log.Fatalf("error creating client: %v", err)
 	}
 
 	kv := cli.KV()
 
-	newPair := &api.KVPair{Key: "parent1", Value: []byte("father")}
+	keysData := kData.Keys()
+	for _, key := range keysData {
+		newPair := &api.KVPair{Key: key, Value: []byte(kData.String(key))}
+		_, err = kv.Put(newPair, nil)
+
+		if err != nil {
+			log.Printf("Couldn't put key.")
+		}
+	}
+
+	// Single key/value.
+	var (
+		sKey = "single_key"
+		sVal = "single_val"
+	)
+
+	newPair := &api.KVPair{Key: sKey, Value: []byte(sVal)}
 	_, err = kv.Put(newPair, nil)
+
 	if err != nil {
-		panic(err)
+		log.Printf("Couldn't put key.")
 	}
 
 	provider := consul.Provider(consul.Config {
-		Key: "parent1",
+		Key: sKey,
 		Recurse: false,
 		Detailed: false,
 	})
 
-	if err := k.Load(provider, nil); err != nil {
+	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	fmt.Printf("parent1: %s\n", k.String("parent1"))
+	if len(kCheck.Keys()) != 1 {
+		fmt.Printf("Single key: FAILED\n")
+		return
+	}
+
+	if strings.Compare(sKey, kCheck.Keys()[0]) != 0 {
+		fmt.Printf("Single key: key comparison FAILED\n")
+		return
+	}
+
+	if strings.Compare(sVal, kCheck.String(kCheck.Keys()[0])) != 0 {
+		fmt.Printf("Single key: value comparison FAILED\n")
+		return
+	}
+
+	fmt.Printf("\nSingle key test passed.\n")
+	kCheck.Delete("")
+
+	// first request test
+	// analog of the command:
+	// consul kv get -recurse parent
+
+	if err := kReq.Load(file.Provider("req1.json"), json.Parser()); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	provider = consul.Provider(consul.Config {
+		Key: "parent",
+		Recurse: true,
+		Detailed: false,
+	})
+
+	if err := kCheck.Load(provider, nil); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	keysReq := kReq.Keys()
+	keysCheck := kCheck.Keys()
+
+	if len(keysReq) != len(keysCheck) {
+		fmt.Printf("First request: keys FAILED\n")
+		return
+	}
+
+	for i := 0; i < len(keysReq); i++ {
+		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
+			fmt.Printf("First request: key comparison FAILED\n")
+			return
+		}
+
+		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
+			fmt.Printf("First request: value comparison FAILED\n")
+			return
+		}
+	}
+
+	fmt.Printf("First request test passed.\n")
+	kReq.Delete("")
+	kCheck.Delete("")
+
+	// second request test
+	// analog of the command:
+	// consul kv get -recurse child
+
+	if err := kReq.Load(file.Provider("req2.json"), json.Parser()); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	provider = consul.Provider(consul.Config {
+		Key: "child",
+		Recurse: true,
+		Detailed: false,
+	})
+
+	if err := kCheck.Load(provider, nil); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	keysReq = kReq.Keys()
+	keysCheck = kCheck.Keys()
+
+	if len(keysReq) != len(keysCheck) {
+		fmt.Printf("Second request: keys FAILED\n")
+		return
+	}
+
+	for i := 0; i < len(keysReq); i++ {
+		if strings.Compare(keysReq[i], keysCheck[i]) != 0 {
+		}
+
+		if strings.Compare(kReq.String(keysReq[i]), kCheck.String(keysCheck[i])) != 0 {
+			fmt.Printf("Second request: value comparison FAILED\n")
+			return
+		}
+	}
+
+	fmt.Printf("Second request test passed.\n")
+	fmt.Printf("ALL TESTS PASSED\n")
 }
