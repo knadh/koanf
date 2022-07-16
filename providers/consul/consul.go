@@ -111,7 +111,7 @@ func (cProvider *CProvider) Read() (map[string]interface{}, error) {
 	return mp, nil
 }
 
-func(c *cProvider) Watch(cb func(event interface{}, err error)) error {
+func(c *CProvider) Watch(cb func(event interface{}, err error)) error {
 	planArgs := make(map[string]interface{})
 
 	if c.cfg.Recurse {
@@ -130,9 +130,7 @@ func(c *cProvider) Watch(cb func(event interface{}, err error)) error {
 	doneCh := make(chan struct{})
 	
 	plan.Handler = func(idx uint64, val interface{}) {
-		if err := cb(val); err != nil {
-			return err
-		}
+		cb(val, nil)
 	}
 
 	errCh := make(chan error, 1)
@@ -145,4 +143,6 @@ func(c *cProvider) Watch(cb func(event interface{}, err error)) error {
 	case <-doneCh:
 		plan.Stop()
 	}
+
+	return nil
 }
