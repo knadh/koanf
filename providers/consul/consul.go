@@ -16,6 +16,9 @@ type Config struct {
 
 	// detailed flag
 	Detailed bool
+
+	// Consul client config
+	CConfig *api.Config
 }
 
 type CProvider struct {
@@ -25,7 +28,7 @@ type CProvider struct {
 
 func Provider (cfg Config) *CProvider {
 	
-	newClient, err := api.NewClient(api.DefaultConfig())
+	newClient, err := api.NewClient(cfg.CConfig)
 	if err != nil {
 		return nil
 	}
