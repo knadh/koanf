@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/hashicorp/consul/api/watch"
 )
 
 type Config struct {
@@ -24,17 +23,17 @@ type Config struct {
 
 type CProvider struct {
 	client *api.Client
-	cfg Config
+	cfg    Config
 }
 
-func Provider (cfg Config) *CProvider {
-	
+func Provider(cfg Config) *CProvider {
+
 	newClient, err := api.NewClient(cfg.CConfig)
 	if err != nil {
 		return nil
 	}
 
-	return &CProvider { client: newClient, cfg: cfg }
+	return &CProvider{client: newClient, cfg: cfg}
 }
 
 func (cProvider *CProvider) ReadBytes() ([]byte, error) {
@@ -62,20 +61,20 @@ func (cProvider *CProvider) Read() (map[string]interface{}, error) {
 		// "parent1.Value"
 		if cProvider.cfg.Detailed {
 			for _, pair := range pairs {
-				key_meta := make(map[string]interface{})
-				key_meta["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
-				key_meta["Flags"] = fmt.Sprintf("%d", pair.Flags)
-				key_meta["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
-				key_meta["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
+				keyMeta := make(map[string]interface{})
+				keyMeta["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
+				keyMeta["Flags"] = fmt.Sprintf("%d", pair.Flags)
+				keyMeta["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
+				keyMeta["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
 				if pair.Session == "" {
-					key_meta["Session"] = "-"
+					keyMeta["Session"] = "-"
 				} else {
-					key_meta["Session"] = fmt.Sprintf("%s", pair.Session)
+					keyMeta["Session"] = fmt.Sprintf("%s", pair.Session)
 				}
 
-				key_meta["Value"] = string(pair.Value)
+				keyMeta["Value"] = string(pair.Value)
 
-				mp[pair.Key] = key_meta
+				mp[pair.Key] = keyMeta
 			}
 		} else {
 			for _, pair := range pairs {
@@ -89,60 +88,24 @@ func (cProvider *CProvider) Read() (map[string]interface{}, error) {
 		}
 
 		if cProvider.cfg.Detailed {
-			key_meta := make(map[string]interface{})
-			key_meta["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
-			key_meta["Flags"] = fmt.Sprintf("%d", pair.Flags)
-			key_meta["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
-			key_meta["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
+			keyMeta := make(map[string]interface{})
+			keyMeta["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
+			keyMeta["Flags"] = fmt.Sprintf("%d", pair.Flags)
+			keyMeta["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
+			keyMeta["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
 			if pair.Session == "" {
-				key_meta["Session"] = "-"
+				keyMeta["Session"] = "-"
 			} else {
-				key_meta["Session"] = fmt.Sprintf("%s", pair.Session)
+				keyMeta["Session"] = fmt.Sprintf("%s", pair.Session)
 			}
 
-			key_meta["Value"] = string(pair.Value)
+			keyMeta["Value"] = string(pair.Value)
 
-			mp[pair.Key] = key_meta
+			mp[pair.Key] = keyMeta
 		} else {
 			mp[pair.Key] = string(pair.Value)
 		}
 	}
 
 	return mp, nil
-}
-
-func(c *CProvider) Watch(cb func(event interface{}, err error)) error {
-	planArgs := make(map[string]interface{})
-
-	if c.cfg.Recurse {
-		planArgs["type"] = "keyprefix"
-		planArgs["prefix"] = c.cfg.Key
-	} else {
-		planArgs["type"] = "key"
-		planArgs["key"] = c.cfg.Key
-	}
-
-	plan, err := watch.Parse(planArgs)
-	if err != nil {
-		return err
-	}
-
-	doneCh := make(chan struct{})
-	
-	plan.Handler = func(idx uint64, val interface{}) {
-		cb(val, nil)
-	}
-
-	errCh := make(chan error, 1)
-
-	go func() {
-		errCh <- plan.Run(c.cfg.CConfig.Address)
-	}()
-
-	select {
-	case <-doneCh:
-		plan.Stop()
-	}
-
-	return nil
 }

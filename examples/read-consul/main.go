@@ -1,22 +1,21 @@
 package main
 
 import (
-	"log"
 	"fmt"
+	"log"
 	"strings"
 
+	"github.com/hashicorp/consul/api"
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/consul"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/hashicorp/consul/api"
 )
 
 var (
-	kData	= koanf.New(".")
-	kReq	= koanf.New(".")
-	kCheck	= koanf.New(".")
-	kData2 	= koanf.New(".")
+	kData  = koanf.New(".")
+	kReq   = koanf.New(".")
+	kCheck = koanf.New(".")
 )
 
 func main() {
@@ -43,8 +42,8 @@ func main() {
 
 	// Single key/value.
 	var (
-		sKey = "single_key"
-		sVal = "single_val"
+		sKey string = "single_key"
+		sVal string = "single_val"
 	)
 
 	newPair := &api.KVPair{Key: sKey, Value: []byte(sVal)}
@@ -54,11 +53,11 @@ func main() {
 		log.Printf("Couldn't put key.")
 	}
 
-	provider := consul.Provider(consul.Config {
-		Key: sKey,
-		Recurse: false,
+	provider := consul.Provider(consul.Config{
+		Key:      sKey,
+		Recurse:  false,
 		Detailed: false,
-		CConfig: api.DefaultConfig(),
+		CConfig:  api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -91,11 +90,11 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider = consul.Provider(consul.Config {
-		Key: "parent",
-		Recurse: true,
+	provider = consul.Provider(consul.Config{
+		Key:      "parent",
+		Recurse:  true,
 		Detailed: false,
-		CConfig: api.DefaultConfig(),
+		CConfig:  api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -134,11 +133,11 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider = consul.Provider(consul.Config {
-		Key: "child",
-		Recurse: true,
+	provider = consul.Provider(consul.Config{
+		Key:      "child",
+		Recurse:  true,
 		Detailed: false,
-		CConfig: api.DefaultConfig(),
+		CConfig:  api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -164,19 +163,13 @@ func main() {
 	}
 
 	fmt.Printf("Second request test passed.\n")
+	kCheck.Delete("")
 
-	if err := kData2.Load(file.Provider("data2.json"), json.Parser()); err != nil {
-		log.Fatalf("error loading config: %v", err)
-	}
-
-	for _, key := range keysData {
-		keyFlags := fmt.Sprintf("%s.age", key)
-		keyName := fmt.Sprintf("%s.name", key)
-		newPair := &api.KVPair{Key: key, Flags: uint64(kData2.Int64(keyFlags)), Value: []byte(kData2.String(keyName))}
-		_, err := kv.Put(newPair, nil)
-		if err != nil {
-			log.Printf("Couldn't put key with flags.")
-		}
+	// adding metainformation: age (flags)
+	newPair = &api.KVPair{Key: "parent1", Flags: uint64(42), Value: []byte("father")}
+	_, err = kv.Put(newPair, nil)
+	if err != nil {
+		log.Printf("Couldn't put key with flags.")
 	}
 
 	// Single key detailed test.
@@ -184,14 +177,14 @@ func main() {
 	// consul kv get -detailed parent1
 
 	sKey = "parent1"
-	sFlags := uint64(kData2.Int64("parent1.age"))
-	sVal = kData2.String("parent1.name")
+	sFlags := uint64(42)
+	sVal = "father"
 
-	provider = consul.Provider(consul.Config {
-		Key: sKey,
-		Recurse: false,
+	provider = consul.Provider(consul.Config{
+		Key:      sKey,
+		Recurse:  false,
 		Detailed: true,
-		CConfig: api.DefaultConfig(),
+		CConfig:  api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -204,11 +197,11 @@ func main() {
 	}
 
 	if strings.Compare(sVal, kCheck.String("parent1.Value")) != 0 {
-		fmt.Printf("Single key: value comparison FAILED\n")
+		fmt.Printf("Single detailed key: value comparison FAILED\n")
 		return
 	}
 
-	fmt.Printf("\nSingle key test passed.\n")
+	fmt.Printf("\nDetailed single key test passed.\n")
 
 	kCheck.Delete("")
 
@@ -218,19 +211,16 @@ func main() {
 
 	sKey = "parent"
 
-	provider = consul.Provider(consul.Config {
-		Key: sKey,
-		Recurse: true,
+	provider = consul.Provider(consul.Config{
+		Key:      sKey,
+		Recurse:  true,
 		Detailed: true,
-		CConfig: api.DefaultConfig(),
+		CConfig:  api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatal("error loading config: %v", err)
 	}
-
-	sFlags = uint64(kData2.Int64("parent1.age"))
-	sVal = kData2.String("parent1.name")
 
 	if sFlags != uint64(kCheck.Int64("parent1.Flags")) {
 		fmt.Printf("Single detailed key: flags (metadata: age) comparison FAILED\n")
@@ -242,8 +232,8 @@ func main() {
 		return
 	}
 
-	sFlags = uint64(kData2.Int64("parent2.age"))
-	sVal = kData2.String("parent2.name")
+	sFlags = uint64(0)
+	sVal = "mother"
 
 	if sFlags != uint64(kCheck.Int64("parent2.Flags")) {
 		fmt.Printf("Single detailed key: flags (metadata: age) comparison FAILED\n")
