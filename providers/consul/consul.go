@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/consul/api"
+	"github.com/hashicorp/consul/api/watch"
 )
 
 type Config struct {
@@ -108,4 +109,31 @@ func (cProvider *CProvider) Read() (map[string]interface{}, error) {
 	}
 
 	return mp, nil
+}
+
+func(c *CProvider) Watch(cb func(event interface{}, err error)) error {
+	planArgs := make(map[string]interface{})
+
+	if c.cfg.Recurse {
+		planArgs["type"] = "keyprefix"
+		planArgs["prefix"] = c.cfg.Key
+	} else {
+		planArgs["type"] = "key"
+		planArgs["key"] = c.cfg.Key
+	}
+
+	plan, err := watch.Parse(planArgs)
+	if err != nil {
+		return err
+	}
+
+	plan.Handler = func(idx uint64, val interface{}) {
+		cb(val, nil)
+	}
+
+	go func() {
+		plan.Run(c.cfg.CConfig.Address)
+	}()
+
+	return nil
 }

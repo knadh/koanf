@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os/exec"
 	"fmt"
 	"log"
 	"strings"
@@ -246,5 +247,50 @@ func main() {
 	}
 
 	fmt.Printf("\nDetailed request (recurse) test passed.\n")
+
+	kCheck.Delete("")
+
+	// Watch test
+
+	sKey = "parent"
+	provider = consul.Provider(consul.Config{
+		Key:      sKey,
+		Recurse:  true,
+		Detailed: false,
+		CConfig:  api.DefaultConfig(),
+	})
+
+	// Getting the old value
+	kCheck.Load(provider, nil)
+	oldVal := kCheck.String("parent1")
+
+	changedC := make(chan string, 1)
+
+	provider.Watch(func(event interface{}, err error) {
+		if err != nil {
+			log.Fatal("Unexpected error: %v", err)
+		}
+
+		kCheck.Load(provider, nil)
+		// skip the first call
+		if strings.Compare(oldVal, kCheck.String("parent1")) != 0 {
+			changedC <- kCheck.String("parent1")
+		}
+	})
+
+	// changing
+	var newVal string = "dad"
+	cmd := exec.Command("consul", "kv", "put", "parent1", newVal)
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if strings.Compare(newVal, <-changedC) != 0 {
+		fmt.Printf("Watch failed: new value comparison FAILED\n")
+		return
+	}
+	fmt.Printf("Watch test passed.\n")
+
 	fmt.Printf("ALL TESTS PASSED\n")
 }
