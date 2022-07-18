@@ -664,6 +664,7 @@ func main() {
 | providers/appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
 | providers/etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
 |
+| providers/consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
 
 ### Bundled parsers
 
