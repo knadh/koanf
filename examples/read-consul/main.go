@@ -1,9 +1,9 @@
 package main
 
 import (
-	"os/exec"
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 
 	"github.com/hashicorp/consul/api"
