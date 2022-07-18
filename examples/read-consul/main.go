@@ -189,7 +189,8 @@ func main() {
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
-		log.Fatal("error loading config: %v", err)
+		fmt.Printf("error loading config: %v", err)
+		return
 	}
 
 	if sFlags != uint64(kCheck.Int64("parent1.Flags")) {
@@ -220,7 +221,8 @@ func main() {
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
-		log.Fatal("error loading config: %v", err)
+		fmt.Printf("error loading config: %v", err)
+		return
 	}
 
 	if sFlags != uint64(kCheck.Int64("parent1.Flags")) {
@@ -268,7 +270,8 @@ func main() {
 
 	provider.Watch(func(event interface{}, err error) {
 		if err != nil {
-			log.Fatal("Unexpected error: %v", err)
+			fmt.Printf("Unexpected error: %v", err)
+			return
 		}
 
 		kCheck.Load(provider, nil)
