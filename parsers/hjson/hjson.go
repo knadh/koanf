@@ -3,7 +3,7 @@
 package hjson
 
 import (
-	"github.com/hjson/hjson-go"
+	"github.com/hjson/hjson-go/v4"
 )
 
 // HJSON implements a HJSON parser.
