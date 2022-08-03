@@ -1,0 +1,90 @@
+{
+# Analog of mock.json in hjson
+
+    type: hjson
+    parent1: {
+        name: parent1
+        id: 1234
+		child1: {
+			name: child1
+			type: hjson
+			grandchild1: {
+				ids: [
+					1, 
+					2, 
+					3,
+				]
+				on: true
+			}
+			empty: {}
+		}
+		strmap: {
+			key1: val1
+			key2: val2
+			key3: val3
+		}
+		strsmap: {
+			key1: [
+				val1
+				val2
+				val3
+			]
+			key2: [
+				val4
+				val5
+			]
+		}
+		intmap: {
+			key1: 1
+			key2: 1
+			key3: 1
+		}
+		floatmap: {
+			key1: 1.1
+			key2: 1.2
+			key3: 1.3
+		}
+		boolmap: {
+			ok1: true
+			ok2: true
+			notok3: false
+		}
+	}
+	parent2: {
+		name: parent2
+		id: 5678
+		child2: {
+			name: child2
+			grandchild2: {
+				ids: [4, 5, 6]
+				on: true
+			}
+			empty: {}
+		}
+	}
+	orphan: [
+		red 
+		blue
+		orange
+	]
+	empty: {}
+	bools: [
+		true,
+		false,
+		true,
+	]
+	intbools: [
+		1,
+		0,
+		1,
+	]
+	strbools: [
+		"1",
+		"t",
+		"f"
+	]
+	strbool: "1"
+	time: "2019-01-01"
+	duration: "3s"
+	negative_int: -1234
+}

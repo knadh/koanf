@@ -18,6 +18,7 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
+	"github.com/knadh/koanf/parsers/hjson"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
@@ -42,6 +43,7 @@ const (
 	mockHCL    = mockDir + "/mock.hcl"
 	mockProp   = mockDir + "/mock.prop"
 	mockDotEnv = mockDir + "/mock.env"
+	mockHJSON  = mockDir + "/mock.hjson"
 )
 
 // Ordered list of fields in the 'flat' test confs.
@@ -262,6 +264,7 @@ var cases = []Case{
 	{koanf: koanf.New(delim), file: mockYAML, parser: yaml.Parser(), typeName: "yml"},
 	{koanf: koanf.New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
 	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
+	{koanf: koanf.New(delim), file: mockHJSON, parser: hjson.Parser(), typeName: "hjson"},
 }
 
 func init() {
@@ -276,6 +279,9 @@ func init() {
 		log.Fatalf("error loading config file: %v", err)
 	}
 	if err := cases[3].koanf.Load(file.Provider(cases[3].file), hcl.Parser(true)); err != nil {
+		log.Fatalf("error loading config file: %v", err)
+	}
+	if err := cases[4].koanf.Load(file.Provider(cases[4].file), hjson.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
 
