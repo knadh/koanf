@@ -7,14 +7,14 @@ import (
 
 func TestHJSON_Unmarshal(t *testing.T) {
 	testCases := []struct {
-		name string
-		input []byte
-		keys []string
+		name   string
+		input  []byte
+		keys   []string
 		values []interface{}
-		isErr bool
+		isErr  bool
 	}{
 		{
-			name: "Empty HJSON",
+			name:  "Empty HJSON",
 			input: []byte(`{}`),
 		},
 		{
@@ -24,7 +24,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					name: test
 					number: 2
 				}`),
-			keys: []string{"key", "name", "number"},
+			keys:   []string{"key", "name", "number"},
 			values: []interface{}{"val", "test", 2.0},
 		},
 		{
@@ -43,7 +43,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					name: Comments
 					number: 3
 				}`),
-			keys: []string{"key", "name", "number"},
+			keys:   []string{"key", "name", "number"},
 			values: []interface{}{"v1", "Comments", 3.0},
 		},
 		{
@@ -56,7 +56,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					#notice, no escape necessary:
 					RegEx: \s+
 				}`),
-			keys: []string{"JSON", "HJSON", "RegEx"},
+			keys:   []string{"JSON", "HJSON", "RegEx"},
 			values: []interface{}{"a string", "a string", `\s+`},
 		},
 		{
@@ -69,7 +69,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					  This line is indented by two spaces.
 					'''
 				}`),
-			keys: []string{"md"},
+			keys:   []string{"md"},
 			values: []interface{}{"First line.\nSecond line.\n  This line is indented by two spaces."},
 		},
 		{
@@ -79,7 +79,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 				"()": " sample at the start/end "
 				this: is OK though: {}[],:
 				}`),
-			keys: []string{"key name", "()", "this"},
+			keys:   []string{"key name", "()", "this"},
 			values: []interface{}{"{ sample }", " sample at the start/end ", "is OK though: {}[],:"},
 		},
 		{
@@ -95,7 +95,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					key_n: 3
 					key3: b,
 				}`),
-			keys: []string{"key", "key_n", "key3"},
+			keys:   []string{"key", "key_n", "key3"},
 			values: []interface{}{"a,", 3.0, "b,"},
 		},
 		{
@@ -213,25 +213,25 @@ func TestHJSON_Unmarshal(t *testing.T) {
 
 func TestHJSON_Marshal(t *testing.T) {
 	testCases := []struct {
-		name string
-		input map[string]interface{}
+		name   string
+		input  map[string]interface{}
 		output map[string]interface{}
 	}{
 		{
-			name: "Empty HJSON",
-			input: map[string]interface{}{},
+			name:   "Empty HJSON",
+			input:  map[string]interface{}{},
 			output: map[string]interface{}{},
 		},
 		{
 			name: "Valid HJSON",
 			input: map[string]interface{}{
-				"key": "val",
-				"name": "test",
+				"key":    "val",
+				"name":   "test",
 				"number": 2.0,
 			},
 			output: map[string]interface{}{
-				"key": "val",
-				"name": "test",
+				"key":    "val",
+				"name":   "test",
 				"number": 2.0,
 			},
 		},
@@ -257,22 +257,22 @@ func TestHJSON_Marshal(t *testing.T) {
 		{
 			name: "Complex HJSON - All types",
 			input: map[string]interface{}{
-				"array": []interface{}{1, 2, 3, 4, 5},
+				"array":   []interface{}{1, 2, 3, 4, 5},
 				"boolean": true,
-				"color": "red",
-				"null": nil,
-				"number": 123,
-				"object": map[string]interface{}{"a": "b", "c": "d"},
-				"string": "Hello HJSON",
+				"color":   "red",
+				"null":    nil,
+				"number":  123,
+				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"string":  "Hello HJSON",
 			},
 			output: map[string]interface{}{
-				"array": []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
+				"array":   []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
 				"boolean": true,
-				"color": "red",
-				"null": nil,
-				"number": 123.0,
-				"object": map[string]interface{}{"a": "b", "c": "d"},
-				"string": "Hello HJSON",
+				"color":   "red",
+				"null":    nil,
+				"number":  123.0,
+				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"string":  "Hello HJSON",
 			},
 		},
 	}

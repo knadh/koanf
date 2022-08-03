@@ -12,8 +12,7 @@ require (
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
-	github.com/hjson/hjson-go v3.3.0+incompatible
-	github.com/hjson/hjson-go/v4 v4.0.0 // indirect
+	github.com/hjson/hjson-go/v4 v4.0.0
 	github.com/joho/godotenv v1.3.0
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
