@@ -8,46 +8,58 @@ import (
 	"github.com/hashicorp/consul/api/watch"
 )
 
+// Config represents the Consul client configuration.
 type Config struct {
-	// key or prefix
+	// Path of the key to read. If Recurse is true, this is treated
+	// as a prefix.
 	Key string
 
-	// recurse flag
+	// https://www.consul.io/api-docs/kv#read-key
+	// If recurse is true, Consul returns an array of keys.
+	// It specifies if the lookup should be recursive and treat
+	// Key as a prefix instead of a literal match.
+	// This is analogous to: consul kv get -recurse key
 	Recurse bool
 
-	// detailed flag
+	// Gets additional metadata about the key in addition to the value such
+	// as the ModifyIndex and any flags that may have been set on the key.
+	// This is analogous to: consul kv get -detailed key
 	Detailed bool
 
 	// Consul client config
-	CConfig *api.Config
+	Cfg *api.Config
 }
 
-type CProvider struct {
+// Consul implements the Consul provider.
+type Consul struct {
 	client *api.Client
 	cfg    Config
 }
 
-func Provider(cfg Config) *CProvider {
-
-	newClient, err := api.NewClient(cfg.CConfig)
+// Provider returns an instance of the Consul provider.
+func Provider(cfg Config) *Consul {
+	c, err := api.NewClient(cfg.Cfg)
 	if err != nil {
 		return nil
 	}
 
-	return &CProvider{client: newClient, cfg: cfg}
+	return &Consul{client: c, cfg: cfg}
 }
 
-func (cProvider *CProvider) ReadBytes() ([]byte, error) {
+// ReadBytes is not supported by the Consul provider.
+func (c *Consul) ReadBytes() ([]byte, error) {
 	return nil, errors.New("consul provider does not support this method")
 }
 
-func (cProvider *CProvider) Read() (map[string]interface{}, error) {
-	var mp = make(map[string]interface{})
+// Read reads configuration from the Consul provider.
+func (c *Consul) Read() (map[string]interface{}, error) {
+	var (
+		mp = make(map[string]interface{})
+		kv = c.client.KV()
+	)
 
-	kv := cProvider.client.KV()
-
-	if cProvider.cfg.Recurse {
-		pairs, _, err := kv.List(cProvider.cfg.Key, nil)
+	if c.cfg.Recurse {
+		pairs, _, err := kv.List(c.cfg.Key, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -60,69 +72,74 @@ func (cProvider *CProvider) Read() (map[string]interface{}, error) {
 		// "parent1.ModifyIndex"
 		// "parent1.Session"
 		// "parent1.Value"
-		if cProvider.cfg.Detailed {
+		if c.cfg.Detailed {
 			for _, pair := range pairs {
-				keyMeta := make(map[string]interface{})
-				keyMeta["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
-				keyMeta["Flags"] = fmt.Sprintf("%d", pair.Flags)
-				keyMeta["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
-				keyMeta["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
+				m := make(map[string]interface{})
+				m["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
+				m["Flags"] = fmt.Sprintf("%d", pair.Flags)
+				m["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
+				m["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
+
 				if pair.Session == "" {
-					keyMeta["Session"] = "-"
+					m["Session"] = "-"
 				} else {
-					keyMeta["Session"] = fmt.Sprintf("%s", pair.Session)
+					m["Session"] = fmt.Sprintf("%s", pair.Session)
 				}
 
-				keyMeta["Value"] = string(pair.Value)
+				m["Value"] = string(pair.Value)
 
-				mp[pair.Key] = keyMeta
+				mp[pair.Key] = m
 			}
 		} else {
 			for _, pair := range pairs {
 				mp[pair.Key] = string(pair.Value)
 			}
 		}
-	} else {
-		pair, _, err := kv.Get(cProvider.cfg.Key, nil)
-		if err != nil {
-			return nil, err
-		}
 
-		if cProvider.cfg.Detailed {
-			keyMeta := make(map[string]interface{})
-			keyMeta["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
-			keyMeta["Flags"] = fmt.Sprintf("%d", pair.Flags)
-			keyMeta["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
-			keyMeta["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
-			if pair.Session == "" {
-				keyMeta["Session"] = "-"
-			} else {
-				keyMeta["Session"] = fmt.Sprintf("%s", pair.Session)
-			}
+		return mp, nil
+	}
 
-			keyMeta["Value"] = string(pair.Value)
+	pair, _, err := kv.Get(c.cfg.Key, nil)
+	if err != nil {
+		return nil, err
+	}
 
-			mp[pair.Key] = keyMeta
+	if c.cfg.Detailed {
+		m := make(map[string]interface{})
+		m["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
+		m["Flags"] = fmt.Sprintf("%d", pair.Flags)
+		m["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
+		m["ModifyIndex"] = fmt.Sprintf("%d", pair.ModifyIndex)
+
+		if pair.Session == "" {
+			m["Session"] = "-"
 		} else {
-			mp[pair.Key] = string(pair.Value)
+			m["Session"] = fmt.Sprintf("%s", pair.Session)
 		}
+
+		m["Value"] = string(pair.Value)
+
+		mp[pair.Key] = m
+	} else {
+		mp[pair.Key] = string(pair.Value)
 	}
 
 	return mp, nil
 }
 
-func(c *CProvider) Watch(cb func(event interface{}, err error)) error {
-	planArgs := make(map[string]interface{})
+// Watch watches for changes in the Consul API and triggers a callback.
+func (c *Consul) Watch(cb func(event interface{}, err error)) error {
+	p := make(map[string]interface{})
 
 	if c.cfg.Recurse {
-		planArgs["type"] = "keyprefix"
-		planArgs["prefix"] = c.cfg.Key
+		p["type"] = "keyprefix"
+		p["prefix"] = c.cfg.Key
 	} else {
-		planArgs["type"] = "key"
-		planArgs["key"] = c.cfg.Key
+		p["type"] = "key"
+		p["key"] = c.cfg.Key
 	}
 
-	plan, err := watch.Parse(planArgs)
+	plan, err := watch.Parse(p)
 	if err != nil {
 		return err
 	}
@@ -132,7 +149,7 @@ func(c *CProvider) Watch(cb func(event interface{}, err error)) error {
 	}
 
 	go func() {
-		plan.Run(c.cfg.CConfig.Address)
+		plan.Run(c.cfg.Cfg.Address)
 	}()
 
 	return nil

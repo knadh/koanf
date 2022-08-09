@@ -58,7 +58,7 @@ func main() {
 		Key:      sKey,
 		Recurse:  false,
 		Detailed: false,
-		CConfig:  api.DefaultConfig(),
+		Cfg:      api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -95,7 +95,7 @@ func main() {
 		Key:      "parent",
 		Recurse:  true,
 		Detailed: false,
-		CConfig:  api.DefaultConfig(),
+		Cfg:      api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -138,7 +138,7 @@ func main() {
 		Key:      "child",
 		Recurse:  true,
 		Detailed: false,
-		CConfig:  api.DefaultConfig(),
+		Cfg:      api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -185,7 +185,7 @@ func main() {
 		Key:      sKey,
 		Recurse:  false,
 		Detailed: true,
-		CConfig:  api.DefaultConfig(),
+		Cfg:      api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -217,7 +217,7 @@ func main() {
 		Key:      sKey,
 		Recurse:  true,
 		Detailed: true,
-		CConfig:  api.DefaultConfig(),
+		Cfg:      api.DefaultConfig(),
 	})
 
 	if err := kCheck.Load(provider, nil); err != nil {
@@ -259,7 +259,7 @@ func main() {
 		Key:      sKey,
 		Recurse:  true,
 		Detailed: false,
-		CConfig:  api.DefaultConfig(),
+		Cfg:      api.DefaultConfig(),
 	})
 
 	// Getting the old value
