@@ -676,7 +676,7 @@ func main() {
 | parsers/hcl        | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
 | parsers/nestedtext | `nestedtext.Parser()`              | Parses NestedText bytes into a flat map                                                                                                                 |
 | parsers/hjson       | `json.Parser()`                  | Parses HJSON bytes into a nested map                                                                                                                       |
-| parsers/ini       | `yaml.Parser()`                  | Parses INI bytes into a nested map                                                                                                                       |
+| parsers/ini       | `ini.Parser()`                  | Parses INI bytes into a nested map                                                                                                                       |
 
 ### Instance functions
 
