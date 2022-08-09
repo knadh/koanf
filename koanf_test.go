@@ -975,14 +975,14 @@ func TestUnmarshal_INI(t *testing.T) {
 
 	// Expected unmarshalled structure
 	real := testStructINI{
-		AppMode: "development",
-		Paths: pathStruct{
+		AppMode:	"development",
+		Paths: 		pathStruct{
 			Data: "/home/git/grafana",
 		},
 		Server: serverStruct{
-			Protocol: "http",
-			Port: 9999,
-			EnforceDomain: true,
+			Protocol:		"http",
+			Port: 			9999,
+			EnforceDomain:	true,
 		},
 	}
 

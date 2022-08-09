@@ -9,25 +9,34 @@ import (
 	"strings"
 )
 
+// INI implements an INI parser.
 type INI struct{}
 
+// Regular expressions for the assign (string data) and for the section line.
 var (
 	assignRegex		= regexp.MustCompile(`^([^=]+)=(.*)$`)
 	sectionRegex	= regexp.MustCompile(`^\[(.*)\]$`)
 )
 
+// Parser returns a JSON Parser.
 func Parser() *INI {
 	return &INI{}
 }
 
+// Unmarshal parses the given INI bytes.
+// The code is borrowed from the repository:
+// https://github.com/vaughan0/go-ini
 func (p *INI) Unmarshal(b []byte) (map[string]interface{}, error) {
 	out := make(map[string]interface{}, 0)
 
-	var mpS map[string]interface{} = nil
-	var buf []byte = b
+	var (
+		mpS map[string]interface{} = nil
+		buf []byte = b
 
-	var section string = ""
-	var index int
+		section string = ""
+		index int
+	)
+
 	for done := false; !done; {
 		index = bytes.Index(buf, []byte("\n"))
 		if index == -1 {
@@ -62,7 +71,7 @@ func (p *INI) Unmarshal(b []byte) (map[string]interface{}, error) {
 		} else if groups := sectionRegex.FindStringSubmatch(string(line)); groups != nil {
 
 			// first section without header is written as key: value.
-			// Other sections: the header is used as a key;
+			// other sections: the header is used as a key;
 			// map[string]string for a KV set of every section.
 			if strings.Compare("", section) != 0 {
 				out[section] = mpS
@@ -81,6 +90,7 @@ func (p *INI) Unmarshal(b []byte) (map[string]interface{}, error) {
 	return out, nil
 }
 
+// Marshal marshals the given config map to JSON bytes.
 func (p *INI) Marshal(o map[string]interface{}) ([]byte, error) {
 	var s string = ""
 
