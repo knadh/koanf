@@ -19,7 +19,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/npillmayer/nestext v0.1.3
 	github.com/pelletier/go-toml v1.7.0
-	github.com/rclone/rclone v1.59.1 // indirect
+	github.com/rclone/rclone v1.59.1
 	github.com/rhnvrm/simples3 v0.6.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.2
