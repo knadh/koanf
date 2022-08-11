@@ -1,12 +1,15 @@
+// Example and test
+
 package main
 
 import (
 	"fmt"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/rclone"
 )
 
@@ -14,19 +17,38 @@ import (
 var k = koanf.New(".")
 
 func main() {
-	f := rclone.Provider(rclone.Config{Remote: "godrive1", File: "mock.json"})
+	bRemote, err := os.ReadFile("cloud.txt")
+	if err != nil {
+		log.Fatalf("Cannot read file \"cloud.txt\": %v\n", err)
+	}
+
+	remote := string(bRemote)
+	remote = strings.TrimSpace(remote)
+
+	f := rclone.Provider(rclone.Config{Remote: remote, File: "mock.json"})
 	if err := k.Load(f, json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	f2 := rclone.Provider(rclone.Config{Remote: "minio1", File: "bucket1/mock.yml"})
-	if err := k.Load(f2, yaml.Parser()); err != nil {
-		log.Fatalf("error loading config: %v", err)
+	if strings.Compare("parent1", k.String("parent1.name")) != 0 {
+		fmt.Printf("parent1.name: value comparison FAILED\n")
+		return
 	}
 
-	fmt.Println("parent's name is = ", k.String("parent1.name"))
-	fmt.Println("parent's ID is = ", k.Int("parent1.id"))
-	fmt.Println("object name: ", k.String("object1.name"))
-	fmt.Println("object embedded name: ", k.String("object1.embedded1.name"))
-	fmt.Println("object nest: ", k.Bool("object1.embedded1.nest1.on"))
+	if k.Int64("parent1.id") != 1234 {
+		fmt.Printf("parent1.id: value comparison FAILED\n")
+		return
+	}
+
+	if strings.Compare("child1", k.String("parent1.child1.name")) != 0 {
+		fmt.Printf("parent1.child1.name: value comparison FAILED\n")
+		return
+	}
+
+	if !k.Bool("parent1.child1.grandchild1.on") {
+		fmt.Printf("parent1.child1.grandchild1.on: value comparison FAILED\n")
+		return
+	}
+	
+	fmt.Printf("ALL TESTS PASSED\n")
 }
