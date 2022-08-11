@@ -46,7 +46,7 @@ f := rclone.Provider(rclone.Config{Remote: remote, File: "bucket1/mock.json"})
 should contain only this name. You can use godrive1
 or godrive1: with the colon or without it.
 
-6. Run:
+6. Run the example:
 
 ```
 go run main.go
