@@ -8,10 +8,8 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.4.3
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.4.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.7.2
-	github.com/colinmarc/hdfs/v2 v2.3.0 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/hashicorp/consul/api v1.13.0
 	github.com/hashicorp/hcl v1.0.0
 	github.com/hashicorp/vault/api v1.0.4
@@ -26,6 +24,5 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.7.2
 	go.etcd.io/etcd/client/v3 v3.5.4
-	golang.org/x/net v0.0.0-20220809184613-07c6da5e1ced // indirect
 	gopkg.in/yaml.v3 v3.0.1
 )
