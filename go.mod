@@ -8,7 +8,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/credentials v1.4.3
 	github.com/aws/aws-sdk-go-v2/service/appconfig v1.4.2
 	github.com/aws/aws-sdk-go-v2/service/sts v1.7.2
-	github.com/colinmarc/hdfs/v2 v2.3.0 // indirect
 	github.com/fatih/structs v1.1.0
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
