@@ -34,7 +34,7 @@ godrive1 is the name of your remote storage:
 - you will see the content of the file in your console.
 
 If your cloud storage contains buckets (Amazon S3,
-minio, Backblaze B2) and file mock.json is put into
+minio, Backblaze B2) and the file mock.json is put into
 the bucket1, the access to the file is:
 
 ```go

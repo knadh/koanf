@@ -16,14 +16,14 @@ import (
 )
 
 type Config struct {
-	// Remote name
+	// Remote storage name from the rclone.conf.
 	Remote string
 
-	// RClone configuration file path 
-	// (usually /home/${USER}/.config/rclone/rclone.conf)
-	RCloneCfgPath string
+	// RClone configuration file path.
+	// Default: /home/${USER}/.config/rclone/rclone.conf
+	Cfg string
 
-	// File to read
+	// File to read.
 	File string
 }
 
@@ -37,31 +37,31 @@ func Provider(cfg Config) *RClone {
 		cfg.Remote += ":"
 	}
 
-	var pathRCloneCfg string
+	var path string
 
 	usr, _ := user.Current()
 
-	if strings.Compare(cfg.RCloneCfgPath, "") == 0 {
-		pathRCloneCfg = filepath.Join(usr.HomeDir, ".config/rclone/rclone.conf")
+	if strings.Compare(cfg.Cfg, "") == 0 {
+		path = filepath.Join(usr.HomeDir, ".config/rclone/rclone.conf")
 	} else {
-		pathRCloneCfg = cfg.RCloneCfgPath
+		path = cfg.Cfg
 	}
 
-	err := config.SetConfigPath(pathRCloneCfg)
+	err := config.SetConfigPath(path)
 	if err != nil {
 		log.Fatal("Error: cannot find RClone config file.\n")
 	}
 
 	configfile.Install()
 
-	rcloneFs, err := fs.NewFs(context.Background(), cfg.Remote)
+	fs, err := fs.NewFs(context.Background(), cfg.Remote)
 	if err != nil {
 		log.Fatalf("Error: cannot find remote %s.\n", cfg.Remote)
 	}
 
-	rcloneVfs := vfs.New(rcloneFs, nil)
+	vfs := vfs.New(fs, nil)
 
-	return &RClone{Vfs: rcloneVfs, File: cfg.File}
+	return &RClone{Vfs: vfs, File: cfg.File}
 }
 
 func (r *RClone) ReadBytes() ([]byte, error) {
