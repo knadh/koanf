@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -243,6 +244,26 @@ type testStructFlat struct {
 	Parent1Child1Empty          map[string]string `koanf:"parent1.child1.empty"`
 	Parent1Child1Grandchild1IDs []int             `koanf:"parent1.child1.grandchild1.ids"`
 	Parent1Child1Grandchild1On  bool              `koanf:"parent1.child1.grandchild1.on"`
+}
+
+type customText int
+
+func (c *customText) UnmarshalText(text []byte) error {
+	s := strings.ToLower(string(text))
+
+	switch {
+	case strings.HasSuffix(s, "mb"):
+		s = strings.TrimSuffix(s, "mb")
+	default:
+		s = "0"
+	}
+
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		return err
+	}
+	*c = customText(v)
+	return nil
 }
 
 type Case struct {
@@ -920,6 +941,27 @@ func TestUnmarshalFlat(t *testing.T) {
 		real.Parent1Child1Type = c.typeName
 		assert.Equal(real, ts, "unmarshalled structs don't match")
 	}
+}
+
+func TestUnmarshalCustomText(t *testing.T) {
+	test := struct {
+		V1 customText `koanf:"v1"`
+		V2 string     `koanf:"v2"`
+		V3 customText `koanf:"v3"`
+	}{}
+
+	// Test custom unmarshalling of strings via mapstructure's UnmarshalText()
+	// methods. customText is a int type that strips of the `mb` suffix and parses
+	// the rest into a number.
+
+	k := koanf.New(delim)
+	err := k.Load(rawbytes.Provider([]byte(`{"v1": "42mb", "v2": "42mb"}`)), json.Parser())
+	assert.NoError(t, err)
+
+	k.Unmarshal("", &test)
+	assert.Equal(t, int(test.V1), 42)
+	assert.Equal(t, test.V2, "42mb")
+	assert.Equal(t, int(test.V3), 0)
 }
 
 func TestMarshal(t *testing.T) {
