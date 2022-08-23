@@ -29,6 +29,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/knadh/koanf/validators/vcue"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -992,6 +993,55 @@ func TestMarshal(t *testing.T) {
 		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
 		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
 	}
+}
+
+func TestValidate_BlockAll(t *testing.T) {
+	var (
+		k = koanf.New(delim)
+		assert = assert.New(t)
+		pa = yaml.Parser()
+		v = vcue.Validator("mock/scheme.cue", vcue.BlockAll)
+	)
+
+	data, err := ioutil.ReadFile("mock/kub.yml")
+	require.NoError(t, err, "error reading kub.yml: %v", err)
+
+	strData := string(data)
+
+	assert.Nil(k.Load(rawbytes.Provider(data), pa), "error loading raw bytes")
+	assert.Nil(k.Validate(v), "validate error")
+
+	strMData := strings.Replace(strData, "apiVersion: apps/v1", "apiVersion: apps/v2", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.NotNil(k.Validate(v), "apps/v2 is wrong")
+
+	strMData = strings.Replace(strData, "Deployment", "Deploymen", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.NotNil(k.Validate(v), "Deploymen is wrong")
+
+	strMData = strings.Replace(strData, "name: cuetorials", "name: cuetorial", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.Nil(k.Validate(v), "wrong name: cuetorial passes")
+
+	strMData = strings.Replace(strData, "name: cuetorials", "name: 2", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.NotNil(k.Validate(v), "wrong type: name: cuetorials")
+
+	strMData = strings.Replace(strData, "app: cuetorials", "app: cuetorial", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.NotNil(k.Validate(v), "wrong app: cuetorial (metadata)")
+
+	strMData = strings.Replace(strData, "app: cuetorials", "app: cuetorial", 2)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.Nil(k.Validate(v), "no error")
+
+	strMData = strings.Replace(strData, "containerPort: 80", "containerPort: 81", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.NotNil(k.Validate(v), "wrong container port number")
+
+	strMData = strings.Replace(strData, "protocol: \"TCP\"", "protocol: \"TCC\"", 1)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(strMData)), pa), "error loading raw bytes")
+	assert.NotNil(k.Validate(v), "wrong protocol")
 }
 
 func TestGetExists(t *testing.T) {
