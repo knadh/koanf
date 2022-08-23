@@ -18,3 +18,8 @@ type Parser interface {
 	Unmarshal([]byte) (map[string]interface{}, error)
 	Marshal(map[string]interface{}) ([]byte, error)
 }
+
+// Validator represents a data validator.
+type Validator interface {
+	Validate(map[string]interface{}) error
+}

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cuetorials
+  namespace: websites
+  labels:
+    app: cuetorials
+spec:
+  selector:
+    matchLabels:
+      app: cuetorials
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  minReadySeconds: 5
+
+  template:
+    metadata:
+      labels:
+        app: cuetorials
+    spec:
+      containers:
+      - name: website
+        image: us.gcr.io/hof-io--develop/cuetorials.com:manual
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+          protocol: "TCP"
+
+        readinessProbe:
+          httpGet:
+            port: 80
+          initialDelaySeconds: 6
+          failureThreshold: 3
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            port: 80
+          initialDelaySeconds: 6
+          failureThreshold: 3
+          periodSeconds: 10

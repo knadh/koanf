@@ -118,6 +118,10 @@ func (ko *Koanf) Load(p Provider, pa Parser, opts ...Option) error {
 	return ko.merge(mp, newOptions(opts))
 }
 
+func (ko *Koanf) Validate(v Validator) error {
+	return v.Validate(ko.Raw())
+}
+
 // Keys returns the slice of all flattened keys in the loaded configuration
 // sorted alphabetically.
 func (ko *Koanf) Keys() []string {
