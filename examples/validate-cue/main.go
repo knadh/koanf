@@ -7,6 +7,7 @@ import (
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/validators/vcue"
 )
 
 var k = koanf.New(".")
@@ -18,4 +19,11 @@ func main() {
 	}
 
 	fmt.Printf("API version: %s\n", k.String("apiVersion"))
+
+	v := vcue.Validator("scheme.cue", vcue.BlockAll)
+
+	err := k.Validate(v)
+	if err == nil {
+		fmt.Printf("Data correct.\n")
+	}
 }

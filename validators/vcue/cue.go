@@ -1,6 +1,7 @@
 package vcue
 
 import (
+	"errors"
 	"io/ioutil"
 
 	"cuelang.org/go/cuego"
@@ -9,14 +10,10 @@ import (
 type Strategy int
 
 const (
-	BlockAll = iota
+	BlockAll Strategy = iota
 	AllowValid
 	Fill
 )
-
-type Validator interface {
-	Validate (map[string]interface{}) error
-}
 
 type VCUE struct {
 	Mode Strategy
@@ -30,7 +27,7 @@ func Validator(path string, mode Strategy) *VCUE {
 		return nil
 	}
 
-	cuego.Constrain(Scheme, string(data))
+	cuego.Constrain(mp, string(data))
 
 	return &VCUE{Mode: mode, Scheme: mp}
 }
@@ -45,4 +42,6 @@ func (v *VCUE) Validate(mp map[string]interface{}) error {
 	if v.Mode == Fill {
 		return errors.New("Fill strategy is not implemented.")
 	}
+
+	return nil
 }
