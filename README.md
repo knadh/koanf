@@ -677,6 +677,8 @@ func main() {
 | parsers/nestedtext | `nestedtext.Parser()`              | Parses NestedText bytes into a flat map                                                                                                                 |
 | parsers/hjson		 | `hjson.Parser()`					| Parses HJSON bytes into a nested map
 																							|
+| parsers/ini		 | `ini.Parser()`					| Parses INI bytes into a nested map
+																							|
 
 ### Instance functions
 
