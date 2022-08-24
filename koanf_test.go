@@ -20,6 +20,7 @@ import (
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
+	"github.com/knadh/koanf/parsers/ini"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
@@ -45,6 +46,7 @@ const (
 	mockProp   = mockDir + "/mock.prop"
 	mockDotEnv = mockDir + "/mock.env"
 	mockHJSON  = mockDir + "/mock.hjson"
+	mockINI	   = mockDir + "/mock.ini"
 )
 
 // Ordered list of fields in the 'flat' test confs.
@@ -271,6 +273,28 @@ type Case struct {
 	file     string
 	parser   koanf.Parser
 	typeName string
+}
+
+type pathStruct struct {
+	Data string
+}
+
+type serverStruct struct {
+	Protocol		string
+	Port			int
+	EnforceDomain	bool
+}
+
+type quoteStruct struct {
+	Mp 	string
+	Mp2	string
+}
+
+type testStructINI struct {
+	AppMode string
+	Paths	pathStruct
+	Server	serverStruct
+	Quote	quoteStruct
 }
 
 // 'Flat' Case instances to be used in multiple tests. These will not be
@@ -992,6 +1016,62 @@ func TestMarshal(t *testing.T) {
 		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
 		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
 	}
+}
+
+func TestUnmarshal_INI(t *testing.T) {
+	assert := assert.New(t)
+
+	real := testStructINI{
+		AppMode: "development",
+		Paths: pathStruct{
+			Data: "/home/git/grafana",
+		},
+		Server: serverStruct{
+			Protocol: "http",
+			Port: 9999,
+			EnforceDomain: true,
+		},
+		Quote: quoteStruct{
+			Mp:		"Hidden Truths",
+			Mp2: 	"\"No \"us\" in this\"",
+		},
+	}
+
+	var (
+		k = koanf.New(delim)
+		tsINI testStructINI
+	)
+
+	assert.Nil(k.Load(file.Provider(mockINI), ini.Parser()), fmt.Sprintf("error loading: %v", mockINI))
+	assert.Nil(k.Unmarshal("", &tsINI), "unmarshal failed")
+	assert.Equal(real, tsINI, "unmarshalled structs don't match")
+
+	tsINI = testStructINI{}
+	assert.Nil(k.UnmarshalWithConf("", &tsINI, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
+	assert.Equal(real, tsINI, "unmarshalled structs don't match")
+}
+
+func TestMarshal_INI(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.NoError(k.Load(file.Provider(mockINI), ini. Parser()), fmt.Sprintf("error loading: %v", mockINI))
+
+	// Serialize / marshal into raw bytes using the parser.
+	b, err := k.Marshal(ini.Parser())
+	assert.NoError(err, "error marshalling")
+
+	// Reload raw serialize bytes into a new koanf instance.
+	k = koanf.New(delim)
+	assert.NoError(k.Load(rawbytes.Provider(b), ini.Parser()), fmt.Sprintf("error loading: %v", mockINI))
+
+	// Check if values are intact.
+	assert.Equal(string("development"), k.String("appmode"))
+	assert.Equal(string("/home/git/grafana"), k.String("paths.data"))
+	assert.Equal(int64(9999), k.Int64("server.port"))
+	assert.Equal(true, k.Bool("server.enforcedomain"))
+	assert.Equal("Hidden Truths", k.String("quote.mp"))
+	assert.Equal("\"No \"us\" in this\"", k.String("quote.mp2"))
 }
 
 func TestGetExists(t *testing.T) {
