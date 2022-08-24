@@ -7,19 +7,19 @@ import (
 
 func TestINI_Unmarshal(t *testing.T) {
 	testCases := []struct {
-		name string
-		input []byte
-		keys []string
-		values []interface{}
-		isErr bool
+		name	string
+		input	[]byte
+		keys	[]string
+		values	[]interface{}
+		isErr	bool
 	}{
 		{
-			name: "Empty INI",
-			input: []byte(``),
+			name: 	"Empty INI",
+			input: 	[]byte(``),
 		},
 		{
-			name: "Valid INI - empty section",
-			input: []byte(`
+			name: 	"Valid INI - empty section",
+			input: 	[]byte(`
 				;comment1
 				; comment2
 
@@ -30,8 +30,8 @@ func TestINI_Unmarshal(t *testing.T) {
 			values:	[]interface{}{"development", 81},
 		},
 		{
-			name: "Invalid INI - missing square bracket",
-			input: []byte(`
+			name: 	"Invalid INI - missing square bracket",
+			input: 	[]byte(`
 				;comment
 
 				app_mode = development
@@ -39,11 +39,11 @@ func TestINI_Unmarshal(t *testing.T) {
 				[sites
 				opensource = github
 				`),
-			isErr: true,
+			isErr: 	true,
 		},
 		{
-			name: "Complex INI - empty section, all types",
-			input: []byte(`
+			name: 	"Complex INI - empty section, all types",
+			input: 	[]byte(`
 								;comment
 
 								boolean = true
@@ -60,8 +60,8 @@ func TestINI_Unmarshal(t *testing.T) {
 			},
 		},
 		{
-			name: "Invalid INI - missing '='",
-			input: []byte(`
+			name: 	"Invalid INI - missing '='",
+			input: 	[]byte(`
 								;comment
 
 								[http]
@@ -71,7 +71,7 @@ func TestINI_Unmarshal(t *testing.T) {
 								port 8043
 								username=httpsuser
 							`),
-			isErr: true,
+			isErr: 	true,
 		},
 	}
 	p := Parser()
@@ -91,7 +91,39 @@ func TestINI_Unmarshal(t *testing.T) {
 		})
 	}
 }
-/*
+
 func TestINI_Marshal(t *testing.T) {
+	testCases := []struct {
+		name	string
+		input	map[string]interface{}
+		output	[]byte
+		isErr	bool
+	}{
+		{
+			name:	"Empty INI",
+			input:	map[string]interface{}{},
+			output:	[]byte(``),
+		},
+		{
+			name:	"Valid INI",
+			input:	map[string]interface{}{
+				"app_mode":		"development",
+			},
+			output:	[]byte(`app_mode = development
+`),
+		},
+	}
+	p := Parser()
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			out, err := p.Marshal(tc.input)
+			if tc.isErr {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, tc.output, out)
+			}
+		})
+	}
 }
-*/

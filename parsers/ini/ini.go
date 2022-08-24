@@ -62,6 +62,7 @@ func (p *INI) Marshal(o map[string]interface{}) ([]byte, error) {
 	for k, v := range o {
 		switch v.(type) {
 		case map[string]interface{}:
+			fmt.Println("Map")
 			s += fmt.Sprintf("[%s]\n", k)
 			for kData, vData := range v.(map[string]interface{}) {
 				switch vData.(type) {
