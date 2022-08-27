@@ -21,6 +21,7 @@ import (
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
 	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/properties"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/basicflag"
@@ -45,6 +46,7 @@ const (
 	mockProp   = mockDir + "/mock.prop"
 	mockDotEnv = mockDir + "/mock.env"
 	mockHJSON  = mockDir + "/mock.hjson"
+	mockPrts   = mockDir + "/mock.properties"
 )
 
 // Ordered list of fields in the 'flat' test confs.
@@ -271,6 +273,15 @@ type Case struct {
 	file     string
 	parser   koanf.Parser
 	typeName string
+}
+
+type testStructPrts struct {
+	Name		string
+	Id			int
+	Duration	float64
+	Space		string
+	Oddkey		string
+	Delimiters	string
 }
 
 // 'Flat' Case instances to be used in multiple tests. These will not be
@@ -992,6 +1003,55 @@ func TestMarshal(t *testing.T) {
 		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
 		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
 	}
+}
+
+func TestUnmarshal_Properties(t *testing.T) {
+	assert := assert.New(t)
+
+	real := testStructPrts{
+		Name:		"parent1",
+		Id:			1234,
+		Duration:	5.17,
+		Space:		"stars",
+		Oddkey:		"This is line one and\\#this is line two",
+		Delimiters:	"= = value \"delimiter\":=\"",
+	}
+
+	var (
+		k = koanf.New(delim)
+		tsPrts testStructPrts
+	)
+
+	assert.Nil(k.Load(file.Provider(mockPrts), properties.Parser()), fmt.Sprintf("error loading: %v", mockPrts))
+	assert.Nil(k.Unmarshal("", &tsPrts), "unmarshal failed")
+	assert.Equal(real, tsPrts, "unmarshalled structs don't match")
+	
+	tsPrts = testStructPrts{}
+	assert.Nil(k.UnmarshalWithConf("", &tsPrts, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
+	assert.Equal(real, tsPrts, "unmarshalled structs don't match")
+}
+
+func TestMarshal_Properties(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.NoError(k.Load(file.Provider(mockPrts), properties.Parser()), fmt.Sprintf("error loading: %v", mockPrts))
+
+	// Serialize / marshal into raw bytes using the parser.
+	b, err := k.Marshal(properties.Parser())
+	assert.NoError(err, "error marshalling")
+
+	// Reload raw serialize bytes into a new koanf instance.
+	k = koanf.New(delim)
+	assert.NoError(k.Load(rawbytes.Provider(b), properties.Parser()), fmt.Sprintf("error loading: %v", mockPrts))
+
+	// Check if values are intact.
+	assert.Equal(string("parent1"), k.String("name"))
+	assert.Equal(1234, k.Int("id"))
+	assert.Equal(5.17, k.Float64("duration"))
+	assert.Equal(string("stars"), k.String("space"))
+	assert.Equal(string("This is line one and#this is line two"), k.String("oddKey"))
+	assert.Equal(string("= = value \"delimiter\":=\""), k.String("delimiters"))
 }
 
 func TestGetExists(t *testing.T) {
