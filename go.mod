@@ -15,6 +15,7 @@ require (
 	github.com/hashicorp/vault/api v1.0.4
 	github.com/hjson/hjson-go/v4 v4.0.0
 	github.com/joho/godotenv v1.3.0
+	github.com/magiconair/properties v1.8.6
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/npillmayer/nestext v0.1.3
