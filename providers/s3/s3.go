@@ -68,8 +68,3 @@ func (r *S3) ReadBytes() ([]byte, error) {
 func (r *S3) Read() (map[string]interface{}, error) {
 	return nil, errors.New("s3 provider does not support this method")
 }
-
-// Watch is not supported.
-func (r *S3) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("s3 provider does not support this method")
-}

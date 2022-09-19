@@ -35,8 +35,3 @@ func (e *Confmap) ReadBytes() ([]byte, error) {
 func (e *Confmap) Read() (map[string]interface{}, error) {
 	return e.mp, nil
 }
-
-// Watch is not supported.
-func (e *Confmap) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("confmap provider does not support this method")
-}

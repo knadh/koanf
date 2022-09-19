@@ -29,8 +29,3 @@ func (r *RawBytes) ReadBytes() ([]byte, error) {
 func (r *RawBytes) Read() (map[string]interface{}, error) {
 	return nil, errors.New("buf provider does not support this method")
 }
-
-// Watch is not supported.
-func (r *RawBytes) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("rawbytes provider does not support this method")
-}

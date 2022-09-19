@@ -2,6 +2,7 @@
 // from given fs.FS to be used with a koanf.Parser to parse
 // into conf maps.
 
+//go:build go1.16
 // +build go1.16
 
 package fs
@@ -37,9 +38,4 @@ func (f *FS) ReadBytes() ([]byte, error) {
 // Read is not supported by the fs.FS provider.
 func (f *FS) Read() (map[string]interface{}, error) {
 	return nil, errors.New("fs.FS provider does not support this method")
-}
-
-// Watch is not supported by the fs.FS provider.
-func (f *FS) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("fs.FS provider does not support this method")
 }

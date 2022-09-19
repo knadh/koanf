@@ -46,8 +46,3 @@ func (s *Structs) Read() (map[string]interface{}, error) {
 
 	return out, nil
 }
-
-// Watch is not supported by the structs provider.
-func (s *Structs) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("structs provider does not support this method")
-}

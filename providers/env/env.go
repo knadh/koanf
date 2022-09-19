@@ -96,8 +96,3 @@ func (e *Env) Read() (map[string]interface{}, error) {
 
 	return maps.Unflatten(mp, e.delim), nil
 }
-
-// Watch is not supported.
-func (e *Env) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("env provider does not support this method")
-}
