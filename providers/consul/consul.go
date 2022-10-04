@@ -144,7 +144,7 @@ func (c *Consul) Watch(cb func(event interface{}, err error)) error {
 		return err
 	}
 
-	plan.Handler = func(idx uint64, val interface{}) {
+	plan.Handler = func(_ uint64, val interface{}) {
 		cb(val, nil)
 	}
 

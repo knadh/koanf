@@ -49,10 +49,12 @@ func Provider(cfg Config) *Etcd {
 	return &Etcd{client: c, cfg: cfg}
 }
 
+// ReadBytes is not supported by etcd provider.
 func (e *Etcd) ReadBytes() ([]byte, error) {
 	return nil, errors.New("etcd provider does not support this method")
 }
 
+// Read returns a nested config map.
 func (e *Etcd) Read() (map[string]interface{}, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.DialTimeout)
 	defer cancel()
