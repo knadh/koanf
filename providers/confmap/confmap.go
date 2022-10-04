@@ -26,7 +26,7 @@ func Provider(mp map[string]interface{}, delim string) *Confmap {
 	return &Confmap{mp: cp}
 }
 
-// ReadBytes is not supported by the env provider.
+// ReadBytes is not supported by the confmap provider.
 func (e *Confmap) ReadBytes() ([]byte, error) {
 	return nil, errors.New("confmap provider does not support this method")
 }

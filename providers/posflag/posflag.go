@@ -6,9 +6,10 @@ package posflag
 import (
 	"errors"
 
+	"github.com/spf13/pflag"
+
 	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
-	"github.com/spf13/pflag"
 )
 
 // Posflag implements a pflag command line provider.
@@ -126,7 +127,7 @@ func (p *Posflag) Read() (map[string]interface{}, error) {
 	return maps.Unflatten(mp, p.delim), nil
 }
 
-// ReadBytes is not supported by the env koanf.
+// ReadBytes is not supported by the pflag provider.
 func (p *Posflag) ReadBytes() ([]byte, error) {
 	return nil, errors.New("pflag provider does not support this method")
 }
