@@ -177,7 +177,7 @@ func (sm *SMConfig) Read() (map[string]interface{}, error)  {
 // ReadBytes returns the raw bytes for parsing.
 func (sm *SMConfig) ReadBytes() ([]byte, error) {
 	// shoud implement for SecretBinary. maybe in future 
-	return nil, errors.New("appconfig provider does not support this method")
+	return nil, errors.New("secretsmanager provider does not support this method")
 }
 
 // Watch polls AWS AppConfig for configuration updates.
