@@ -663,6 +663,7 @@ func main() {
 | providers/appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
 | providers/etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
 | providers/consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
+| providers/secretsmanager     | `vault.SecretsManager(secretsmanager.Config{}, f func(s string) string)`                              | AWS SecretsManager provider, an optional function that takes and returns a string to transform env variables                                                 						  |
 
 ### Bundled parsers
 
