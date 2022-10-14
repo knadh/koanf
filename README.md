@@ -11,7 +11,7 @@ koanf comes with built in support for reading configuration from files, command 
 ### Installation
 
 ```shell
-go get -u github.com/knadh/koanf
+go install github.com/knadh/koanf@latest
 ```
 
 ### Contents
