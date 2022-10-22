@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -227,5 +228,61 @@ func main() {
 	}
 
 	fmt.Printf("Third (combined) request test passed.\n")
+
+	kCheck.Delete("")
+
+	// Watch test
+
+	sKey = "child"
+	providerCfg = etcd.Config{
+		Endpoints:   []string{"localhost:2379"},
+		DialTimeout: time.Second * 5,
+		Prefix:      true,
+		Key:         "child",
+	}
+
+	provider = etcd.Provider(providerCfg)
+
+	if err := kCheck.Load(provider, nil); err != nil {
+		log.Fatalf("error loading config: %v", err)
+	}
+
+	changedC := make(chan string, 1)
+
+	provider.Watch(func(event interface{}, err error) {
+		if err != nil {
+			fmt.Printf("Unexpected error: %v", err)
+			return
+		}
+
+		kCheck.Load(provider, nil)
+		changedC <- kCheck.String(string(event.(*clientv3.Event).Kv.Key))
+	})
+
+	var newVal string = "Brian"
+	cmd := exec.Command("etcdctl", "put", "child1", newVal)
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if strings.Compare(newVal, <-changedC) != 0 {
+		fmt.Printf("Watch failed: new value comparison FAILED\n")
+		return
+	}
+
+	newVal = "Kate"
+	cmd = exec.Command("etcdctl", "put", "child2", newVal)
+	err = cmd.Run()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if strings.Compare(newVal, <-changedC) != 0 {
+		fmt.Printf("Watch failed: new value comparison FAILED\n")
+		return
+	}
+	fmt.Printf("Watch test passed.\n")
+
 	fmt.Printf("ALL TESTS PASSED\n")
 }

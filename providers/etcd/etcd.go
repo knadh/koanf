@@ -92,3 +92,23 @@ func (e *Etcd) Read() (map[string]interface{}, error) {
 
 	return mp, nil
 }
+
+func (e *Etcd) Watch(cb func(event interface{}, err error)) error {
+	var w clientv3.WatchChan
+
+	go func() {
+		if e.cfg.Prefix {
+			w = e.client.Watch(context.Background(), e.cfg.Key, clientv3.WithPrefix())
+		} else {
+			w = e.client.Watch(context.Background(), e.cfg.Key)
+		}
+
+		for wresp := range w {
+			for _, ev := range wresp.Events {
+				cb(ev, nil)
+			}
+		}
+	}()
+
+	return nil
+}
