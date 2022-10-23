@@ -147,6 +147,9 @@ func (ps *PSConfig) Read() (map[string]interface{}, error)  {
 	
 	// if value is set as map it will unfaltten 
 	if ps.config.Type == "map" {
+		// reset map 
+		mp = make(map[string]interface{})
+		
 		// parse secret value as map if type is set as map
 		valueMap, err := json.Parser().Unmarshal([]byte(*conf.Parameter.Value))
 		if err != nil {
@@ -161,7 +164,7 @@ func (ps *PSConfig) Read() (map[string]interface{}, error)  {
 			}
 			// If the callback blanked the key, it should be omitted
 			if updated_key == "" {
-				continue
+				return nil, errors.New("transformed key has become null")
 			}
 			mp[updated_key] = v
 		}
