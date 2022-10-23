@@ -1,44 +1,49 @@
+// Package json implements a koanf.Parser that parses INI bytes as conf maps.
 package ini
 
 import (
 	"fmt"
-	"gopkg.in/ini.v1"
-	"strings"
 	"time"
+
+	"gopkg.in/ini.v1"
 )
 
-type INI struct {}
+// INI implements an INI parser.
+type INI struct{}
 
+// Parser returns a new instance of the INI parser.
 func Parser() *INI {
 	return &INI{}
 }
 
+// Unmarshal parses the given INI bytes.
 func (p *INI) Unmarshal(b []byte) (map[string]interface{}, error) {
 	out := make(map[string]interface{}, 0)
 
 	iniFile, err := ini.Load(b)
 	if err != nil {
-		fmt.Println("ini.Load error")
 		return nil, err
 	}
 
 	for _, section := range iniFile.Sections() {
-		if strings.Compare(section.Name(), "DEFAULT") == 0 {
+		if section.Name() == "DEFAULT" {
 			for _, key := range section.Keys() {
-				out[key.Name()] = convertKey(key)
+				out[key.Name()] = getVal(key)
 			}
 		} else {
-			mpS := make(map[string]interface{}, 0)
+			mp := make(map[string]interface{})
 			for _, key := range section.Keys() {
-				mpS[key.Name()] = convertKey(key)
+				mp[key.Name()] = getVal(key)
 			}
-			out[section.Name()] = mpS
+
+			out[section.Name()] = mp
 		}
 	}
 
 	return out, nil
 }
 
+// Marshal marshals the given config map to INI bytes.
 func (p *INI) Marshal(o map[string]interface{}) ([]byte, error) {
 	var s string = ""
 
@@ -83,7 +88,7 @@ func (p *INI) Marshal(o map[string]interface{}) ([]byte, error) {
 	return []byte(s), nil
 }
 
-func convertKey(key *ini.Key) interface{} {
+func getVal(key *ini.Key) interface{} {
 	b, err := key.Bool()
 	if err == nil {
 		return b
