@@ -62,8 +62,3 @@ func (p *Pflag) Read() (map[string]interface{}, error) {
 func (p *Pflag) ReadBytes() ([]byte, error) {
 	return nil, errors.New("basicflag provider does not support this method")
 }
-
-// Watch is not supported.
-func (p *Pflag) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("basicflag provider does not support this method")
-}

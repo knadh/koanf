@@ -6,6 +6,7 @@ import (
 	"errors"
 
 	"github.com/fatih/structs"
+
 	"github.com/knadh/koanf/maps"
 )
 
@@ -16,7 +17,7 @@ type Structs struct {
 	delim string
 }
 
-// Provider returns a provider that takes a  takes a struct and a struct tag
+// Provider returns a provider that takes a takes a struct and a struct tag
 // and uses structs to parse and provide it to koanf.
 func Provider(s interface{}, tag string) *Structs {
 	return &Structs{s: s, tag: tag}
@@ -45,9 +46,4 @@ func (s *Structs) Read() (map[string]interface{}, error) {
 	}
 
 	return out, nil
-}
-
-// Watch is not supported by the structs provider.
-func (s *Structs) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("structs provider does not support this method")
 }

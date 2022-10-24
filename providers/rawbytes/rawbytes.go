@@ -20,17 +20,12 @@ func Provider(b []byte) *RawBytes {
 	return r
 }
 
-// ReadBytes is not supported by the env provider.
+// ReadBytes returns the raw bytes for parsing.
 func (r *RawBytes) ReadBytes() ([]byte, error) {
 	return r.b, nil
 }
 
-// Read returns the raw bytes for parsing.
+// Read is not supported by rawbytes provider.
 func (r *RawBytes) Read() (map[string]interface{}, error) {
-	return nil, errors.New("buf provider does not support this method")
-}
-
-// Watch is not supported.
-func (r *RawBytes) Watch(cb func(event interface{}, err error)) error {
-	return errors.New("rawbytes provider does not support this method")
+	return nil, errors.New("rawbytes provider does not support this method")
 }
