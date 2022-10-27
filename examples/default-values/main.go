@@ -29,7 +29,7 @@ func main() {
 	}
 
 	// Load YAML config and merge into the previously loaded config (because we can).
-	k.Load(file.Provider("mock/mock.yaml"), yaml.Parser())
+	k.Load(file.Provider("mock/mock.yml"), yaml.Parser())
 
 	fmt.Println("parent's name is = ", k.String("parent1.name"))
 	fmt.Println("parent's ID is = ", k.Int("parent1.id"))
