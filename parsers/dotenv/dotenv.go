@@ -13,8 +13,8 @@ import (
 type DotEnv struct {
 	delim  string
 	prefix string
-	cb     func(key string, value string) (string, interface{})
 
+	cb        func(key string, value string) (string, interface{})
 	reverseCB map[string]string
 }
 
