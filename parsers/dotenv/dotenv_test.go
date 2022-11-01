@@ -1,8 +1,9 @@
 package dotenv
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestDotEnv_Marshal(t *testing.T) {
@@ -65,7 +66,7 @@ func TestDotEnv_Marshal(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			out, err := de.Marshal(tc.cfg)
 			assert.Equal(t, tc.err, err)
-			assert.Equal(t, tc.expOut, out)
+			assert.Equal(t, string(tc.expOut), string(out))
 		})
 	}
 }
