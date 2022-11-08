@@ -21,7 +21,7 @@ import (
 
 // Config holds the AWS parameterstore Configuration.
 type Config struct {
-	// The AWS parameterstore Delim that might be used 
+	// The AWS parameterstore Delim that might be used
 	// delim string
 	Delim string
 
@@ -29,8 +29,8 @@ type Config struct {
 	// name of the parameter.
 	Name string
 
-	// The type of values secre value set, it can only be string or map. 
-	// if the value is type of app, each key is unfallten to create new 
+	// The type of values secre value set, it can only be string or map.
+	// if the value is type of app, each key is unfallten to create new
 	// single var like: parent: {"child": "value"} -> parent.child = value
 	Type string
 
@@ -60,70 +60,66 @@ type Config struct {
 }
 
 // PSConfig implements an AWS ParameterStore provider.
-type PSConfig struct {
-	client  *ssm.Client
-	config  Config
-	input   ssm.GetParameterInput
-	cb 		func(s string) string
+type ParameterStore struct {
+	client *ssm.Client
+	config Config
+	input  ssm.GetParameterInput
+	cb     func(s string) string
 }
 
 // Provider returns an AWS ParameterStore provider.
-func Provider(cfg Config, cb func(s string) string) *PSConfig {
-	// load the default config
+func Provider(cfg Config, cb func(s string) string) *ParameterStore {
 	c, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
 		return nil
 	}
 
-	// check inputs and set
+	// Set defaults.
 	if cfg.Delim == "" {
 		cfg.Delim = "_"
 	}
 	if cfg.AWSRegion != "" {
 		c.Region = cfg.AWSRegion
 	}
-
-	// Check if AWS Access Key ID and Secret Key are specified.
-	if cfg.AWSAccessKeyID != "" && cfg.AWSSecretAccessKey != "" {
+	if cfg.AWSAccessKeyID != "" || cfg.AWSSecretAccessKey != "" {
 		c.Credentials = credentials.NewStaticCredentialsProvider(cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, "")
 	}
 
 	// Check if AWS Role ARN is present.
 	if cfg.AWSRoleARN != "" {
-		stsSvc := sts.NewFromConfig(c)
-		credentials := stscreds.NewAssumeRoleProvider(stsSvc, cfg.AWSRoleARN)
+		var (
+			stsSvc      = sts.NewFromConfig(c)
+			credentials = stscreds.NewAssumeRoleProvider(stsSvc, cfg.AWSRoleARN)
+		)
 		c.Credentials = aws.NewCredentialsCache(credentials)
 	}
 	client := ssm.NewFromConfig(c)
 
-	return &PSConfig{client: client, config: cfg, cb: cb}
+	return &ParameterStore{client: client, config: cfg, cb: cb}
 }
 
 // ProviderWithClient returns an AWS ParameterStore provider
 // using an existing AWS parameterstore client.
-func ProviderWithClient(cfg Config, cb func(s string) string, client *ssm.Client) *PSConfig {
-	return &PSConfig{client: client, config: cfg, cb: cb}
+func ProviderWithClient(cfg Config, cb func(s string) string, client *ssm.Client) *ParameterStore {
+	return &ParameterStore{client: client, config: cfg, cb: cb}
 }
 
 // Read is not supported by the ParameterStore provider.
-func (ps *PSConfig) Read() (map[string]interface{}, error)  {
-
-	// check if parametername is provided
+func (ps *ParameterStore) Read() (map[string]interface{}, error) {
 	if ps.config.Name == "" {
 		return nil, errors.New("no parameter name provided")
 	}
 
-	// set ssm get parameter input
 	ps.input = ssm.GetParameterInput{
 		Name: aws.String(ps.config.Name),
 	}
 
-	// check if latest version exist, then update name value is "Name": "name:version"
+	// If the latest version exists, then update name is "Name": "name:version".
 	if ps.config.VersionId != "" {
 		ps.input.Name = aws.String(*ps.input.Name + ":" + ps.config.VersionId)
 	}
 
-	// get parameter value
+	// Fetch the params.
 	conf, err := ps.client.GetParameter(context.TODO(), &ps.input)
 	if err != nil {
 		return nil, err
@@ -131,45 +127,44 @@ func (ps *PSConfig) Read() (map[string]interface{}, error)  {
 
 	mp := make(map[string]interface{})
 
-	// check if value is set as string or string slice
 	if (conf.Parameter.Type == types.ParameterTypeString) || (conf.Parameter.Type == types.ParameterTypeStringList) {
 		key := *conf.Parameter.Name
-		// transform key id transformer provided
+
+		// Optionally transform the key.
 		if ps.cb != nil {
 			key = ps.cb(key)
 		}
 		if key == "" {
-			return nil, errors.New("transformed key has become null")
+			return nil, errors.New("transformed key is empty")
 		}
-		// set key value
+
 		mp[key] = *conf.Parameter.Value
 	}
-	
-	// if value is set as map it will unfaltten 
+
+	// Unflatten map.
 	if ps.config.Type == "map" {
-		// reset map 
 		mp = make(map[string]interface{})
-		
-		// parse secret value as map if type is set as map
+
+		// Parse secret as map.
 		valueMap, err := json.Parser().Unmarshal([]byte(*conf.Parameter.Value))
 		if err != nil {
 			return nil, errors.New("unable to unmarshal value as obj")
 		}
-		// modify each value
+
 		for k, v := range valueMap {
-			updated_key := *conf.Parameter.Name + ps.config.Delim + k
-			// transform key id transformer provided
+			uKey := *conf.Parameter.Name + ps.config.Delim + k
+
+			// Optionally transform the key.
 			if ps.cb != nil {
-				updated_key = ps.cb(updated_key)
+				uKey = ps.cb(uKey)
 			}
-			// If the callback blanked the key, it should be omitted
-			if updated_key == "" {
-				return nil, errors.New("transformed key has become null")
+			if uKey == "" {
+				return nil, errors.New("transformed key is empty")
 			}
-			mp[updated_key] = v
+
+			mp[uKey] = v
 		}
 	}
-
 
 	// Set the response configuration version as the current configuration version.
 	// Useful for Watch().
@@ -178,16 +173,14 @@ func (ps *PSConfig) Read() (map[string]interface{}, error)  {
 	return maps.Unflatten(mp, ps.config.Delim), nil
 }
 
-
 // ReadBytes returns the raw bytes for parsing.
-func (ps *PSConfig) ReadBytes() ([]byte, error) {
+func (ps *ParameterStore) ReadBytes() ([]byte, error) {
 	return nil, errors.New("parameterstore provider does not support this method")
 }
 
 // Watch polls AWS AppConfig for configuration updates.
-func (ps *PSConfig) Watch(cb func(event interface{}, err error)) error {
-	if ps.config.WatchInterval == 0 {
-		// Set default watch interval to 600 seconds. to reduce cost
+func (ps *ParameterStore) Watch(cb func(event interface{}, err error)) error {
+	if ps.config.WatchInterval.Seconds() < 1 {
 		ps.config.WatchInterval = 600 * time.Second
 	}
 
