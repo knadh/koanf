@@ -664,6 +664,12 @@ func main() {
 | providers/etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
 | providers/consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
 
+### Third-party providers
+| Package             | Provider                                                      | Description                                                                                                                                                                           |
+| ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| github.com/defensestation/koanf/providers/secretsmanager     | `vault.SecretsMananger(secretsmanager.Config{}, f func(s string) string)`                              | AWS Secrets Manager provider, takes map or string as a value from store                                                						  |
+| github.com/defensestation/koanf/providers/parameterstore     | `vault.ParameterStore(parameterstore.Config{}, f func(s string) string)`                              | AWS ParameterStore provider, an optional function that takes and returns a string to transform env variables                                                 						  |
+
 ### Bundled parsers
 
 | Package      | Parser                           | Description                                                                                                                                               |
