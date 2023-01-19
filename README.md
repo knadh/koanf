@@ -697,8 +697,9 @@ func main() {
 | `Cut(path string) *Koanf`                                              | Cuts the loaded nested conf map at the given path and returns a new Koanf instance with the children |
 | `Copy() *Koanf`                                                        | Returns a copy of the Koanf instance                         |
 | `Merge(*Koanf)`                                                        | Merges the config map of a Koanf instance into the current instance |
-| `Delete(path string)`                                                  | Delete the value at the given path, and does nothing if path doesn't exist. |
 | `MergeAt(in *Koanf, path string)`                                      | Merges the config map of a Koanf instance into the current instance, at the given key path. |
+| `Set(path string, val interface{})`                                    | Shorthand wrapper around `Merge()` for directly overriding the value of a given key path. |
+| `Delete(path string)`                                                  | Delete the value at the given path, and does nothing if path doesn't exist. |
 | `Unmarshal(path string, o interface{}) error`                          | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag |
 | `UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                 |
 
