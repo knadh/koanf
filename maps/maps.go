@@ -5,9 +5,10 @@ package maps
 
 import (
 	"fmt"
-	"github.com/mitchellh/copystructure"
 	"reflect"
 	"strings"
+
+	"github.com/mitchellh/copystructure"
 )
 
 // Flatten takes a map[string]interface{} and traverses it and flattens
@@ -170,7 +171,9 @@ func mergeStrict(a, b map[string]interface{}, fullKey string) error {
 		// The source key and target keys are both maps. Merge them.
 		switch v := bVal.(type) {
 		case map[string]interface{}:
-			return mergeStrict(val.(map[string]interface{}), v, newFullKey)
+			if err := mergeStrict(val.(map[string]interface{}), v, newFullKey); err != nil {
+				return err
+			}
 		default:
 			b[key] = val
 		}
