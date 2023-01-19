@@ -870,6 +870,31 @@ func TestMergeAt(t *testing.T) {
 	assert.Equal(expected.Get(""), reversed.Get(""), "conf map mismatch")
 }
 
+func TestSet(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+	assert.Nil(k.Load(file.Provider(mockYAML), yaml.Parser()),
+		"error loading file")
+
+	assert.Nil(k.Set("parent1.name", "new"))
+	assert.Equal(k.String("parent1.name"), "new")
+
+	assert.Nil(k.Set("parent1.child1.name", 123))
+	assert.Equal(k.Int("parent1.child1.name"), 123)
+
+	assert.Nil(k.Set("parent1.child1.grandchild1.ids", []int{5}))
+	assert.Equal(k.Ints("parent1.child1.grandchild1.ids"), []int{5})
+
+	assert.Nil(k.Set("parent1.child1.grandchild1", 123))
+	assert.Equal(k.Int("parent1.child1.grandchild1"), 123)
+	assert.Equal(k.Int("parent1.child1.grandchild1.ids"), 0)
+
+	assert.Nil(k.Set("parent1.child1.grandchild1", map[string]interface{}{"name": "new"}))
+	assert.Equal(k.Get("parent1.child1.grandchild1"), map[string]interface{}{"name": "new"})
+}
+
 func TestUnmarshal(t *testing.T) {
 	assert := assert.New(t)
 
