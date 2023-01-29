@@ -23,7 +23,7 @@ func Provider(s interface{}, tag string) *Structs {
 	return &Structs{s: s, tag: tag}
 }
 
-// ProviderWithDelim returns a provider that takes a takes a struct and a struct tag
+// ProviderWithDelim returns a provider that takes a struct and a struct tag
 // along with a delim and uses structs to parse and provide it to koanf.
 func ProviderWithDelim(s interface{}, tag, delim string) *Structs {
 	return &Structs{s: s, tag: tag, delim: delim}
