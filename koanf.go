@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf-test/maps"
 	"github.com/mitchellh/copystructure"
 	"github.com/mitchellh/mapstructure"
 )

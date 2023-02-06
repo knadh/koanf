@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/joho/godotenv"
-	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf-test/maps"
 )
 
 // DotEnv implements a DOTENV parser.

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"flag"
 
-	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf-test/maps"
 )
 
 // Pflag implements a pflag command line provider.

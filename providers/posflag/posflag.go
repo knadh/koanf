@@ -6,10 +6,9 @@ package posflag
 import (
 	"errors"
 
+	"github.com/knadh/koanf-test"
+	"github.com/knadh/koanf-test/maps"
 	"github.com/spf13/pflag"
-
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/maps"
 )
 
 // Posflag implements a pflag command line provider.
@@ -63,16 +62,16 @@ func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(
 //
 // Example:
 //
-//  p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, interface{}) {
-//     // Transform the key in whatever manner.
-//     key := f.Name
+//	p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, interface{}) {
+//	   // Transform the key in whatever manner.
+//	   key := f.Name
 //
-//     // Use FlagVal() and then transform the value, or don't use it at all
-//     // and add custom logic to parse the value.
-//     val := posflag.FlagVal(flagset, f)
+//	   // Use FlagVal() and then transform the value, or don't use it at all
+//	   // and add custom logic to parse the value.
+//	   val := posflag.FlagVal(flagset, f)
 //
-//     return key, val
-//  })
+//	   return key, val
+//	})
 func ProviderWithFlag(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(f *pflag.Flag) (string, interface{})) *Posflag {
 	return &Posflag{
 		flagset: f,

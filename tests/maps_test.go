@@ -1,9 +1,9 @@
-package maps
+package koanf_test
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/knadh/koanf-test/maps"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -100,10 +100,8 @@ var testMap3 = map[string]interface{}{
 	"empty": map[string]interface{}{},
 }
 
-const delim = "."
-
 func TestFlatten(t *testing.T) {
-	f, k := Flatten(testMap, nil, delim)
+	f, k := maps.Flatten(testMap, nil, delim)
 	assert.Equal(t, map[string]interface{}{
 		"parent.child.key":          123,
 		"parent.child.key.with.dot": 456,
@@ -120,17 +118,17 @@ func TestFlatten(t *testing.T) {
 
 func BenchmarkFlatten(b *testing.B) {
 	for n := 0; n < b.N; n++ {
-		Flatten(testMap3, nil, delim)
+		maps.Flatten(testMap3, nil, delim)
 	}
 }
 
 func TestUnflatten(t *testing.T) {
-	m, _ := Flatten(testMap, nil, delim)
-	um := Unflatten(m, delim)
+	m, _ := maps.Flatten(testMap, nil, delim)
+	um := maps.Unflatten(m, delim)
 	assert.NotEqual(t, um, testMap)
 
-	m, _ = Flatten(testMap2, nil, delim)
-	um = Unflatten(m, delim)
+	m, _ = maps.Flatten(testMap2, nil, delim)
+	um = maps.Unflatten(m, delim)
 	assert.Equal(t, um, testMap2)
 }
 
@@ -156,11 +154,11 @@ func TestIntfaceKeysToStrings(t *testing.T) {
 		"top":   789,
 		"empty": map[interface{}]interface{}{},
 	}
-	IntfaceKeysToStrings(m)
+	maps.IntfaceKeysToStrings(m)
 	assert.Equal(t, testMap2, m)
 }
 
-func TestMerge(t *testing.T) {
+func TestMapMerge(t *testing.T) {
 	m1 := map[string]interface{}{
 		"parent": map[string]interface{}{
 			"child": map[string]interface{}{
@@ -188,7 +186,7 @@ func TestMerge(t *testing.T) {
 		"empty":  []int{1, 2, 3},
 		"key":    "string",
 	}
-	Merge(m2, m1)
+	maps.Merge(m2, m1)
 
 	out := map[string]interface{}{
 		"parent": map[string]interface{}{
@@ -211,7 +209,7 @@ func TestMerge(t *testing.T) {
 	assert.Equal(t, out, m1)
 }
 
-func TestMerge2(t *testing.T) {
+func TestMapMerge2(t *testing.T) {
 	src := map[string]interface{}{
 		"globals": map[string]interface{}{
 			"features": map[string]interface{}{
@@ -233,8 +231,7 @@ func TestMerge2(t *testing.T) {
 		},
 	}
 
-	Merge(src, dest)
-	fmt.Println(dest)
+	maps.Merge(src, dest)
 }
 
 func TestMergeStrict(t *testing.T) {
@@ -265,11 +262,11 @@ func TestMergeStrict(t *testing.T) {
 		"empty":  []int{1, 2, 3},
 		"key":    "string",
 	}
-	err := MergeStrict(m2, m1)
+	err := maps.MergeStrict(m2, m1)
 	assert.Error(t, err)
 }
 
-func TestDelete(t *testing.T) {
+func TestMapDelete(t *testing.T) {
 	testMap := map[string]interface{}{
 		"parent": map[string]interface{}{
 			"child": map[string]interface{}{
@@ -302,14 +299,14 @@ func TestDelete(t *testing.T) {
 		"empty": map[string]interface{}{},
 	}
 
-	Delete(testMap, []string{"parent", "child"})
+	maps.Delete(testMap, []string{"parent", "child"})
 	assert.Equal(t, map[string]interface{}{
 		"top":   789,
 		"empty": map[string]interface{}{},
 	}, testMap)
 
-	Delete(testMap2, []string{"list"})
-	Delete(testMap2, []string{"empty"})
+	maps.Delete(testMap2, []string{"list"})
+	maps.Delete(testMap2, []string{"empty"})
 	assert.Equal(t, map[string]interface{}{
 		"parent": map[string]interface{}{
 			"child": map[string]interface{}{
@@ -321,15 +318,15 @@ func TestDelete(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-	assert.Equal(t, 123, Search(testMap, []string{"parent", "child", "key"}))
+	assert.Equal(t, 123, maps.Search(testMap, []string{"parent", "child", "key"}))
 	assert.Equal(t, map[string]interface{}{
 		"key":          123,
 		"key.with.dot": 456,
-	}, Search(testMap, []string{"parent", "child"}))
-	assert.Equal(t, 456, Search(testMap, []string{"parent", "child", "key.with.dot"}))
-	assert.Equal(t, 789, Search(testMap, []string{"top"}))
-	assert.Equal(t, map[string]interface{}{}, Search(testMap, []string{"empty"}))
-	assert.Nil(t, Search(testMap, []string{"xxx", "xxx"}))
+	}, maps.Search(testMap, []string{"parent", "child"}))
+	assert.Equal(t, 456, maps.Search(testMap, []string{"parent", "child", "key.with.dot"}))
+	assert.Equal(t, 789, maps.Search(testMap, []string{"top"}))
+	assert.Equal(t, map[string]interface{}{}, maps.Search(testMap, []string{"empty"}))
+	assert.Nil(t, maps.Search(testMap, []string{"xxx", "xxx"}))
 }
 
 func TestCopy(t *testing.T) {
@@ -343,13 +340,13 @@ func TestCopy(t *testing.T) {
 		"top":   float64(789),
 		"empty": map[string]interface{}{},
 	}
-	assert.Equal(t, mp, Copy(mp))
+	assert.Equal(t, mp, maps.Copy(mp))
 }
 
 func TestLookupMaps(t *testing.T) {
-	assert.Equal(t, map[string]bool{"a": true, "b": true}, StringSliceToLookupMap([]string{"a", "b"}))
-	assert.Equal(t, map[string]bool{}, StringSliceToLookupMap(nil))
-	assert.Equal(t, map[int64]bool{1: true, 2: true}, Int64SliceToLookupMap([]int64{1, 2}))
-	assert.Equal(t, map[int64]bool{}, Int64SliceToLookupMap(nil))
+	assert.Equal(t, map[string]bool{"a": true, "b": true}, maps.StringSliceToLookupMap([]string{"a", "b"}))
+	assert.Equal(t, map[string]bool{}, maps.StringSliceToLookupMap(nil))
+	assert.Equal(t, map[int64]bool{1: true, 2: true}, maps.Int64SliceToLookupMap([]int64{1, 2}))
+	assert.Equal(t, map[int64]bool{}, maps.Int64SliceToLookupMap(nil))
 
 }

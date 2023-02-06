@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/posflag"
+	"github.com/knadh/koanf-test/providers/confmap"
+	"github.com/knadh/koanf-test/providers/posflag"
+	"github.com/knadh/koanf-test"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/require"
 )

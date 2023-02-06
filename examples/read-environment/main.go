@@ -5,10 +5,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf-test/parsers/json"
+	"github.com/knadh/koanf-test/providers/env"
+	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf-test"
 )
 
 var k = koanf.New(".")

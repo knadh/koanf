@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/knadh/koanf"
-	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/providers/s3"
+	"github.com/knadh/koanf-test/parsers/json"
+	"github.com/knadh/koanf-test/providers/s3"
+	"github.com/knadh/koanf-test"
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.

@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/vault/api"
 
-	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf-test/maps"
 )
 
 type Config struct {

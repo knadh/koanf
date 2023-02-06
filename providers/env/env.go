@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf-test/maps"
 )
 
 // Env implements an environment variables provider.

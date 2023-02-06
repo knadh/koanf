@@ -7,7 +7,7 @@ import (
 
 	"github.com/fatih/structs"
 
-	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf-test/maps"
 )
 
 // Structs implements a structs provider.
