@@ -1,6 +1,6 @@
 module github.com/knadh/koanf-test/parsers/hjson
 
-go 1.19
+go 1.18
 
 require (
 	github.com/hjson/hjson-go/v4 v4.3.0

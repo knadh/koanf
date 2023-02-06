@@ -1,6 +1,6 @@
 module koanf_test
 
-go 1.19
+go 1.18
 
 replace (
 	github.com/knadh/koanf-test => ../
