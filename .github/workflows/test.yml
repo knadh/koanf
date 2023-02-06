@@ -7,21 +7,22 @@ jobs:
   test:
     strategy:
       matrix:
-        go: [ '1.14', '1.15', '1.16' ]
+        go: [ '1.18', '1.19', '1.20' ]
 
     runs-on: ubuntu-20.04
 
     name: Go ${{ matrix.go }} Tests
     steps:
-      - uses: actions/checkout@v2
-      
+      - uses: actions/checkout@v3
+ 
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
 
-      - name: Run Test
-        run: go test -v ./...
+      - name: Run tests
+      - run: go test -v ./...
+      - run: cd tests && go test -v ./...
 
       - name: Run Coverage
         run: go test -v -cover ./...
