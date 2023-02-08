@@ -21,6 +21,9 @@ jobs:
           go-version: ${{ matrix.go }}
 
       - name: Run tests
+        run: go test -v ./...
+
+      - name: Run tests in test directory
         run: cd tests && go test -v ./...
 
       - name: Run Coverage
