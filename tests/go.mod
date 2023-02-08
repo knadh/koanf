@@ -7,9 +7,15 @@ replace (
 	github.com/knadh/koanf-test/parsers/dotenv => ../parsers/dotenv
 	github.com/knadh/koanf-test/parsers/hcl => ../parsers/hcl
 	github.com/knadh/koanf-test/parsers/hjson => ../parsers/hjson
+	github.com/knadh/koanf-test/parsers/json => ../parsers/json
 	github.com/knadh/koanf-test/parsers/toml => ../parsers/toml
 	github.com/knadh/koanf-test/parsers/yaml => ../parsers/yaml
+	github.com/knadh/koanf-test/providers/basicflag => ../providers/basicflag
+	github.com/knadh/koanf-test/providers/confmap => ../providers/confmap
+	github.com/knadh/koanf-test/providers/env => ../providers/env
+	github.com/knadh/koanf-test/providers/file => ../providers/file
 	github.com/knadh/koanf-test/providers/posflag => ../providers/posflag
+	github.com/knadh/koanf-test/providers/rawbytes => ../providers/rawbytes
 	github.com/knadh/koanf-test/v2 => ../
 )
 

@@ -1,6 +1,6 @@
 module github.com/knadh/koanf-test/maps
 
-go 1.19
+go 1.18
 
 require github.com/mitchellh/copystructure v1.2.0
 

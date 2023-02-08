@@ -4,11 +4,13 @@ go 1.18
 
 replace (
 	github.com/knadh/koanf-test/maps => ../../maps
+	github.com/knadh/koanf-test/providers/confmap => ../confmap
 	github.com/knadh/koanf-test/v2 => ../../
 )
 
 require (
 	github.com/knadh/koanf-test/maps v0.4.0
+	github.com/knadh/koanf-test/providers/confmap v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf-test/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
