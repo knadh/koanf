@@ -3,7 +3,6 @@ module koanf_test
 go 1.18
 
 replace (
-	github.com/knadh/koanf-test => ../
 	github.com/knadh/koanf-test/maps => ../maps
 	github.com/knadh/koanf-test/parsers/dotenv => ../parsers/dotenv
 	github.com/knadh/koanf-test/parsers/hcl => ../parsers/hcl
@@ -11,6 +10,7 @@ replace (
 	github.com/knadh/koanf-test/parsers/toml => ../parsers/toml
 	github.com/knadh/koanf-test/parsers/yaml => ../parsers/yaml
 	github.com/knadh/koanf-test/providers/posflag => ../providers/posflag
+	github.com/knadh/koanf-test/v2 => ../
 )
 
 require (
@@ -22,6 +22,7 @@ require (
 	github.com/knadh/koanf-test/parsers/toml v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf-test/parsers/yaml v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf-test/providers/posflag v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf-test/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 )

@@ -28,7 +28,7 @@ import (
 	"github.com/knadh/koanf-test/providers/file"
 	"github.com/knadh/koanf-test/providers/posflag"
 	"github.com/knadh/koanf-test/providers/rawbytes"
-	"github.com/knadh/koanf-test"
+	"github.com/knadh/koanf-test/v2"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
