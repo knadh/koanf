@@ -1,7 +1,4 @@
-//go:build go1.16
-// +build go1.16
-
-package fs
+package koanf_test
 
 import (
 	"fmt"
@@ -10,18 +7,12 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/knadh/koanf-test/parsers/json"
 	"github.com/knadh/koanf-test"
+	"github.com/knadh/koanf-test/parsers/json"
+	"github.com/knadh/koanf-test/providers/fs"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-type Case struct {
-	koanf    *koanf.Koanf
-	file     string
-	parser   koanf.Parser
-	typeName string
-}
 
 func TestFSProvider(t *testing.T) {
 	var (
@@ -41,7 +32,7 @@ func TestFSProvider(t *testing.T) {
 		require.NoError(t, err, "failed asserting file existence in fs.FS")
 
 		// koanf setup
-		p := Provider(testFS, c.file)
+		p := fs.Provider(testFS, c.file)
 		err = c.koanf.Load(p, c.parser)
 		require.NoError(t, err, fmt.Sprintf("error loading: %v", c.file))
 
