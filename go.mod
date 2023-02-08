@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test
+module github.com/knadh/koanf-test/v2
 
 go 1.18
 
