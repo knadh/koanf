@@ -24,7 +24,7 @@ func TestFSProvider(t *testing.T) {
 	}
 
 	// load file system
-	testFS := os.DirFS("../../mock")
+	testFS := os.DirFS("../mock")
 
 	for _, c := range cases {
 		// Test fs.FS before setting up kaonf
