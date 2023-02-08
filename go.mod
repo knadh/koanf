@@ -6,7 +6,7 @@ replace github.com/knadh/koanf-test/maps => ./maps
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9
-	github.com/knadh/koanf-test/maps v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf-test/maps v0.4.0
 	github.com/mitchellh/copystructure v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/stretchr/testify v1.7.0

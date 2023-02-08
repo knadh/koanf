@@ -15,6 +15,7 @@ replace (
 
 require (
 	github.com/knadh/koanf-test v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf-test/maps v0.4.0
 	github.com/knadh/koanf-test/parsers/dotenv v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf-test/parsers/hcl v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf-test/parsers/hjson v0.0.0-00010101000000-000000000000
@@ -31,7 +32,6 @@ require (
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hjson/hjson-go/v4 v4.3.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	github.com/knadh/koanf-test/maps v0.0.0-00010101000000-000000000000 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
