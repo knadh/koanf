@@ -1,17 +1,17 @@
-module github.com/knadh/koanf-test/providers/posflag
+module github.com/knadh/koanf/providers/posflag
 
 go 1.18
 
 replace (
-	github.com/knadh/koanf-test/maps => ../../maps
-	github.com/knadh/koanf-test/providers/confmap => ../confmap
-	github.com/knadh/koanf-test/v2 => ../../
+	github.com/knadh/koanf/maps => ../../maps
+	github.com/knadh/koanf/providers/confmap => ../confmap
+	github.com/knadh/koanf/v2 => ../../
 )
 
 require (
-	github.com/knadh/koanf-test/maps v0.4.0
-	github.com/knadh/koanf-test/providers/confmap v0.6.0
-	github.com/knadh/koanf-test/v2 v2.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/maps v0.4.0
+	github.com/knadh/koanf/providers/confmap v0.6.0
+	github.com/knadh/koanf/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 )

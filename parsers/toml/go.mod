@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/parsers/toml
+module github.com/knadh/koanf/parsers/toml
 
 go 1.18
 

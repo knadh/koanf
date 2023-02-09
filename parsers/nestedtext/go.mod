@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/parsers/nestedtext
+module github.com/knadh/koanf/parsers/nestedtext
 
 go 1.18
 

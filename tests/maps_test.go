@@ -3,7 +3,7 @@ package koanf_test
 import (
 	"testing"
 
-	"github.com/knadh/koanf-test/maps"
+	"github.com/knadh/koanf/maps"
 	"github.com/stretchr/testify/assert"
 )
 

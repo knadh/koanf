@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/parsers/json
+module github.com/knadh/koanf/parsers/json
 
 go 1.18
 

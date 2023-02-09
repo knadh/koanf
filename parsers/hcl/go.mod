@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/parsers/hcl
+module github.com/knadh/koanf/parsers/hcl
 
 go 1.18
 

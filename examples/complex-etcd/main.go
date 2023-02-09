@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/providers/etcd"
-	"github.com/knadh/koanf-test/providers/file"
-	"github.com/knadh/koanf-test"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/etcd"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )

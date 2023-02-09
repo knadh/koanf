@@ -7,9 +7,9 @@ import (
 	"testing/fstest"
 	"time"
 
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/providers/fs"
-	"github.com/knadh/koanf-test/v2"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/fs"
+	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

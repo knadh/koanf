@@ -1,15 +1,15 @@
-module github.com/knadh/koanf-test/providers/vault
+module github.com/knadh/koanf/providers/vault
 
 go 1.18
 
 replace (
-	github.com/knadh/koanf-test => ../../
-	github.com/knadh/koanf-test/maps => ../../maps
+	github.com/knadh/koanf => ../../
+	github.com/knadh/koanf/maps => ../../maps
 )
 
 require (
 	github.com/hashicorp/vault/api v1.8.3
-	github.com/knadh/koanf-test/maps v0.4.0
+	github.com/knadh/koanf/maps v0.4.0
 )
 
 require (

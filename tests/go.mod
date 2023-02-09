@@ -3,32 +3,32 @@ module koanf_test
 go 1.18
 
 replace (
-	github.com/knadh/koanf-test/maps => ../maps
-	github.com/knadh/koanf-test/parsers/dotenv => ../parsers/dotenv
-	github.com/knadh/koanf-test/parsers/hcl => ../parsers/hcl
-	github.com/knadh/koanf-test/parsers/hjson => ../parsers/hjson
-	github.com/knadh/koanf-test/parsers/json => ../parsers/json
-	github.com/knadh/koanf-test/parsers/toml => ../parsers/toml
-	github.com/knadh/koanf-test/parsers/yaml => ../parsers/yaml
-	github.com/knadh/koanf-test/providers/basicflag => ../providers/basicflag
-	github.com/knadh/koanf-test/providers/confmap => ../providers/confmap
-	github.com/knadh/koanf-test/providers/env => ../providers/env
-	github.com/knadh/koanf-test/providers/file => ../providers/file
-	github.com/knadh/koanf-test/providers/posflag => ../providers/posflag
-	github.com/knadh/koanf-test/providers/rawbytes => ../providers/rawbytes
-	github.com/knadh/koanf-test/v2 => ../
+	github.com/knadh/koanf/maps => ../maps
+	github.com/knadh/koanf/parsers/dotenv => ../parsers/dotenv
+	github.com/knadh/koanf/parsers/hcl => ../parsers/hcl
+	github.com/knadh/koanf/parsers/hjson => ../parsers/hjson
+	github.com/knadh/koanf/parsers/json => ../parsers/json
+	github.com/knadh/koanf/parsers/toml => ../parsers/toml
+	github.com/knadh/koanf/parsers/yaml => ../parsers/yaml
+	github.com/knadh/koanf/providers/basicflag => ../providers/basicflag
+	github.com/knadh/koanf/providers/confmap => ../providers/confmap
+	github.com/knadh/koanf/providers/env => ../providers/env
+	github.com/knadh/koanf/providers/file => ../providers/file
+	github.com/knadh/koanf/providers/posflag => ../providers/posflag
+	github.com/knadh/koanf/providers/rawbytes => ../providers/rawbytes
+	github.com/knadh/koanf/v2 => ../
 )
 
 require (
-	github.com/knadh/koanf-test v1.8.0
-	github.com/knadh/koanf-test/maps v0.4.0
-	github.com/knadh/koanf-test/parsers/dotenv v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf-test/parsers/hcl v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf-test/parsers/hjson v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf-test/parsers/toml v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf-test/parsers/yaml v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf-test/providers/posflag v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf-test/v2 v2.0.0-00010101000000-000000000000
+	github.com/knadh/koanf v1.8.0
+	github.com/knadh/koanf/maps v0.4.0
+	github.com/knadh/koanf/parsers/dotenv v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/parsers/hcl v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/parsers/hjson v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/parsers/toml v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/parsers/yaml v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/providers/posflag v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
 )

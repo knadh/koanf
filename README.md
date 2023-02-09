@@ -6,12 +6,12 @@
 
 koanf comes with built in support for reading configuration from files, command line flags, and environment variables, and can parse JSON, YAML, TOML, and Hashicorp HCL. Any external dependencies are detatched from the core into sub-packages, so only the ones that are explicitly referenced get compiled into an application.
 
-[![Run Tests](https://github.com/knadh/koanf-test/actions/workflows/test.yml/badge.svg)](https://github.com/knadh/koanf-test/actions/workflows/test.yml) [![GoDoc](https://godoc.org/github.com/knadh/koanf-test?status.svg)](https://godoc.org/github.com/knadh/koanf-test) 
+[![Run Tests](https://github.com/knadh/koanf/actions/workflows/test.yml/badge.svg)](https://github.com/knadh/koanf/actions/workflows/test.yml) [![GoDoc](https://godoc.org/github.com/knadh/koanf?status.svg)](https://godoc.org/github.com/knadh/koanf) 
 
 ### Installation
 
 ```shell
-go get -u github.com/knadh/koanf-test
+go get -u github.com/knadh/koanf
 ```
 
 ### Contents
@@ -48,10 +48,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/parsers/yaml"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
@@ -88,10 +88,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/parsers/yaml"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
@@ -146,10 +146,10 @@ import (
 	"log"
 	"os"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/toml"
-	"github.com/knadh/koanf-test/providers/file"
-	"github.com/knadh/koanf-test/providers/posflag"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/providers/posflag"
 	flag "github.com/spf13/pflag"
 )
 
@@ -201,10 +201,10 @@ import (
 	"log"
 	"strings"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/providers/env"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
@@ -281,9 +281,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/providers/rawbytes"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/rawbytes"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
@@ -306,9 +306,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
@@ -363,9 +363,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/file"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
@@ -429,11 +429,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/providers/confmap"
-	"github.com/knadh/koanf-test/providers/file"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/parsers/yaml"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/providers/confmap"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
@@ -471,8 +471,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/providers/structs"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/providers/structs"
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
@@ -549,11 +549,11 @@ import (
 	"errors"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/maps"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/parsers/yaml"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
 )
 
 var conf = koanf.Conf{
@@ -602,11 +602,11 @@ import (
 	"errors"
 	"log"
 
-	"github.com/knadh/koanf-test"
-	"github.com/knadh/koanf-test/maps"
-	"github.com/knadh/koanf-test/parsers/json"
-	"github.com/knadh/koanf-test/parsers/yaml"
-	"github.com/knadh/koanf-test/providers/file"
+	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/maps"
+	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/file"
 )
 
 var conf = koanf.Conf{
@@ -736,7 +736,7 @@ func main() {
 koanf is a lightweight alternative to the popular [spf13/viper](https://github.com/spf13/viper). It was written as a result of multiple stumbling blocks encountered with some of viper's fundamental flaws.
 
 - viper breaks JSON, YAML, TOML, HCL language specs by [forcibly lowercasing keys](https://github.com/spf13/viper/pull/635).
-- Significantly bloats [build sizes](https://github.com/knadh/koanf-test/wiki/Comparison-with-spf13-viper).
+- Significantly bloats [build sizes](https://github.com/knadh/koanf/wiki/Comparison-with-spf13-viper).
 - Tightly couples config parsing with file extensions.
 - Has poor semantics and abstractions. Commandline, env, file etc. and various parses are hardcoded in the core. There are no primitives that can be extended.
 - Pulls a large number of [third party dependencies](https://github.com/spf13/viper/issues/707) into the core package. For instance, even if you do not use YAML or flags, the dependencies are still pulled as a result of the coupling.

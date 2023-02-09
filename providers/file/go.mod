@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/providers/file
+module github.com/knadh/koanf/providers/file
 
 go 1.18
 

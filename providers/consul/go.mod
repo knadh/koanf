@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/providers/consul
+module github.com/knadh/koanf/providers/consul
 
 go 1.18
 

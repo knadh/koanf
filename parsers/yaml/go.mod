@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/parsers/yaml
+module github.com/knadh/koanf/parsers/yaml
 
 go 1.18
 

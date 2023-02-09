@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/maps
+module github.com/knadh/koanf/maps
 
 go 1.18
 

@@ -1,4 +1,4 @@
-module github.com/knadh/koanf-test/providers/s3
+module github.com/knadh/koanf/providers/s3
 
 go 1.18
 
