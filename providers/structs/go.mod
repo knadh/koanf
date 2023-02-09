@@ -2,14 +2,9 @@ module github.com/knadh/koanf/providers/structs
 
 go 1.18
 
-replace (
-	github.com/knadh/koanf => ../../
-	github.com/knadh/koanf/maps => ../../maps
-)
-
 require (
 	github.com/fatih/structs v1.1.0
-	github.com/knadh/koanf/maps v0.1.1
+	github.com/knadh/koanf/maps v0.1.0
 )
 
 require (

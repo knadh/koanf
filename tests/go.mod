@@ -3,7 +3,6 @@ module koanf_test
 go 1.18
 
 replace (
-	github.com/knadh/koanf/maps => ../maps
 	github.com/knadh/koanf/parsers/dotenv => ../parsers/dotenv
 	github.com/knadh/koanf/parsers/hcl => ../parsers/hcl
 	github.com/knadh/koanf/parsers/hjson => ../parsers/hjson
@@ -20,8 +19,7 @@ replace (
 )
 
 require (
-	github.com/knadh/koanf v1.8.0
-	github.com/knadh/koanf/maps v0.1.1
+	github.com/knadh/koanf/maps v0.1.0
 	github.com/knadh/koanf/parsers/dotenv v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/hcl v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/hjson v0.0.0-00010101000000-000000000000
