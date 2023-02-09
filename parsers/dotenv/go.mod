@@ -9,7 +9,7 @@ replace (
 
 require (
 	github.com/joho/godotenv v1.5.1
-	github.com/knadh/koanf/maps v0.4.0
+	github.com/knadh/koanf/maps v0.1.1
 	github.com/stretchr/testify v1.8.1
 )
 

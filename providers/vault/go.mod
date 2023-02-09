@@ -9,7 +9,7 @@ replace (
 
 require (
 	github.com/hashicorp/vault/api v1.8.3
-	github.com/knadh/koanf/maps v0.4.0
+	github.com/knadh/koanf/maps v0.1.1
 )
 
 require (

@@ -9,7 +9,7 @@ replace (
 )
 
 require (
-	github.com/knadh/koanf/maps v0.4.0
+	github.com/knadh/koanf/maps v0.1.1
 	github.com/knadh/koanf/providers/confmap v0.6.0
 	github.com/knadh/koanf/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
