@@ -1,4 +1,4 @@
-package posflag_test
+package koanf_test
 
 import (
 	"strings"
