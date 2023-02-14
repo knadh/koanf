@@ -643,7 +643,7 @@ func main() {
 
 ## API
 
-See the full API documentation of all available methods at https://pkg.go.dev/github.com/knadh/koanf#section-documentation
+See the full API documentation of all available methods at https://pkg.go.dev/github.com/knadh/koanf/v2#section-documentation
 
 ### Bundled Providers
 
