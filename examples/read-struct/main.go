@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/knadh/koanf/providers/structs"
-	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/v2"
 )
 
 var k = koanf.New(".")

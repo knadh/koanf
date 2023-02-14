@@ -8,7 +8,7 @@ import (
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
-	"github.com/knadh/koanf"
+	"github.com/knadh/koanf/v2"
 	flag "github.com/spf13/pflag"
 )
 
