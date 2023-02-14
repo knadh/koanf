@@ -2,42 +2,61 @@
 
 ![koanf](https://user-images.githubusercontent.com/547147/72681838-6981dd00-3aed-11ea-8f5d-310816c70c08.png)
 
-**koanf** (pronounced _conf_; a play on the Japanese _Koan_) is a library for reading configuration from different sources in different formats in Go applications. It is a cleaner, lighter [alternative to spf13/viper](#alternative-to-viper) with better abstractions and extensibility and fewer dependencies.
+**koanf** is a library for reading configuration from different sources in different formats in Go applications. It is a cleaner, lighter [alternative to spf13/viper](#alternative-to-viper) with better abstractions and extensibility and far fewer dependencies.
 
-koanf comes with built in support for reading configuration from files, command line flags, and environment variables, and can parse JSON, YAML, TOML, and Hashicorp HCL. Any external dependencies are detatched from the core into sub-packages, so only the ones that are explicitly referenced get compiled into an application.
+koanf v2 has modules (Providers) for reading configuration from a variety of sources such as files, command line flags, environment variables, Vault, and S3 and for parsing (Parsers) formats such as JSON, YAML, TOML, Hashicorp HCL. It is easy to plug in custom parsers and providers.
+
+All external dependencies in providers and parsers are detatched from the core and can be installed separately as necessary.
 
 [![Run Tests](https://github.com/knadh/koanf/actions/workflows/test.yml/badge.svg)](https://github.com/knadh/koanf/actions/workflows/test.yml) [![GoDoc](https://godoc.org/github.com/knadh/koanf?status.svg)](https://godoc.org/github.com/knadh/koanf) 
 
 ### Installation
 
 ```shell
-go get -u github.com/knadh/koanf
+# Install the core.
+go get -u github.com/knadh/koanf/v2
+
+# Install the necessary Provider(s).
+# Available: file, env, posflag, basicflag, confmap, rawbytes,
+#            structs, appconfig, consul, etcd, fs, s3, vault
+# go get -u github.com/knadh/koanf/providers/$provider
+
+go get -u github.com/knadh/koanf/providers/file
+
+
+# Install the necessary Parser(s).
+# Available: toml, json, yaml, dotenv, hcl, hjson, nestedtext
+# go get -u github.com/knadh/koanf/parsers/$parser
+
+go get -u github.com/knadh/koanf/parsers/toml
+
 ```
+
+[See the list](#api) of all bundled Providers and Parsers.
 
 ### Contents
 
 - [Concepts](#concepts)
 - [Reading config from files](#reading-config-from-files)
-- [Watching files for changes](#watching-files-for-changes)
+- [Watching file for changes](#watching-file-for-changes)
 - [Reading from command line](#reading-from-command-line)
 - [Reading environment variables](#reading-environment-variables)
 - [Reading raw bytes](#reading-raw-bytes)
+- [Reading from maps and structs](#reading-from-nested-maps)
 - [Unmarshalling and marshalling](#unmarshalling-and-marshalling)
-- [Unmarshalling with flat paths](#unmarshalling-with-flat-paths)
-- [Setting default values](#setting-default-values)
 - [Order of merge and key case senstivity](#order-of-merge-and-key-case-sensitivity)
 - [Custom Providers and Parsers](#custom-providers-and-parsers)
-- [Custom Merge Strategies](#custom-merge-strategies)
-- [List of Providers, Parsers, and functions](#api)
+- [Custom merge strategies](#custom-merge-strategies)
+- [List of installable Providers and Parsers](#api)
 
 ### Concepts
 
 - `koanf.Provider` is a generic interface that provides configuration, for example, from files, environment variables, HTTP sources, or anywhere. The configuration can either be raw bytes that a parser can parse, or it can be a nested `map[string]interface{}` that can be directly loaded.
-- `koanf.Parser` is a generic interface that takes raw bytes, parses, and returns a nested `map[string]interface{}` representation. For example, JSON and YAML parsers.
+- `koanf.Parser` is a generic interface that takes raw bytes, parses, and returns a nested `map[string]interface{}`. For example, JSON and YAML parsers.
 - Once loaded into koanf, configuration are values queried by a delimited key path syntax. eg: `app.server.port`. Any delimiter can be chosen.
 - Configuration from multiple sources can be loaded and merged into a koanf instance, for example, load from a file first and override certain values with flags from the command line.
 
-With these two interface implementations, koanf can obtain a configuration from multiple sources and parse any format and make it available to an application.
+With these two interface implementations, koanf can obtain configuration in any format from any source, parse it, and make it available to an application.
 
 ### Reading config from files
 
@@ -72,7 +91,7 @@ func main() {
 
 ```
 
-### Watching files for changes
+### Watching file for changes
 Some providers expose a `Watch()` method that makes the provider watch for changes
 in configuration and trigger a callback to reload the configuration.
 This is not goroutine safe if there are concurrent `*Get()` calls happening on the
@@ -411,14 +430,7 @@ func main() {
 }
 ```
 
-### Marshalling and writing config
-It is possible to marshal and serialize the conf map into TOML, YAML etc.
-
-### Setting default values.
-
-koanf does not provide any special functions to set default values but uses the Provider interface to enable it.
-
-#### From a map
+#### Reading from nested maps
 
 The bundled `confmap` provider takes a `map[string]interface{}` that can be loaded into a koanf instance. 
 
@@ -461,7 +473,7 @@ func main() {
 }
 ```
 
-#### From a struct 
+#### Reading from struct 
 
 The bundled `structs` provider can be used to read data from a struct to load into a koanf instance.
 
@@ -582,13 +594,11 @@ For example: merging JSON and YAML will most likely fail because JSON treats int
 ### Order of merge and key case sensitivity
 
 - Config keys are case-sensitive in koanf. For example, `app.server.port` and `APP.SERVER.port` are not the same.
-- koanf does not impose any ordering on loading config from various providers. Every successive `Load()` or `Load()` merges new config into existing config. That means it is possible to load environment variables first, then files on top of it, and then command line variables on top of it, or any such order.
+- koanf does not impose any ordering on loading config from various providers. Every successive `Load()` or `Merge()` merges new config into the existing config. That is, it is possible to load environment variables first, then files on top of it, and then command line variables on top of it, or any such order.
 
 ### Custom Providers and Parsers
 
-A Provider can provide a nested `map[string]interface{}` config that can be loaded into koanf with `koanf.Load()` or raw bytes that can be parsed with a Parser (loaded using `koanf.Load()`.
-
-Writing Providers and Parsers are easy. See the bundled implementations in the `providers` and `parses` directory.
+A Provider returns a nested `map[string]interface{}` config that can be loaded directly into koanf with `koanf.Load()` or it can return raw bytes that can be parsed with a Parser (again, loaded using `koanf.Load()`. Writing Providers and Parsers are easy. See the bundled implementations in the [providers](https://github.com/knadh/koanf/tree/master/providers) and [parsers](https://github.com/knadh/koanf/tree/master/parsers) directories.
 
 ### Custom merge strategies
 
@@ -633,103 +643,51 @@ func main() {
 
 ## API
 
-### Instantiation methods
-| Method                          | Description                                                                                                                                                                 | 
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `New(delim string) *Koanf`      | Returns a new instance of Koanf. delim is the delimiter to use when specifying config key paths, for instance a `.` for `parent.child.key` or a `/` for `parent/child/key`. |
-| `NewWithConf(conf Conf) *Koanf` | Returns a new instance of Koanf depending on the `Koanf.Conf` configurations.                                                                                               |
+See the full API documentation of all available methods at https://pkg.go.dev/github.com/knadh/koanf#section-documentation
 
-### Structs
-| Struct                          | Description                                                                                                      |
-| ------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Koanf                           | Koanf is the configuration apparatus.                                                                            |
-| Conf                            | Conf is the Koanf configuration, that includes `Delim` and `StrictMerge`.                                        |
-| UnmarshalConf                   | UnmarshalConf represents configuration options used by `Unmarshal()` to unmarshal conf maps in arbitrary structs |
+### Bundled Providers
 
-### Bundled providers
+Install with `go get -u github.com/knadh/koanf/providers/$provider`
 
 | Package             | Provider                                                      | Description                                                                                                                                                                           |
 | ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| providers/file      | `file.Provider(filepath string)`                              | Reads a file and returns the raw bytes to be parsed.                                                                                                                                  |
-| providers/fs      | `fs.Provider(f fs.FS, filepath string)`                              | (**Experimental**) Reads a file from fs.FS and returns the raw bytes to be parsed. The provider requires `go v1.16` or higher.                                            |
-| providers/basicflag | `basicflag.Provider(f *flag.FlagSet, delim string)`           | Takes an stdlib `flag.FlagSet`                                                                                                                                                        |
-| providers/posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spft3/pflag.FlagSet` (advanced POSIX compatible flags with multiple types) and provides a nested config map based on delim.                                                 |
-| providers/env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
-| providers/confmap   | `confmap.Provider(mp map[string]interface{}, delim string)`   | Takes a premade `map[string]interface{}` conf map. If delim is provided, the keys are assumed to be flattened, thus unflattened using delim.                                          |
-| providers/structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                                                                                                                                        |
-| providers/s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
-| providers/rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
-| providers/vault     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
-| providers/appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
-| providers/etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
-| providers/consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
+| file      | `file.Provider(filepath string)`                              | Reads a file and returns the raw bytes to be parsed.                                                                                                                                  |
+| fs      | `fs.Provider(f fs.FS, filepath string)`                              | (**Experimental**) Reads a file from fs.FS and returns the raw bytes to be parsed. The provider requires `go v1.16` or higher.                                            |
+| basicflag | `basicflag.Provider(f *flag.FlagSet, delim string)`           | Takes an stdlib `flag.FlagSet`                                                                                                                                                        |
+| posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spft3/pflag.FlagSet` (advanced POSIX compatible flags with multiple types) and provides a nested config map based on delim.                                                 |
+| env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
+| confmap   | `confmap.Provider(mp map[string]interface{}, delim string)`   | Takes a premade `map[string]interface{}` conf map. If delim is provided, the keys are assumed to be flattened, thus unflattened using delim.                                          |
+| structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                                                                                                                                        |
+| s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
+| rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
+| vault     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
+| appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
+| etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
+| consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
 
-### Third-party providers
+
+### Bundled Parsers
+
+Install with `go get -u github.com/knadh/koanf/parsers/$parser`
+
+| Package      | Parser                           | Description                                                                                                                                               |
+| ------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| json       | `json.Parser()`                  | Parses JSON bytes into a nested map                                                                                                                       |
+| yaml       | `yaml.Parser()`                  | Parses YAML bytes into a nested map                                                                                                                       |
+| toml       | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
+| dotenv     | `dotenv.Parser()`              | Parses DotEnv bytes into a flat map                                                                                                                       |
+| hcl        | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
+| nestedtext | `nestedtext.Parser()`              | Parses NestedText bytes into a flat map                                                                                                                 |
+| hjson		 | `hjson.Parser()`					| Parses HJSON bytes into a nested map
+																							|
+
+
+### Third-party Providers
 | Package             | Provider                                                      | Description                                                                                                                                                                           |
 | ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | github.com/defensestation/koanf/providers/secretsmanager     | `vault.SecretsMananger(secretsmanager.Config{}, f func(s string) string)`                              | AWS Secrets Manager provider, takes map or string as a value from store                                                						  |
 | github.com/defensestation/koanf/providers/parameterstore     | `vault.ParameterStore(parameterstore.Config{}, f func(s string) string)`                              | AWS ParameterStore provider, an optional function that takes and returns a string to transform env variables                                                 						  |
 
-### Bundled parsers
-
-| Package      | Parser                           | Description                                                                                                                                               |
-| ------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| parsers/json       | `json.Parser()`                  | Parses JSON bytes into a nested map                                                                                                                       |
-| parsers/yaml       | `yaml.Parser()`                  | Parses YAML bytes into a nested map                                                                                                                       |
-| parsers/toml       | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
-| parsers/dotenv     | `dotenv.Parser()`              | Parses DotEnv bytes into a flat map                                                                                                                       |
-| parsers/hcl        | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
-| parsers/nestedtext | `nestedtext.Parser()`              | Parses NestedText bytes into a flat map                                                                                                                 |
-| parsers/hjson		 | `hjson.Parser()`					| Parses HJSON bytes into a nested map
-																							|
-
-### Instance functions
-
-| Method                                                                 | Description                                                  |
-|------------------------------------------------------------------------| ------------------------------------------------------------ |
-| `Load(p Provider, pa Parser, opts ...Option) error`                    | Loads config from a Provider. If a koanf.Parser is provided, the config is assumed to be raw bytes that's then parsed with the Parser. |
-| `Keys() []string`                                                      | Returns the list of flattened key paths that can be used to access config values |
-| `KeyMap() map[string][]string`                                         | Returns a map of all possible key path combinations possible in the loaded nested conf map |
-| `All() map[string]interface{}`                                         | Returns a flat map of flattened key paths and their corresponding config values |
-| `Raw() map[string]interface{}`                                         | Returns a copy of the raw nested conf map                    |
-| `Print()`                                                              | Prints a human readable copy of the flattened key paths and their values for debugging |
-| `Sprint()`                                                             | Returns a human readable copy of the flattened key paths and their values for debugging |
-| `Cut(path string) *Koanf`                                              | Cuts the loaded nested conf map at the given path and returns a new Koanf instance with the children |
-| `Copy() *Koanf`                                                        | Returns a copy of the Koanf instance                         |
-| `Merge(*Koanf)`                                                        | Merges the config map of a Koanf instance into the current instance |
-| `MergeAt(in *Koanf, path string)`                                      | Merges the config map of a Koanf instance into the current instance, at the given key path. |
-| `Set(path string, val interface{})`                                    | Shorthand wrapper around `Merge()` for directly overriding the value of a given key path. |
-| `Delete(path string)`                                                  | Delete the value at the given path, and does nothing if path doesn't exist. |
-| `Unmarshal(path string, o interface{}) error`                          | Scans the given nested key path into a given struct (like json.Unmarshal) where fields are denoted by the `koanf` tag |
-| `UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) error` | Like Unmarshal but with customizable options                 |
-
-### Getter functions
-
-|                                               |                                                                                                                                                                                            |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Get(path string) interface{}`                | Returns the value for the given key path, and if it doesn’t exist, returns nil                                                                                                             |
-| `Exists(path string) bool`                    | Returns true if the given key path exists in the conf map                                                                                                                                  |
-| `Int64(path string) int64`                    |                                                                                                                                                                                            |
-| `Int64s(path string) []int64`                 |                                                                                                                                                                                            |
-| `Int64Map(path string) map[string]int64`      |                                                                                                                                                                                            |
-| `Int(path string) int`                        |                                                                                                                                                                                            |
-| `Ints(path string) []int`                     |                                                                                                                                                                                            |
-| `IntMap(path string) map[string]int`          |                                                                                                                                                                                            |
-| `Float64(path string) float64`                |                                                                                                                                                                                            |
-| `Float64s(path string) []float64`             |                                                                                                                                                                                            |
-| `Float64Map(path string) map[string]float64`  |                                                                                                                                                                                            |
-| `Duration(path string) time.Duration`         | Returns the time.Duration value of the given key path if it’s numeric (attempts a parse+convert if string) or a string representation like "3s".                                           |
-| `Time(path, layout string) time.Time`         | Parses the string value of the the given key path with the given layout format and returns time.Time. If the key path is numeric, treats it as a UNIX timestamp and returns its time.Time. |
-| `String(path string) string`                  |                                                                                                                                                                                            |
-| `Strings(path string) []string`               |                                                                                                                                                                                            |
-| `StringMap(path string) map[string]string`    |                                                                                                                                                                                            |
-| `StringsMap(path string) map[string][]string` |                                                                                                                                                                                            |
-| `Byte(path string) []byte`                    |                                                                                                                                                                                            |
-| `Bool(path string) bool`                      |                                                                                                                                                                                            |
-| `Bools(path string) []bool`                   |                                                                                                                                                                                            |
-| `BoolMap(path string) map[string]bool`        |                                                                                                                                                                                            |
-| `MapKeys(path string) []string`               | Returns the list of keys in any map                                                                                                                                                        |
-| `Slices(path string) []Koanf`                 | Returns `[]map[string]interface{}`, a slice of confmaps loaded into a slice of new Koanf instances.							                                                                           |
 
 ### Alternative to viper
 
