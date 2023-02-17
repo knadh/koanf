@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/fatih/structs v1.1.0
-	github.com/knadh/koanf/maps v0.1.0
+	github.com/knadh/koanf/maps v0.1.1
 )
 
 require (
