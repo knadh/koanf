@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
@@ -29,6 +28,7 @@ import (
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/knadh/koanf/v2"
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ import (
 const (
 	delim = "."
 
-	mockDir    = "mock"
+	mockDir    = "../mock"
 	mockJSON   = mockDir + "/mock.json"
 	mockYAML   = mockDir + "/mock.yml"
 	mockTOML   = mockDir + "/mock.toml"

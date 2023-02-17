@@ -6,17 +6,22 @@ package posflag
 import (
 	"errors"
 
-	"github.com/spf13/pflag"
-
-	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/maps"
+	"github.com/spf13/pflag"
 )
+
+// KoanfIntf is an interface that represents a small subset of methods
+// used by this package from Koanf{}. When using this package, a live
+// instance of Koanf{} should be passed.
+type KoanfIntf interface {
+	Exists(string) bool
+}
 
 // Posflag implements a pflag command line provider.
 type Posflag struct {
 	delim   string
 	flagset *pflag.FlagSet
-	ko      *koanf.Koanf
+	ko      KoanfIntf
 	cb      func(key string, value string) (string, interface{})
 	flagCB  func(f *pflag.Flag) (string, interface{})
 }
@@ -32,7 +37,7 @@ type Posflag struct {
 // a config file. If they are not, then the default values of the flags
 // are merged. If they do exist, the flag values are not merged but only
 // the values that have been explicitly set in the command line are merged.
-func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
+func Provider(f *pflag.FlagSet, delim string, ko KoanfIntf) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
@@ -45,7 +50,7 @@ func Provider(f *pflag.FlagSet, delim string, ko *koanf.Koanf) *Posflag {
 // This is useful for cases where complex types like slices separated by
 // custom separators.
 // Returning "" for the key causes the particular flag to be disregarded.
-func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(key string, value string) (string, interface{})) *Posflag {
+func ProviderWithValue(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(key string, value string) (string, interface{})) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
@@ -63,17 +68,17 @@ func ProviderWithValue(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(
 //
 // Example:
 //
-//  p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, interface{}) {
-//     // Transform the key in whatever manner.
-//     key := f.Name
+//	p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, interface{}) {
+//	   // Transform the key in whatever manner.
+//	   key := f.Name
 //
-//     // Use FlagVal() and then transform the value, or don't use it at all
-//     // and add custom logic to parse the value.
-//     val := posflag.FlagVal(flagset, f)
+//	   // Use FlagVal() and then transform the value, or don't use it at all
+//	   // and add custom logic to parse the value.
+//	   val := posflag.FlagVal(flagset, f)
 //
-//     return key, val
-//  })
-func ProviderWithFlag(f *pflag.FlagSet, delim string, ko *koanf.Koanf, cb func(f *pflag.Flag) (string, interface{})) *Posflag {
+//	   return key, val
+//	})
+func ProviderWithFlag(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(f *pflag.Flag) (string, interface{})) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,

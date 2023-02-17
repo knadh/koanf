@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/consul"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
 )
 
 var (

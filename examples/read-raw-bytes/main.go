@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 
-	"github.com/knadh/koanf"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/providers/rawbytes"
+	"github.com/knadh/koanf/v2"
 )
 
 // Global koanf instance. Use . as the key path delimiter. This can be / or anything.
