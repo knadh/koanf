@@ -17,6 +17,7 @@ replace (
 	github.com/knadh/koanf/providers/fs => ../providers/fs
 	github.com/knadh/koanf/providers/posflag => ../providers/posflag
 	github.com/knadh/koanf/providers/rawbytes => ../providers/rawbytes
+	github.com/knadh/koanf/providers/structs => ../providers/structs
 	github.com/knadh/koanf/v2 => ../
 )
 
@@ -35,6 +36,7 @@ require (
 	github.com/knadh/koanf/providers/fs v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/posflag v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/rawbytes v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/providers/structs v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.8.1
@@ -42,6 +44,7 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hjson/hjson-go/v4 v4.3.0 // indirect
