@@ -691,7 +691,7 @@ Install with `go get -u github.com/knadh/koanf/parsers/$parser`
 
 ### Alternative to viper
 
-koanf is a lightweight alternative to the popular [spf13/viper](https://github.com/spf13/viper). It was written as a result of multiple stumbling blocks encountered with some of viper's fundamental flaws.
+koanf is a [lightweight](https://github.com/knadh/koanf/blob/master/go.mod) alternative to the popular [spf13/viper](https://github.com/spf13/viper). It was written as a result of multiple stumbling blocks encountered with some of viper's fundamental flaws.
 
 - viper breaks JSON, YAML, TOML, HCL language specs by [forcibly lowercasing keys](https://github.com/spf13/viper/pull/635).
 - Significantly bloats [build sizes](https://github.com/knadh/koanf/wiki/Comparison-with-spf13-viper).
