@@ -49,9 +49,21 @@ func Provider(cfg Config) *Etcd {
 	return &Etcd{client: c, cfg: cfg}
 }
 
-// ReadBytes is not supported by etcd provider.
+// ReadBytes is not supported by match the prefix.
 func (e *Etcd) ReadBytes() ([]byte, error) {
-	return nil, errors.New("etcd provider does not support this method")
+	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.DialTimeout)
+	defer cancel()
+
+	if e.cfg.Prefix {
+		return nil, errors.New("etcd provider does not support this method")
+	}
+
+	r, err := e.client.Get(ctx, e.cfg.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.Kvs[0].Value, nil
 }
 
 // Read returns a nested config map.
