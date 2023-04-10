@@ -63,6 +63,10 @@ func (e *Etcd) ReadBytes() ([]byte, error) {
 		return nil, err
 	}
 
+	if len(r.Kvs) == 0 {
+		return nil, errors.New("etcd provider not find this key")
+	}
+
 	return r.Kvs[0].Value, nil
 }
 
