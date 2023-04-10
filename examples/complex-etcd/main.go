@@ -70,7 +70,11 @@ func main() {
 		Prefix:      false,
 		Key:         "single_key",
 	}
-	provider := etcd.Provider(providerCfg)
+
+	provider, err := etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("connect to etcd failed, err: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
