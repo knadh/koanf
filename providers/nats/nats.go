@@ -16,6 +16,9 @@ type Config struct {
 	// Optional NATS options: nats.Connect(url, ...options)
 	Options []nats.Option
 
+	// Optional JetStream options: nc.JetStream(...options)
+	JetStreamOptions []nats.JSOpt
+
 	// Bucket is the Nats KV bucket.
 	Bucket string
 
@@ -36,7 +39,7 @@ func Provider(cfg Config) (*Nats, error) {
 		return nil, err
 	}
 
-	js, err := nc.JetStream()
+	js, err := nc.JetStream(cfg.JetStreamOptions...)
 	if err != nil {
 		return nil, err
 	}
