@@ -31,7 +31,7 @@ func TestNats(t *testing.T) {
 	}
 
 	provider, err := Provider(Config{
-		Url:    testNatsURL,
+		URL:    testNatsURL,
 		Bucket: "test",
 		Prefix: "some.test",
 	})
