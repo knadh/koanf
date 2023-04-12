@@ -1,11 +1,12 @@
 package nats
 
 import (
+	"testing"
+	"time"
+
 	"github.com/knadh/koanf/v2"
 	"github.com/nats-io/nats.go"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestNats(t *testing.T) {

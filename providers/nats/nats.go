@@ -3,19 +3,23 @@ package nats
 import (
 	"errors"
 	"fmt"
-	"github.com/nats-io/nats.go"
 	"strings"
 	"time"
+
+	"github.com/nats-io/nats.go"
 )
 
 type Config struct {
-	// nats endpoint (comma separated urls are possible, eg "nats://one, nats://two")
-	Url string
+	// nats endpoint (comma separated urls are possible, eg "nats://one, nats://two").
+	URL string
 
-	// nats kv bucket
+	// Optional NATS options: nats.Connect(url, ...options)
+	Options []nats.Option
+
+	// Bucket is the Nats KV bucket.
 	Bucket string
 
-	// prefix
+	// Prefix (optional).
 	Prefix string
 }
 
@@ -27,7 +31,7 @@ type Nats struct {
 
 // Provider returns a provider that takes nats config.
 func Provider(cfg Config) (*Nats, error) {
-	nc, err := nats.Connect(cfg.Url)
+	nc, err := nats.Connect(cfg.URL, cfg.Options...)
 	if err != nil {
 		return nil, err
 	}
