@@ -15,6 +15,9 @@ type Env struct {
 	prefix string
 	delim  string
 	cb     func(key string, value string) (string, interface{})
+	// Environ can be used to specify a different set of enviornment variables.
+	// If empty Env will use os.Environ.
+	Environ []string
 }
 
 // Provider returns an environment variables provider that returns
@@ -65,7 +68,10 @@ func (e *Env) ReadBytes() ([]byte, error) {
 func (e *Env) Read() (map[string]interface{}, error) {
 	// Collect the environment variable keys.
 	var keys []string
-	for _, k := range os.Environ() {
+	if len(e.Environ) == 0 {
+		e.Environ = os.Environ()
+	}
+	for _, k := range e.Environ {
 		if e.prefix != "" {
 			if strings.HasPrefix(k, e.prefix) {
 				keys = append(keys, k)

@@ -246,9 +246,8 @@ func TestRead(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := os.Setenv(tc.key, tc.value)
+			tc.Environ = []string{tc.key + "=" + tc.value}
 			assert.Nil(t, err)
-			defer os.Unsetenv(tc.key)
 
 			envs, err := tc.env.Read()
 			assert.Nil(t, err)
