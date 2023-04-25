@@ -3,17 +3,13 @@ package etcd
 import (
 	"context"
 	"errors"
-	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type Config struct {
 	// etcd endpoints
-	Endpoints []string
-
-	// timeout
-	DialTimeout time.Duration
+	ClientConfig clientv3.Config
 
 	// prefix request option
 	Prefix bool
@@ -36,12 +32,7 @@ type Etcd struct {
 
 // Provider returns a provider that takes etcd config.
 func Provider(cfg Config) (*Etcd, error) {
-	eCfg := clientv3.Config{
-		Endpoints:   cfg.Endpoints,
-		DialTimeout: cfg.DialTimeout,
-	}
-
-	c, err := clientv3.New(eCfg)
+	c, err := clientv3.New(cfg.ClientConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +47,7 @@ func (e *Etcd) ReadBytes() ([]byte, error) {
 
 // Read returns a nested config map.
 func (e *Etcd) Read() (map[string]interface{}, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.DialTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.ClientConfig.DialTimeout)
 	defer cancel()
 
 	var resp *clientv3.GetResponse
