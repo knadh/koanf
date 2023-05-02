@@ -12,12 +12,10 @@ import (
 
 // Env implements an environment variables provider.
 type Env struct {
-	prefix string
-	delim  string
-	cb     func(key string, value string) (string, interface{})
-	// Environ can be used to specify a different set of enviornment variables.
-	// If empty Env will use os.Environ.
-	Environ []string
+	prefix  string
+	delim   string
+	environ []string
+	cb      func(key string, value string) (string, interface{})
 }
 
 // Provider returns an environment variables provider that returns
@@ -34,16 +32,13 @@ type Env struct {
 // If the callback returns an empty string, the variable will be
 // ignored.
 func Provider(prefix, delim string, cb func(s string) string) *Env {
-	e := &Env{
-		prefix: prefix,
-		delim:  delim,
-	}
-	if cb != nil {
-		e.cb = func(key string, value string) (string, interface{}) {
+	return ProviderWithOptions(
+		WithPrefix(prefix),
+		WithDelimiter(delim),
+		WithCallback(func(key string, value string) (string, interface{}) {
 			return cb(key), value
-		}
-	}
-	return e
+		}),
+	)
 }
 
 // ProviderWithValue works exactly the same as Provider except the callback
@@ -51,11 +46,27 @@ func Provider(prefix, delim string, cb func(s string) string) *Env {
 // to modify both. This is useful for cases where you may want to return
 // other types like a string slice instead of just a string.
 func ProviderWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *Env {
-	return &Env{
-		prefix: prefix,
-		delim:  delim,
-		cb:     cb,
+	return ProviderWithOptions(
+		WithPrefix(prefix),
+		WithDelimiter(delim),
+		WithCallback(cb),
+	)
+}
+
+// ProviderWithOptions returns an environment variables provider that can be fine-tuned
+// by using options.
+func ProviderWithOptions(options ...Option) *Env {
+	e := &Env{
+		prefix:  "",
+		delim:   ".",
+		cb:      nil,
+		environ: os.Environ(),
 	}
+
+	for _, option := range options {
+		option(e)
+	}
+	return e
 }
 
 // ReadBytes is not supported by the env provider.
@@ -68,10 +79,7 @@ func (e *Env) ReadBytes() ([]byte, error) {
 func (e *Env) Read() (map[string]interface{}, error) {
 	// Collect the environment variable keys.
 	var keys []string
-	if len(e.Environ) == 0 {
-		e.Environ = os.Environ()
-	}
-	for _, k := range e.Environ {
+	for _, k := range e.environ {
 		if e.prefix != "" {
 			if strings.HasPrefix(k, e.prefix) {
 				keys = append(keys, k)
