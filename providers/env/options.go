@@ -28,8 +28,19 @@ func WithCallback(cb func(key string, value string) (string, interface{})) Optio
 	}
 }
 
+// WithEnviron sets the environment using a traditional environment slice.
 func WithEnviron(environ []string) Option {
 	return func(env *Env) {
 		env.environ = environ
+	}
+}
+
+// WithEnvironMap sets the environment using a map.
+func WithEnvironMap(environ map[string]string) Option {
+	return func(env *Env) {
+		env.environ = make([]string, 0, len(environ))
+		for k, v := range environ {
+			env.environ = append(env.environ, k+"="+v)
+		}
 	}
 }

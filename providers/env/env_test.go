@@ -171,11 +171,26 @@ func TestProviderWithOptions(t *testing.T) {
 			},
 		},
 		{
-			name: "with custom environment",
+			name: "with custom environment slice",
 			options: []Option{
 				WithPrefix("TEST_"),
 				WithDelimiter("."),
 				WithEnviron([]string{"FOO=BAR"}),
+			},
+			want: &Env{
+				prefix:  "TEST_",
+				delim:   ".",
+				environ: []string{"FOO=BAR"},
+			},
+		},
+		{
+			name: "with custom environment map",
+			options: []Option{
+				WithPrefix("TEST_"),
+				WithDelimiter("."),
+				WithEnvironMap(map[string]string{
+					"FOO": "BAR",
+				}),
 			},
 			want: &Env{
 				prefix:  "TEST_",
