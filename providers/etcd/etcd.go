@@ -3,17 +3,13 @@ package etcd
 import (
 	"context"
 	"errors"
-	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 type Config struct {
 	// etcd endpoints
-	Endpoints []string
-
-	// timeout
-	DialTimeout time.Duration
+	ClientConfig clientv3.Config
 
 	// prefix request option
 	Prefix bool
@@ -35,28 +31,39 @@ type Etcd struct {
 }
 
 // Provider returns a provider that takes etcd config.
-func Provider(cfg Config) *Etcd {
-	eCfg := clientv3.Config{
-		Endpoints:   cfg.Endpoints,
-		DialTimeout: cfg.DialTimeout,
-	}
-
-	c, err := clientv3.New(eCfg)
+func Provider(cfg Config) (*Etcd, error) {
+	c, err := clientv3.New(cfg.ClientConfig)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &Etcd{client: c, cfg: cfg}
+	return &Etcd{client: c, cfg: cfg}, nil
 }
 
-// ReadBytes is not supported by etcd provider.
+// ReadBytes is not supported by match the prefix.
 func (e *Etcd) ReadBytes() ([]byte, error) {
-	return nil, errors.New("etcd provider does not support this method")
+	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.ClientConfig.DialTimeout)
+	defer cancel()
+
+	if e.cfg.Prefix {
+		return nil, errors.New("etcd provider does not support this method")
+	}
+
+	r, err := e.client.Get(ctx, e.cfg.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(r.Kvs) == 0 {
+		return nil, errors.New("etcd provider not find this key")
+	}
+
+	return r.Kvs[0].Value, nil
 }
 
 // Read returns a nested config map.
 func (e *Etcd) Read() (map[string]interface{}, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.DialTimeout)
+	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.ClientConfig.DialTimeout)
 	defer cancel()
 
 	var resp *clientv3.GetResponse
