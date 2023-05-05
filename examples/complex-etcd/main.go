@@ -14,7 +14,7 @@ import (
 	"github.com/knadh/koanf/providers/etcd"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
-
+	
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
@@ -65,10 +65,12 @@ func main() {
 	}
 
 	providerCfg := etcd.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: time.Second * 5,
-		Prefix:      false,
-		Key:         "single_key",
+		ClientConfig: clientv3.Config{
+			Endpoints:   []string{"localhost:2379"},
+			DialTimeout: 5 * time.Second,
+		},
+		Prefix: false,
+		Key:    "single_key",
 	}
 
 	provider, err := etcd.Provider(providerCfg)
@@ -108,12 +110,17 @@ func main() {
 	}
 
 	providerCfg = etcd.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: time.Second * 5,
-		Prefix:      true,
-		Key:         "parent",
+		ClientConfig: clientv3.Config{
+			Endpoints:   []string{"localhost:2379"},
+			DialTimeout: 5 * time.Second,
+		},
+		Prefix: true,
+		Key:    "parent",
 	}
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("connect to etcd failed, err: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -152,13 +159,18 @@ func main() {
 	}
 
 	providerCfg = etcd.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: time.Second * 5,
-		Prefix:      true,
-		Key:         "child",
+		ClientConfig: clientv3.Config{
+			Endpoints:   []string{"localhost:2379"},
+			DialTimeout: 5 * time.Second,
+		},
+		Prefix: true,
+		Key:    "child",
 	}
 
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("connect to etcd failed, err: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -197,15 +209,20 @@ func main() {
 	}
 
 	providerCfg = etcd.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: time.Second * 5,
-		Prefix:      true,
-		Limit:       true,
-		NLimit:      4,
-		Key:         "child",
+		ClientConfig: clientv3.Config{
+			Endpoints:   []string{"localhost:2379"},
+			DialTimeout: 5 * time.Second,
+		},
+		Prefix: true,
+		Limit:  true,
+		NLimit: 4,
+		Key:    "child",
 	}
 
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("connect to etcd failed, err: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -239,13 +256,18 @@ func main() {
 
 	sKey = "child"
 	providerCfg = etcd.Config{
-		Endpoints:   []string{"localhost:2379"},
-		DialTimeout: time.Second * 5,
-		Prefix:      true,
-		Key:         "child",
+		ClientConfig: clientv3.Config{
+			Endpoints:   []string{"localhost:2379"},
+			DialTimeout: 5 * time.Second,
+		},
+		Prefix: true,
+		Key:    "child",
 	}
 
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("connect to etcd failed, err: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
