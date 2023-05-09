@@ -252,7 +252,6 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 		c.DecoderConfig = &mapstructure.DecoderConfig{
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
 				mapstructure.StringToTimeDurationHookFunc(),
-				mapstructure.StringToSliceHookFunc(","),
 				textUnmarshalerHookFunc()),
 			Metadata:         nil,
 			Result:           o,
