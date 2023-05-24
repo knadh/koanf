@@ -35,12 +35,12 @@ type Config struct {
 	// Internal HTTP client timeout
 	Timeout time.Duration
 
-	// WithMeta states whether the secret should be returned with its metadata.
-	// If WithMeta is true, the value for data `key` and the metadata `version`
-	// can be accessed as `k.String("data.key")` and `k.Int("metadata.version")`.
-	// When set to false, no metadata will be returned, and the data can be
-	// accessed as `k.String("key")`.
-	WithMeta bool
+	// ExcludeMeta states whether the secret should be returned with its metadata.
+	// If ExcludeMeta is true, no metadata will be returned, and the data can be
+	// accessed as `k.String("key")`. If set to false, the value for data `key`
+	// and the metadata `version` can be accessed as `k.String("data.key")` and
+	// `k.Int("metadata.version")`.
+	ExcludeMeta bool
 }
 
 type Vault struct {
@@ -73,7 +73,7 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 	}
 
 	s := secret.Data
-	if !r.cfg.WithMeta {
+	if r.cfg.ExcludeMeta {
 		s = secret.Data["data"].(map[string]interface{})
 	}
 
