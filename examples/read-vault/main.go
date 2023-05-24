@@ -19,6 +19,11 @@ func main() {
 		Token:   os.Getenv("VAULT_TOKEN"),
 		Path:    "secret/data/my-app",
 		Timeout: 10 * time.Second,
+
+		// If this is set to false, then `data` and `metadata` keys
+		// from Vault are fetched. All config is then accessed as
+		// k.String("data.YOUR_KEY") etc. instead of k.String("YOUR_KEY").
+		ExcludeMeta: true,
 	})
 	// Load mapped config from Vault storage.
 	if err := k.Load(provider, nil); err != nil {
