@@ -34,6 +34,13 @@ type Config struct {
 
 	// Internal HTTP client timeout
 	Timeout time.Duration
+
+	// WithMeta states whether the secret should be returned with its metadata.
+	// If WithMeta is true, the value for data `key` and the metadata `version`
+	// can be accessed as `k.String("data.key")` and `k.Int("metadata.version")`.
+	// When set to false, no metadata will be returned, and the data can be
+	// accessed as `k.String("key")`.
+	WithMeta bool
 }
 
 type Vault struct {
@@ -65,11 +72,17 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	if !r.cfg.FlatPaths {
-		data := maps.Unflatten(secret.Data, r.cfg.Delim)
+	s := secret.Data
+	if !r.cfg.WithMeta {
+		s = secret.Data["data"].(map[string]interface{})
+	}
+
+	// Unflatten only when a delimiter is specified
+	if !r.cfg.FlatPaths && r.cfg.Delim != "" {
+		data := maps.Unflatten(s, r.cfg.Delim)
 
 		return data, nil
 	}
 
-	return secret.Data, nil
+	return s, nil
 }
