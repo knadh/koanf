@@ -73,7 +73,8 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 		s = secret.Data["data"].(map[string]interface{})
 	}
 
-	if !r.cfg.FlatPaths {
+	// Unflatten only when a delimiter is specified
+	if !r.cfg.FlatPaths && r.cfg.Delim != "" {
 		data := maps.Unflatten(s, r.cfg.Delim)
 
 		return data, nil
