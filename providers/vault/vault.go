@@ -34,6 +34,9 @@ type Config struct {
 
 	// Internal HTTP client timeout
 	Timeout time.Duration
+
+	// WithMeta states whether the secret should be returned with its metadata.
+	WithMeta bool
 }
 
 type Vault struct {
@@ -65,11 +68,16 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 		return nil, err
 	}
 
+	s := secret.Data
+	if !r.cfg.WithMeta {
+		s = secret.Data["data"].(map[string]interface{})
+	}
+
 	if !r.cfg.FlatPaths {
-		data := maps.Unflatten(secret.Data, r.cfg.Delim)
+		data := maps.Unflatten(s, r.cfg.Delim)
 
 		return data, nil
 	}
 
-	return secret.Data, nil
+	return s, nil
 }
