@@ -36,6 +36,10 @@ type Config struct {
 	Timeout time.Duration
 
 	// WithMeta states whether the secret should be returned with its metadata.
+	// If WithMeta is true, the value for data `key` and the metadata `version`
+	// can be accessed as `k.String("data.key")` and `k.Int("metadata.version")`.
+	// When set to false, no metadata will be returned, and the data can be
+	// accessed as `k.String("key")`.
 	WithMeta bool
 }
 
