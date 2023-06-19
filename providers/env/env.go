@@ -12,10 +12,10 @@ import (
 
 // Env implements an environment variables provider.
 type Env struct {
-	prefix  string
-	delim   string
-	environ []string
-	cb      func(key string, value string) (string, interface{})
+	prefix      string
+	delim       string
+	environFunc func() []string
+	cb          func(key string, value string) (string, interface{})
 }
 
 // Provider returns an environment variables provider that returns
@@ -57,10 +57,12 @@ func ProviderWithValue(prefix, delim string, cb func(key string, value string) (
 // by using options.
 func ProviderWithOptions(options ...Option) *Env {
 	e := &Env{
-		prefix:  "",
-		delim:   ".",
-		cb:      nil,
-		environ: os.Environ(),
+		prefix: "",
+		delim:  ".",
+		cb:     nil,
+		environFunc: func() []string {
+			return os.Environ()
+		},
 	}
 
 	for _, option := range options {
@@ -79,7 +81,7 @@ func (e *Env) ReadBytes() ([]byte, error) {
 func (e *Env) Read() (map[string]interface{}, error) {
 	// Collect the environment variable keys.
 	var keys []string
-	for _, k := range e.environ {
+	for _, k := range e.environFunc() {
 		if e.prefix != "" {
 			if strings.HasPrefix(k, e.prefix) {
 				keys = append(keys, k)
