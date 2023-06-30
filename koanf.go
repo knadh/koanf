@@ -425,7 +425,7 @@ func (ko *Koanf) merge(c map[string]interface{}, opts *options) error {
 
 // toInt64 takes an interface value and if it is an integer type,
 // converts and returns int64. If it's any other type,
-// forces it to a string and attempts to a strconv.Atoi
+// forces it to a string and attempts to do a strconv.Atoi
 // to get an integer out.
 func toInt64(v interface{}) (int64, error) {
 	switch i := v.(type) {
@@ -514,7 +514,7 @@ func populateKeyParts(m KeyMap, delim string) KeyMap {
 }
 
 // textUnmarshalerHookFunc is a fixed version of mapstructure.TextUnmarshallerHookFunc.
-// This hook allows to additionally unmarshal text into custom string types that implement the encoding.(Un)TextMarshaler interface(s).
+// This hook allows to additionally unmarshal text into custom string types that implement the encoding.Text(Un)Marshaler interface(s).
 func textUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
 		f reflect.Type,
@@ -568,7 +568,7 @@ func textUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
 		}
 
 		// text is either the source string's value or the source string type's marshaled value
-		// which may differ from it internal string value.
+		// which may differ from its internal string value.
 		if err := unmarshaller.UnmarshalText(text); err != nil {
 			return nil, err
 		}
