@@ -6,7 +6,7 @@ package file
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -25,7 +25,7 @@ func Provider(path string) *File {
 
 // ReadBytes reads the contents of a file on disk and returns the bytes.
 func (f *File) ReadBytes() ([]byte, error) {
-	return ioutil.ReadFile(f.path)
+	return os.ReadFile(f.path)
 }
 
 // Read is not supported by the file provider.
