@@ -72,6 +72,10 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 		return nil, err
 	}
 
+	if secret == nil {
+		return nil, errors.New("vault provider fetched no data")
+	}
+
 	s := secret.Data
 	if r.cfg.ExcludeMeta {
 		s = secret.Data["data"].(map[string]interface{})
