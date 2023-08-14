@@ -1,4 +1,4 @@
-module github.com/wangkang/koanf/providers/vault
+module github.com/knadh/koanf/providers/vault
 
 go 1.18
 
