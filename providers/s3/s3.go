@@ -4,7 +4,7 @@ package s3
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 
 	"github.com/rhnvrm/simples3"
 )
@@ -56,7 +56,7 @@ func (r *S3) ReadBytes() ([]byte, error) {
 
 	defer resp.Close()
 
-	data, err := ioutil.ReadAll(resp)
+	data, err := io.ReadAll(resp)
 	if err != nil {
 		return nil, err
 	}
