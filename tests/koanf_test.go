@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -438,9 +437,9 @@ func TestWatchFile(t *testing.T) {
 	)
 
 	// Create a tmp config file.
-	tmpDir, _ := ioutil.TempDir("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
+	tmpDir, _ := os.MkdirTemp("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
 	tmpFile := filepath.Join(tmpDir, "koanf_mock")
-	err := ioutil.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600) // TODO: replace with os.WriteFile as of go v1.16
+	err := os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600)
 	require.NoError(t, err, "error creating temp config file: %v", err)
 
 	// Load the new config and watch it for changes.
@@ -469,7 +468,7 @@ func TestWatchFile(t *testing.T) {
 
 	// Wait a second and change the file.
 	time.Sleep(1 * time.Second)
-	ioutil.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600) // TODO: replace with os.WriteFile as of go v1.16
+	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600)
 	wg.Wait()
 
 	assert.Condition(func() bool {
@@ -482,7 +481,7 @@ func TestWatchFileSymlink(t *testing.T) {
 		assert = assert.New(t)
 		k      = koanf.New(delim)
 	)
-	tmpDir, _ := ioutil.TempDir("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
+	tmpDir, _ := os.MkdirTemp("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
 
 	// Create a symlink.
 	symPath := filepath.Join(tmpDir, "koanf_test_symlink")
