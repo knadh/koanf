@@ -664,6 +664,7 @@ Install with `go get -u github.com/knadh/koanf/providers/$provider`
 | appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
 | etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
 | consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
+| parameterstore | `parameterstore.Provider(parameterstore.Config{})` | AWS Systems Manager Parameter Store provider |
 
 
 ### Bundled Parsers
