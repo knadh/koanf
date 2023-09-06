@@ -36,7 +36,6 @@ require (
 	github.com/knadh/koanf/providers/fs v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/posflag v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/rawbytes v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf/providers/stdflag v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/structs v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/v2 v2.0.0-00010101000000-000000000000
 	github.com/spf13/pflag v1.0.5
