@@ -9,8 +9,8 @@ package fs
 
 import (
 	"errors"
+	"io"
 	"io/fs"
-	"io/ioutil"
 )
 
 // FS implements an fs.FS provider.
@@ -32,7 +32,7 @@ func (f *FS) ReadBytes() ([]byte, error) {
 	}
 	defer fd.Close()
 
-	return ioutil.ReadAll(fd)
+	return io.ReadAll(fd)
 }
 
 // Read is not supported by the fs.FS provider.
