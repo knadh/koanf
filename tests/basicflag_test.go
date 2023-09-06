@@ -7,8 +7,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/providers/basicflag"
 	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/providers/stdflag"
 	"github.com/knadh/koanf/v2"
 )
 
@@ -27,12 +27,12 @@ func TestLoad(t *testing.T) {
 	fs.Float64("key.float", 123.123, "")
 
 	k := koanf.New(".")
-	assert.Nil(t, k.Load(stdflag.Provider(fs, ".", k), nil))
+	assert.Nil(t, k.Load(basicflag.Provider(fs, ".", k), nil))
 	assertFunc(t, k)
 
 	// Test load with a custom key, val callback.
 	k = koanf.New(".")
-	p := stdflag.ProviderWithKey(fs, ".", k, func(key string, value flag.Value) (string, any) {
+	p := basicflag.ProviderWithValue(fs, ".", k, func(key string, value flag.Value) (string, any) {
 		if key == "key.float" {
 			return "", ""
 		}
@@ -63,7 +63,7 @@ func TestLoad_Overridden(t *testing.T) {
 	k := koanf.New(".")
 	// Load JSON config.
 	assert.Nil(t, k.Load(file.Provider("../mock/mock.json"), json.Parser()), nil)
-	assert.Nil(t, k.Load(stdflag.Provider(fs, ".", k), nil))
+	assert.Nil(t, k.Load(basicflag.Provider(fs, ".", k), nil))
 
 	assertFunc(t, k)
 }

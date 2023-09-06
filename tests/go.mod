@@ -17,7 +17,6 @@ replace (
 	github.com/knadh/koanf/providers/fs => ../providers/fs
 	github.com/knadh/koanf/providers/posflag => ../providers/posflag
 	github.com/knadh/koanf/providers/rawbytes => ../providers/rawbytes
-	github.com/knadh/koanf/providers/stdflag => ../providers/stdflag
 	github.com/knadh/koanf/providers/structs => ../providers/structs
 	github.com/knadh/koanf/v2 => ../
 )
