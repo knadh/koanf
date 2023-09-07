@@ -111,22 +111,30 @@ func (ps *ParameterStore[T]) Read() (map[string]interface{}, error) {
 			}
 		}
 	case ssm.GetParametersByPathInput:
-		output, err := ps.client.GetParametersByPath(context.TODO(), &input, ps.config.OptFns...)
-		if err != nil {
-			return nil, err
-		}
-		for _, p := range output.Parameters {
-			// If there's a transformation callback, run it.
-			if ps.config.Callback != nil {
-				name, value := ps.config.Callback(*p.Name, *p.Value)
-				// If the callback blanked the key, it should be omitted.
-				if name == "" {
-					break
-				}
-				mp[name] = value
-			} else {
-				mp[*p.Name] = *p.Value
+		var nextToken *string
+		for {
+			input.NextToken = nextToken
+			output, err := ps.client.GetParametersByPath(context.TODO(), &input, ps.config.OptFns...)
+			if err != nil {
+				return nil, err
 			}
+			for _, p := range output.Parameters {
+				// If there's a transformation callback, run it.
+				if ps.config.Callback != nil {
+					name, value := ps.config.Callback(*p.Name, *p.Value)
+					// If the callback blanked the key, it should be omitted.
+					if name == "" {
+						break
+					}
+					mp[name] = value
+				} else {
+					mp[*p.Name] = *p.Value
+				}
+			}
+			if output.NextToken == nil {
+				break
+			}
+			nextToken = output.NextToken
 		}
 	}
 	// Unflatten only when a delimiter is specified.

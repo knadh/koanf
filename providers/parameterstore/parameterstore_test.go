@@ -22,9 +22,25 @@ func TestParameterStore(t *testing.T) {
 		config.WithAPIOptions([]func(*middleware.Stack) error{
 			// Mock the SDK response using the middleware.
 			func(stack *middleware.Stack) error {
+				type key struct{}
+				err := stack.Initialize.Add(
+					middleware.InitializeMiddlewareFunc(
+						"MockInitialize",
+						func(ctx context.Context, in middleware.InitializeInput, next middleware.InitializeHandler) (out middleware.InitializeOutput, metadata middleware.Metadata, err error) {
+							switch v := in.Parameters.(type) {
+							case *ssm.GetParametersByPathInput:
+								ctx = middleware.WithStackValue(ctx, key{}, v.NextToken)
+							}
+							return next.HandleInitialize(ctx, in)
+						},
+					), middleware.Before,
+				)
+				if err != nil {
+					return err
+				}
 				return stack.Finalize.Add(
 					middleware.FinalizeMiddlewareFunc(
-						"Mock",
+						"MockFinalize",
 						func(ctx context.Context, input middleware.FinalizeInput, handler middleware.FinalizeHandler) (middleware.FinalizeOutput, middleware.Metadata, error) {
 							switch awsmiddleware.GetOperationName(ctx) {
 							case "GetParameter":
@@ -52,8 +68,10 @@ func TestParameterStore(t *testing.T) {
 									},
 								}, middleware.Metadata{}, nil
 							case "GetParametersByPath":
-								return middleware.FinalizeOutput{
-									Result: &ssm.GetParametersByPathOutput{
+								var output ssm.GetParametersByPathOutput
+								if middleware.GetStackValue(ctx, key{}) == (*string)(nil) {
+									output = ssm.GetParametersByPathOutput{
+										NextToken: aws.String("nextToken"),
 										Parameters: []types.Parameter{
 											{
 												Name:  aws.String("prefix.parent1"),
@@ -63,13 +81,19 @@ func TestParameterStore(t *testing.T) {
 												Name:  aws.String("prefix.parent2.child1"),
 												Value: aws.String("bob"),
 											},
+										},
+									}
+								} else {
+									output = ssm.GetParametersByPathOutput{
+										Parameters: []types.Parameter{
 											{
 												Name:  aws.String("prefix.parent2.child2.grandchild1"),
 												Value: aws.String("carol"),
 											},
 										},
-									},
-								}, middleware.Metadata{}, nil
+									}
+								}
+								return middleware.FinalizeOutput{Result: &output}, middleware.Metadata{}, nil
 							default:
 								return middleware.FinalizeOutput{}, middleware.Metadata{}, nil
 							}
