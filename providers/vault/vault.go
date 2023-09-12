@@ -3,6 +3,7 @@
 package vault
 
 import (
+	"context"
 	"errors"
 	"net/http"
 	"time"
@@ -15,6 +16,9 @@ import (
 type Config struct {
 	// Vault server address
 	Address string
+
+	// AuthMethod the Vault auth method https://developer.hashicorp.com/vault/docs/auth
+	AuthMethod api.AuthMethod
 
 	// Vault static token
 	Token string
@@ -55,7 +59,13 @@ func Provider(cfg Config) *Vault {
 	if err != nil {
 		return nil
 	}
-	client.SetToken(cfg.Token)
+	if cfg.AuthMethod != nil {
+		if _, err := client.Auth().Login(context.Background(), cfg.AuthMethod); err != nil {
+			return nil
+		}
+	} else {
+		client.SetToken(cfg.Token)
+	}
 
 	return &Vault{client: client, cfg: cfg}
 }
