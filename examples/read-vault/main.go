@@ -14,7 +14,7 @@ import (
 var k = koanf.New(".")
 
 func main() {
-	provider := vault.Provider(vault.Config{
+	provider, err := vault.Provider(vault.Config{
 		Address: os.Getenv("VAULT_ADDRESS"),
 		Token:   os.Getenv("VAULT_TOKEN"),
 		Path:    "secret/data/my-app",
@@ -25,6 +25,9 @@ func main() {
 		// k.String("data.YOUR_KEY") etc. instead of k.String("YOUR_KEY").
 		ExcludeMeta: true,
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate vault provider: %v", err)
+	}
 	// Load mapped config from Vault storage.
 	if err := k.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
