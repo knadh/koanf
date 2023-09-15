@@ -35,7 +35,7 @@ type Etcd struct {
 }
 
 // Provider returns a provider that takes etcd config.
-func Provider(cfg Config) *Etcd {
+func Provider(cfg Config) (*Etcd, error) {
 	eCfg := clientv3.Config{
 		Endpoints:   cfg.Endpoints,
 		DialTimeout: cfg.DialTimeout,
@@ -43,10 +43,10 @@ func Provider(cfg Config) *Etcd {
 
 	c, err := clientv3.New(eCfg)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &Etcd{client: c, cfg: cfg}
+	return &Etcd{client: c, cfg: cfg}, nil
 }
 
 // ReadBytes is not supported by etcd provider.
