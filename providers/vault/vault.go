@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/hashicorp/vault/api"
-
 	"github.com/knadh/koanf/maps"
 )
 
@@ -39,6 +38,10 @@ type Config struct {
 	// Internal HTTP client timeout
 	Timeout time.Duration
 
+	// Transport the optional HTTP client transport allows you to
+	// customize the settings like InsecureSkipVerify
+	Transport *http.Transport
+
 	// ExcludeMeta states whether the secret should be returned with its metadata.
 	// If ExcludeMeta is true, no metadata will be returned, and the data can be
 	// accessed as `k.String("key")`. If set to false, the value for data `key`
@@ -54,7 +57,7 @@ type Vault struct {
 
 // Provider returns a provider that takes a Vault config.
 func Provider(cfg Config) *Vault {
-	httpClient := &http.Client{Timeout: cfg.Timeout}
+	httpClient := &http.Client{Timeout: cfg.Timeout, Transport: cfg.Transport}
 	client, err := api.NewClient(&api.Config{Address: cfg.Address, HttpClient: httpClient})
 	if err != nil {
 		return nil
