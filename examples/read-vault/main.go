@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/knadh/koanf/providers/vault"
+	"github.com/knadh/koanf/providers/vault/v2"
 	"github.com/knadh/koanf/v2"
 )
 
