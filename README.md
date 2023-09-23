@@ -18,8 +18,9 @@ go get -u github.com/knadh/koanf/v2
 
 # Install the necessary Provider(s).
 # Available: file, env, posflag, basicflag, confmap, rawbytes,
-#            structs, appconfig, consul, etcd, fs, s3, vault
-# go get -u github.com/knadh/koanf/providers/$provider
+#            structs, fs, s3, appconfig/v2, consul/v2, etcd/v2, vault/v2, parameterstore/v2
+# eg: go get -u github.com/knadh/koanf/providers/s3
+# eg: go get -u github.com/knadh/koanf/providers/consul/v2
 
 go get -u github.com/knadh/koanf/providers/file
 
@@ -660,11 +661,11 @@ Install with `go get -u github.com/knadh/koanf/providers/$provider`
 | structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                                                                                                                                        |
 | s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
 | rawbytes  | `rawbytes.Provider(b []byte)`                                 | Takes a raw `[]byte` slice to be parsed with a koanf.Parser                                                                                                                           |
-| vault     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
-| appconfig     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
-| etcd     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
-| consul     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
-| parameterstore | `parameterstore.Provider(parameterstore.Config{})` | AWS Systems Manager Parameter Store provider |
+| vault/v2     | `vault.Provider(vault.Config{})`                              | Hashicorp Vault provider                                                                                                                           |
+| appconfig/v2     | `vault.AppConfig(appconfig.Config{})`                              | AWS AppConfig provider                                                                                                                           |
+| etcd/v2     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
+| consul/v2     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
+| parameterstore/v2 | `parameterstore.Provider(parameterstore.Config{})` | AWS Systems Manager Parameter Store provider |
 
 
 ### Bundled Parsers
