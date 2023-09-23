@@ -1,4 +1,4 @@
-module github.com/knadh/koanf/providers/parameterstore
+module github.com/knadh/koanf/providers/parameterstore/v2
 
 go 1.18
 
