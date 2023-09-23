@@ -37,13 +37,13 @@ type Consul struct {
 }
 
 // Provider returns an instance of the Consul provider.
-func Provider(cfg Config) *Consul {
+func Provider(cfg Config) (*Consul, error) {
 	c, err := api.NewClient(cfg.Cfg)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return &Consul{client: c, cfg: cfg}
+	return &Consul{client: c, cfg: cfg}, nil
 }
 
 // ReadBytes is not supported by the Consul provider.

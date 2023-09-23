@@ -70,7 +70,10 @@ func main() {
 		Prefix:      false,
 		Key:         "single_key",
 	}
-	provider := etcd.Provider(providerCfg)
+	provider, err := etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("Failed to instantiate etcd provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -109,7 +112,10 @@ func main() {
 		Prefix:      true,
 		Key:         "parent",
 	}
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("Failed to instantiate etcd provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -154,7 +160,10 @@ func main() {
 		Key:         "child",
 	}
 
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("Failed to instantiate etcd provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -201,7 +210,10 @@ func main() {
 		Key:         "child",
 	}
 
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("Failed to instantiate etcd provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -241,7 +253,10 @@ func main() {
 		Key:         "child",
 	}
 
-	provider = etcd.Provider(providerCfg)
+	provider, err = etcd.Provider(providerCfg)
+	if err != nil {
+		log.Fatalf("Failed to instantiate etcd provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)

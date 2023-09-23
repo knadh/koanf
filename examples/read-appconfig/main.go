@@ -13,12 +13,16 @@ import (
 var k = koanf.New(".")
 
 func main() {
-	provider := appconfig.Provider(appconfig.Config{
+	provider, err := appconfig.Provider(appconfig.Config{
 		Application:   os.Getenv("AWS_APPCONFIG_APPLICATION"),
 		ClientID:      os.Getenv("AWS_APPCONFIG_CLIENT_ID"),
 		Configuration: os.Getenv("AWS_APPCONFIG_CONFIG_NAME"),
 		Environment:   os.Getenv("AWS_APPCONFIG_ENVIRONMENT"),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate appconfig provider: %v", err)
+	}
+
 	// Load the provider and parse configuration as JSON.
 	if err := k.Load(provider, json.Parser()); err != nil {
 		log.Fatalf("error loading config: %v", err)

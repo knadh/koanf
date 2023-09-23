@@ -56,21 +56,21 @@ type Vault struct {
 }
 
 // Provider returns a provider that takes a Vault config.
-func Provider(cfg Config) *Vault {
+func Provider(cfg Config) (*Vault, error) {
 	httpClient := &http.Client{Timeout: cfg.Timeout, Transport: cfg.Transport}
 	client, err := api.NewClient(&api.Config{Address: cfg.Address, HttpClient: httpClient})
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	if cfg.AuthMethod != nil {
 		if _, err := client.Auth().Login(context.Background(), cfg.AuthMethod); err != nil {
-			return nil
+			return nil, err
 		}
 	} else {
 		client.SetToken(cfg.Token)
 	}
 
-	return &Vault{client: client, cfg: cfg}
+	return &Vault{client: client, cfg: cfg}, nil
 }
 
 // ReadBytes is not supported by the vault provider.

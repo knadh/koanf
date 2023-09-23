@@ -66,10 +66,10 @@ type AppConfig struct {
 }
 
 // Provider returns an AWS AppConfig provider.
-func Provider(cfg Config) *AppConfig {
+func Provider(cfg Config) (*AppConfig, error) {
 	c, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	if cfg.AWSRegion != "" {
@@ -89,7 +89,7 @@ func Provider(cfg Config) *AppConfig {
 	}
 	client := appconfig.NewFromConfig(c)
 
-	return &AppConfig{client: client, config: cfg}
+	return &AppConfig{client: client, config: cfg}, nil
 }
 
 // ProviderWithClient returns an AWS AppConfig provider

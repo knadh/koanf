@@ -48,12 +48,12 @@ type ParameterStore[T Input] struct {
 //   - AWS_ACCESS_KEY_ID
 //   - AWS_SECRET_ACCESS_KEY
 //   - AWS_SESSION_TOKEN
-func Provider[T Input](config Config[T]) *ParameterStore[T] {
+func Provider[T Input](config Config[T]) (*ParameterStore[T], error) {
 	c, err := awsconfig.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return ProviderWithClient[T](config, ssm.NewFromConfig(c))
+	return ProviderWithClient[T](config, ssm.NewFromConfig(c)), nil
 }
 
 // ProviderWithClient returns a ParameterStore provider

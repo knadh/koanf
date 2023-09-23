@@ -54,12 +54,15 @@ func main() {
 		log.Printf("Couldn't put key.")
 	}
 
-	provider := consul.Provider(consul.Config{
+	provider, err := consul.Provider(consul.Config{
 		Key:      sKey,
 		Recurse:  false,
 		Detailed: false,
 		Cfg:      api.DefaultConfig(),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate consul provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -91,12 +94,15 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider = consul.Provider(consul.Config{
+	provider, err = consul.Provider(consul.Config{
 		Key:      "parent",
 		Recurse:  true,
 		Detailed: false,
 		Cfg:      api.DefaultConfig(),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate consul provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -134,12 +140,15 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	provider = consul.Provider(consul.Config{
+	provider, err = consul.Provider(consul.Config{
 		Key:      "child",
 		Recurse:  true,
 		Detailed: false,
 		Cfg:      api.DefaultConfig(),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate consul provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		log.Fatalf("error loading config: %v", err)
@@ -181,12 +190,15 @@ func main() {
 	sFlags := uint64(42)
 	sVal = "father"
 
-	provider = consul.Provider(consul.Config{
+	provider, err = consul.Provider(consul.Config{
 		Key:      sKey,
 		Recurse:  false,
 		Detailed: true,
 		Cfg:      api.DefaultConfig(),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate consul provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		fmt.Printf("error loading config: %v", err)
@@ -213,12 +225,15 @@ func main() {
 
 	sKey = "parent"
 
-	provider = consul.Provider(consul.Config{
+	provider, err = consul.Provider(consul.Config{
 		Key:      sKey,
 		Recurse:  true,
 		Detailed: true,
 		Cfg:      api.DefaultConfig(),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate consul provider: %v", err)
+	}
 
 	if err := kCheck.Load(provider, nil); err != nil {
 		fmt.Printf("error loading config: %v", err)
@@ -255,12 +270,15 @@ func main() {
 	// Watch test
 
 	sKey = "parent"
-	provider = consul.Provider(consul.Config{
+	provider, err = consul.Provider(consul.Config{
 		Key:      sKey,
 		Recurse:  true,
 		Detailed: false,
 		Cfg:      api.DefaultConfig(),
 	})
+	if err != nil {
+		log.Fatalf("Failed to instantiate consul provider: %v", err)
+	}
 
 	// Getting the old value
 	kCheck.Load(provider, nil)
