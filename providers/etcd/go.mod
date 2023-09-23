@@ -1,4 +1,4 @@
-module github.com/knadh/koanf/providers/etcd
+module github.com/knadh/koanf/providers/etcd/v2
 
 go 1.18
 
