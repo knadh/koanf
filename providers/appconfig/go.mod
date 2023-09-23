@@ -1,4 +1,4 @@
-module github.com/knadh/koanf/providers/appconfig
+module github.com/knadh/koanf/providers/appconfig/v2
 
 go 1.18
 

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/providers/appconfig"
+	"github.com/knadh/koanf/providers/appconfig/v2"
 	"github.com/knadh/koanf/v2"
 )
 
