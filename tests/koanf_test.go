@@ -634,15 +634,15 @@ func TestFlags(t *testing.T) {
 	bf := flag.NewFlagSet("test", flag.ContinueOnError)
 	bf.String("parent1.child1.type", "flag", "")
 	bf.Set("parent1.child1.type", "basicflag")
-	assert.Nil(k.Load(basicflag.Provider(bf, ".", k), nil), "error loading basicflag")
+	assert.Nil(k.Load(basicflag.Provider(bf, "."), nil), "error loading basicflag")
 	assert.Equal("basicflag", k.String("parent1.child1.type"), "types don't match")
 
 	// Test the basicflag provider can mutate the value to upper case
 	bf2 := flag.NewFlagSet("test", flag.ContinueOnError)
 	bf2.String("parent1.child1.type", "flag", "")
 	bf2.Set("parent1.child1.type", "basicflag")
-	assert.Nil(k.Load(basicflag.ProviderWithValue(bf2, ".", k, func(k string, v flag.Value) (string, interface{}) {
-		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v.String())
+	assert.Nil(k.Load(basicflag.ProviderWithValue(bf2, ".", func(k string, v string) (string, interface{}) {
+		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
 	}), nil), "error loading basicflag")
 	assert.Equal("BASICFLAG", k.String("parent1.child1.type"), "types don't match")
 
@@ -663,17 +663,18 @@ func Test_basicFlag_Load(t *testing.T) {
 	fs.Float64("key.float", 123.123, "")
 
 	k := koanf.New(".")
-	assert.Nil(t, k.Load(basicflag.Provider(fs, ".", k), nil))
+	assert.Nil(t, k.Load(basicflag.Provider(fs, ".", basicflag.WithEnableMerge(k)), nil))
 	assertFunc(t, k)
 
 	// Test load with a custom key, val callback.
 	k = koanf.New(".")
-	p := basicflag.ProviderWithValue(fs, ".", k, func(key string, value flag.Value) (string, any) {
-		if key == "key.float" {
-			return "", ""
-		}
-		return key, value.(flag.Getter).Get()
-	})
+	p := basicflag.Provider(fs, ".", basicflag.WithEnableMerge(k),
+		basicflag.WithCallBack(func(key string, value flag.Value) (string, any) {
+			if key == "key.float" {
+				return "", ""
+			}
+			return key, value.(flag.Getter).Get()
+		}))
 	assert.Nil(t, k.Load(p, nil), nil)
 	assert.Equal(t, "val1", k.String("key.one-example"))
 	assert.Equal(t, "val2", k.String("key.two_example"))
@@ -699,7 +700,7 @@ func TestLoad_basicFlag_Overridden(t *testing.T) {
 	k := koanf.New(".")
 	// Load JSON config.
 	assert.Nil(t, k.Load(file.Provider("../mock/mock.json"), json.Parser()), nil)
-	assert.Nil(t, k.Load(basicflag.Provider(fs, ".", k), nil))
+	assert.Nil(t, k.Load(basicflag.Provider(fs, ".", basicflag.WithEnableMerge(k)), nil))
 
 	assertFunc(t, k)
 }
