@@ -1,10 +1,10 @@
-module github.com/knadh/koanf/v2
+module github.com/knadh/koanf/parsers/vdf
 
-go 1.18
+go 1.21.1
 
 require (
 	github.com/andygrunwald/vdf v1.1.0
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
