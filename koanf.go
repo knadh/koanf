@@ -244,6 +244,23 @@ func (ko *Koanf) Unmarshal(path string, o interface{}) error {
 	return ko.UnmarshalWithConf(path, o, UnmarshalConf{})
 }
 
+// StrictUnmarshal is like Unmarshal but enforces an exact one-to-one mapping between
+// the configuration and struct fields, ensuring that every field in the configuration
+// must have a corresponding field in the struct, and vice versa.
+func (ko *Koanf) StrictUnmarshal(path string, o interface{}) error {
+	return ko.UnmarshalWithConf(path, o, UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				textUnmarshalerHookFunc()),
+			Metadata:         nil,
+			Result:           o,
+			WeaklyTypedInput: true,
+			ErrorUnset:       true,
+			ErrorUnused:      true,
+		}})
+}
+
 // UnmarshalWithConf is like Unmarshal but takes configuration params in UnmarshalConf.
 // See mitchellh/mapstructure's DecoderConfig for advanced customization
 // of the unmarshal behaviour.
