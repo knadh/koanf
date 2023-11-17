@@ -6,7 +6,7 @@
 
 koanf v2 has modules (Providers) for reading configuration from a variety of sources such as files, command line flags, environment variables, Vault, and S3 and for parsing (Parsers) formats such as JSON, YAML, TOML, Hashicorp HCL. It is easy to plug in custom parsers and providers.
 
-All external dependencies in providers and parsers are detatched from the core and can be installed separately as necessary.
+All external dependencies in providers and parsers are detached from the core and can be installed separately as necessary.
 
 [![Run Tests](https://github.com/knadh/koanf/actions/workflows/test.yml/badge.svg)](https://github.com/knadh/koanf/actions/workflows/test.yml) [![GoDoc](https://godoc.org/github.com/knadh/koanf?status.svg)](https://godoc.org/github.com/knadh/koanf) 
 
