@@ -137,5 +137,7 @@ func (f *File) Unwatch() error {
 			return err
 		}
 	}
+	// rest watchers list to an empty list
+	f.watchers = []*fsnotify.Watcher{}
 	return nil
 }
