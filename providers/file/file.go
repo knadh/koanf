@@ -15,8 +15,8 @@ import (
 
 // File implements a File provider.
 type File struct {
-	path     string
-	watchers []*fsnotify.Watcher
+	path string
+	w    *fsnotify.Watcher
 }
 
 // Provider returns a file provider.
@@ -49,7 +49,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	// the whole parent directory to pick up all events such as symlink changes.
 	fDir, _ := filepath.Split(f.path)
 
-	w, err := fsnotify.NewWatcher()
+	f.w, err = fsnotify.NewWatcher()
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	loop:
 		for {
 			select {
-			case event, ok := <-w.Events:
+			case event, ok := <-f.w.Events:
 				if !ok {
 					cb(nil, errors.New("fsnotify watch channel closed"))
 					break loop
@@ -109,7 +109,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 				cb(nil, nil)
 
 			// There's an error.
-			case err, ok := <-w.Errors:
+			case err, ok := <-f.w.Errors:
 				if !ok {
 					cb(nil, errors.New("fsnotify err channel closed"))
 					break loop
@@ -121,23 +121,14 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 			}
 		}
 
-		w.Close()
+		f.w.Close()
 	}()
-	f.watchers = append(f.watchers, w)
 	// Watch the directory for changes.
-	return w.Add(fDir)
+	return f.w.Add(fDir)
 }
 
 // Unwatch stops watching the files. It closes all the fsnotify watchers
 // and event channels associated with them.
 func (f *File) Unwatch() error {
-	for _, watcher := range f.watchers {
-		err := watcher.Close()
-		if err != nil {
-			return err
-		}
-	}
-	// rest watchers list to an empty list
-	f.watchers = []*fsnotify.Watcher{}
-	return nil
+	return f.w.Close()
 }
