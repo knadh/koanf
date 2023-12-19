@@ -15,8 +15,7 @@ type Opt struct {
 }
 
 // KoanfIntf is an interface that represents a small subset of methods
-// used by this package from Koanf{}. When using this package, a live
-// instance of Koanf{} should be passed.
+// used by this package from Koanf{}.
 type KoanfIntf interface {
 	Exists(string) bool
 }
@@ -35,13 +34,10 @@ type Pflag struct {
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
 //
-// It takes an optional Opt{} (but recommended) argument with a Koanf instance (opt.KeyMap) to see if the
-// the flags defined have been set from other providers, for instance,
-// a config file. If they are not, then the default values of the flags
-// are merged. If they do exist, the flag values are not merged but only
-// the values that have been explicitly set in the command line are merged.
-// It is a variadic function as a hack to ensure backwards compatibility with the
-// function definition.
+// It takes an optional (but recommended) Opt{} argument containing a Koanf instance.
+// It checks if the defined flags have been set by other providers (e.g., a config file).
+// If not, default flag values are merged. If they exist, flag values are merged only if
+// explicitly set in the command line. The function is variadic to maintain backward compatibility.
 // See https://github.com/knadh/koanf/issues/255
 func Provider(f *flag.FlagSet, delim string, opt ...*Opt) *Pflag {
 	pf := &Pflag{
