@@ -1,4 +1,4 @@
-module github.com/developing-today-forks/koanf/parsers/kdl
+module github.com/developing-today-forks/koanf/v2/parsers/kdl
 
 go 1.18
 
