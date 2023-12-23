@@ -19,6 +19,7 @@ import (
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
 	"github.com/knadh/koanf/parsers/json"
+	"github.com/knadh/koanf/parsers/kdl"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/basicflag"
@@ -40,6 +41,7 @@ const (
 	mockJSON   = mockDir + "/mock.json"
 	mockYAML   = mockDir + "/mock.yml"
 	mockTOML   = mockDir + "/mock.toml"
+	mockKDL    = mockDir + "/mock.kdl"
 	mockHCL    = mockDir + "/mock.hcl"
 	mockProp   = mockDir + "/mock.prop"
 	mockDotEnv = mockDir + "/mock.env"
@@ -71,7 +73,7 @@ var flatTestAll = `COMMENT -> AFTER
 MORE -> vars
 MiXeD -> CaSe
 UPPER -> CASE
-empty -> 
+empty ->
 lower -> case
 quotedSpecial -> j18120734xn2&*@#*&R#d1j23d*(*)`
 
@@ -285,6 +287,7 @@ var cases = []Case{
 	{koanf: koanf.New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
 	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
 	{koanf: koanf.New(delim), file: mockHJSON, parser: hjson.Parser(), typeName: "hjson"},
+	{koanf: koanf.New(delim), file: mockKDL, parser: kdl.Parser(), typeName: "kdl"},
 }
 
 func init() {
@@ -302,6 +305,9 @@ func init() {
 		log.Fatalf("error loading config file: %v", err)
 	}
 	if err := cases[4].koanf.Load(file.Provider(cases[4].file), hjson.Parser()); err != nil {
+		log.Fatalf("error loading config file: %v", err)
+	}
+	if err := cases[5].koanf.Load(file.Provider(cases[5].file), kdl.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
 
