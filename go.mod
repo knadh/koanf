@@ -1,4 +1,4 @@
-module github.com/developing-today-forks/koanf/v2
+module github.com/knadh/koanf/v2
 
 go 1.18
 
