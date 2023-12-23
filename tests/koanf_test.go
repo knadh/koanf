@@ -73,7 +73,7 @@ var flatTestAll = `COMMENT -> AFTER
 MORE -> vars
 MiXeD -> CaSe
 UPPER -> CASE
-empty ->
+empty -> 
 lower -> case
 quotedSpecial -> j18120734xn2&*@#*&R#d1j23d*(*)`
 
