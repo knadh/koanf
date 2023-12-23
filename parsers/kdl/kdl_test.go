@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJSON_Unmarshal(t *testing.T) {
+func TestKDL_Unmarshal(t *testing.T) {
 	testCases := []struct {
 		name   string
 		input  []byte
@@ -15,43 +15,31 @@ func TestJSON_Unmarshal(t *testing.T) {
 		isErr  bool
 	}{
 		{
-			name:  "Empty JSON",
-			input: []byte(`{}`),
+			name:  "Empty KDL",
+			input: []byte(``),
 		},
 		{
-			name: "Valid JSON",
-			input: []byte(`{
-						"key": "val",
-						"name": "test",
-						"number": 2
-					}`),
+			name:   "Valid KDL",
+			input:  []byte(`node1 key="val" name="test" number=2`),
 			keys:   []string{"key", "name", "number"},
 			values: []interface{}{"val", "test", 2.0},
 		},
 		{
-			name: "Invalid JSON - missing curly brace",
-			input: []byte(`{
-						"key": "val",`),
+			name:  "Invalid KDL - syntax error",
+			input: []byte(`node1 key="val`),
 			isErr: true,
 		},
 		{
-			name: "Complex JSON - All types",
-			input: []byte(`{
-						  "array": [
-							1,
-							2,
-							3
-						  ],
-						  "boolean": true,
-						  "color": "gold",
-						  "null": null,
-						  "number": 123,
-						  "object": {
-							"a": "b",
-							"c": "d"
-						  },
-						  "string": "Hello World"
-						}`),
+			name: "Complex KDL - Different types",
+			input: []byte(`
+				node1 array=[1, 2, 3]
+				node2 boolean=true
+				node3 color="gold"
+				node4 null=null
+				node5 number=123
+				node6 object={a="b" c="d"}
+				node7 string="Hello World"
+			`),
 			keys: []string{"array", "boolean", "color", "null", "number", "object", "string"},
 			values: []interface{}{[]interface{}{1.0, 2.0, 3.0},
 				true,
@@ -62,26 +50,17 @@ func TestJSON_Unmarshal(t *testing.T) {
 				"Hello World"},
 		},
 		{
-			name: "Invalid JSON - missing comma",
-			input: []byte(`{
- 					 	"boolean": true
-  						"number": 123
-						}`),
-			isErr: true,
-		},
-		{
-			name: "Invalid JSON - Redundant comma",
-			input: []byte(`{
-  						"number": 123,
-						}`),
+			name:  "Invalid KDL - missing value",
+			input: []byte(`node1 boolean=`),
 			isErr: true,
 		},
 	}
-	j := Parser()
+
+	k := Parser() // Assuming Parser() is implemented for KDL
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			out, err := j.Unmarshal(tc.input)
+			out, err := k.Unmarshal(tc.input)
 			if tc.isErr {
 				assert.NotNil(t, err)
 			} else {
@@ -95,7 +74,7 @@ func TestJSON_Unmarshal(t *testing.T) {
 	}
 }
 
-func TestJSON_Marshal(t *testing.T) {
+func TestKDL_Marshal(t *testing.T) {
 	testCases := []struct {
 		name   string
 		input  map[string]interface{}
@@ -103,21 +82,21 @@ func TestJSON_Marshal(t *testing.T) {
 		isErr  bool
 	}{
 		{
-			name:   "Empty JSON",
+			name:   "Empty KDL",
 			input:  map[string]interface{}{},
-			output: []byte(`{}`),
+			output: []byte(``),
 		},
 		{
-			name: "Valid JSON",
+			name: "Valid KDL",
 			input: map[string]interface{}{
 				"key":    "val",
 				"name":   "test",
 				"number": 2.0,
 			},
-			output: []byte(`{"key":"val","name":"test","number":2}`),
+			output: []byte(`node key="val" name="test" number=2`),
 		},
 		{
-			name: "Complex JSON - All types",
+			name: "Complex KDL - Different types",
 			input: map[string]interface{}{
 				"array":   []interface{}{1, 2, 3, 4, 5},
 				"boolean": true,
@@ -127,20 +106,21 @@ func TestJSON_Marshal(t *testing.T) {
 				"object":  map[string]interface{}{"a": "b", "c": "d"},
 				"string":  "Hello World",
 			},
-			output: []byte(`{"array":[1,2,3,4,5],"boolean":true,"color":"gold","null":null,"number":123,"object":{"a":"b","c":"d"},"string":"Hello World"}`),
+			output: []byte(`node array=[1,2,3,4,5] boolean=true color="gold" null=null number=123 object={a="b" c="d"} string="Hello World"`),
 		},
 	}
 
-	j := Parser()
+	k := Parser() // Assuming Parser() is implemented for KDL
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			out, err := j.Marshal(tc.input)
+			out, err := k.Marshal(tc.input)
 			if tc.isErr {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
 				assert.Equal(t, tc.output, out)
+
 			}
 		})
 	}

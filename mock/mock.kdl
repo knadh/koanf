@@ -4,7 +4,7 @@ parent1 {
 
     child1 {
         name "child1"
-        type "json"
+        type "kdl"
 
         grandchild1 {
             ids 1 2 3
