@@ -42,20 +42,20 @@ type MergeOptions struct {
 	ArgumentsAlwaysIncluded bool
 }
 
-type Options struct {
+type KDLOptions struct {
 	ParseStrategy ParseStrategy
 	MergeOptions  MergeOptions
 }
 
 // KDL implements a KDL parser.
-type KDL struct{ options Options }
+type KDL struct{ Options KDLOptions }
 
-func (p *KDL) SetOptions(o Options) {
-	p.options = o
+func (p *KDL) SetOptions(o KDLOptions) {
+	p.Options = o
 }
 
-func (p *KDL) Options() Options {
-	return p.options
+func (p *KDL) GetOptions() KDLOptions {
+	return p.Options
 }
 
 func DefaultMergeOptions() MergeOptions {
@@ -73,28 +73,28 @@ func DefaultMergeOptions() MergeOptions {
 	}
 }
 
-func DefaultPrimitiveOptions() Options {
-	return Options{
+func DefaultPrimitiveOptions() KDLOptions {
+	return KDLOptions{
 		ParseStrategy: Primitive,
 		MergeOptions:  DefaultMergeOptions(),
 	}
 }
 
-func DefaultNodeMapOptions() Options {
-	return Options{
+func DefaultNodeMapOptions() KDLOptions {
+	return KDLOptions{
 		ParseStrategy: NodeMap,
 		MergeOptions:  DefaultMergeOptions(),
 	}
 }
 
-func DefaultStringMapOptions() Options {
-	return Options{
+func DefaultStringMapOptions() KDLOptions {
+	return KDLOptions{
 		ParseStrategy: StringMap,
 		MergeOptions:  DefaultMergeOptions(),
 	}
 }
 
-func DefaultOptions() Options {
+func DefaultOptions() KDLOptions {
 	return DefaultStringMapOptions()
 }
 
@@ -103,11 +103,23 @@ func Parser() *KDL {
 	return &KDL{DefaultOptions()}
 }
 
+func NodeMapParser() *KDL {
+	return &KDL{DefaultNodeMapOptions()}
+}
+
+func StringMapParser() *KDL {
+	return &KDL{DefaultStringMapOptions()}
+}
+
+func PrimitiveParser() *KDL {
+	return &KDL{DefaultPrimitiveOptions()}
+}
+
 // Unmarshal parses the given KDL bytes.
 //
 // In case of KDL, nodes are parsed as-so to allow access to nested keys and use lists.
 // alternative representations which directly use kdl nodes should be possible,
-// using options in the struct to choose between each and also set any kdl-go options.
+// using Options in the struct to choose between each and also set any kdl-go Options.
 //
 // - all documents become string-maps
 //
@@ -147,35 +159,35 @@ func (p *KDL) MergeArguments(src []*k.Value, dest map[string]interface{}) (map[s
 	if src == nil {
 		return dest, nil
 	}
-	if len(src) > 0 || p.options.MergeOptions.ArgumentsAlwaysIncluded {
-		_, exists := dest[p.options.MergeOptions.ArgumentsPropertyKey]
+	if len(src) > 0 || p.Options.MergeOptions.ArgumentsAlwaysIncluded {
+		_, exists := dest[p.Options.MergeOptions.ArgumentsPropertyKey]
 		switch {
-		case exists && (p.options.MergeOptions.Arguments == Strict || p.options.MergeOptions.Strict):
+		case exists && (p.Options.MergeOptions.Arguments == Strict || p.Options.MergeOptions.Strict):
 			return dest, fmt.Errorf("arguments already exist in destination and strict mode is enabled")
-		case exists && p.options.MergeOptions.Arguments == Skip:
+		case exists && p.Options.MergeOptions.Arguments == Skip:
 			return dest, nil
 		}
 
 		switch {
-		case p.options.MergeOptions.Arguments == Overwrite || !exists || len(src) == 0 || p.options.MergeOptions.ArgumentsAlwaysProperty || p.options.MergeOptions.ArgumentsAlwaysArray:
+		case p.Options.MergeOptions.Arguments == Overwrite || !exists || len(src) == 0 || p.Options.MergeOptions.ArgumentsAlwaysProperty || p.Options.MergeOptions.ArgumentsAlwaysArray:
 			switch {
-			case len(src) > 1 || p.options.MergeOptions.ArgumentsAlwaysProperty:
-				if p.options.MergeOptions.ArgumentsAlwaysArray || len(src) > 1 {
-					dest[p.options.MergeOptions.ArgumentsPropertyKey] = src
+			case len(src) > 1 || p.Options.MergeOptions.ArgumentsAlwaysProperty:
+				if p.Options.MergeOptions.ArgumentsAlwaysArray || len(src) > 1 {
+					dest[p.Options.MergeOptions.ArgumentsPropertyKey] = src
 				} else {
-					dest[p.options.MergeOptions.ArgumentsPropertyKey] = src[0]
+					dest[p.Options.MergeOptions.ArgumentsPropertyKey] = src[0]
 				}
 			case len(src) == 1:
-				if p.options.MergeOptions.ArgumentsAlwaysArray {
-					dest[p.options.MergeOptions.ArgumentsPropertyKey] = src
+				if p.Options.MergeOptions.ArgumentsAlwaysArray {
+					dest[p.Options.MergeOptions.ArgumentsPropertyKey] = src
 				} else {
-					dest[p.options.MergeOptions.ArgumentsPropertyKey] = src[0]
+					dest[p.Options.MergeOptions.ArgumentsPropertyKey] = src[0]
 				}
 			default:
-				dest[p.options.MergeOptions.ArgumentsPropertyKey] = src
+				dest[p.Options.MergeOptions.ArgumentsPropertyKey] = src
 			}
 		default:
-			return dest, fmt.Errorf("unimplemented merge strategy: %v", p.options.MergeOptions.Arguments)
+			return dest, fmt.Errorf("unimplemented merge strategy: %v", p.Options.MergeOptions.Arguments)
 		}
 	}
 	return dest, nil
@@ -190,18 +202,18 @@ func (p *KDL) MergeProperties(src *k.Properties, dest map[string]interface{}) (m
 	}
 
 	switch {
-	case p.options.MergeOptions.Properties == Strict || p.options.MergeOptions.Strict:
+	case p.Options.MergeOptions.Properties == Strict || p.Options.MergeOptions.Strict:
 		for k, v := range *src {
 			if _, exists := dest[k]; exists {
 				return dest, fmt.Errorf("property %s already exists in destination and strict mode is enabled", k)
 			}
 			dest[k] = v
 		}
-	case p.options.MergeOptions.Properties == Overwrite:
+	case p.Options.MergeOptions.Properties == Overwrite:
 		for k, v := range *src {
 			dest[k] = v
 		}
-	case p.options.MergeOptions.Properties == Skip:
+	case p.Options.MergeOptions.Properties == Skip:
 		for k, v := range *src {
 			if _, exists := dest[k]; exists {
 				continue
@@ -209,7 +221,7 @@ func (p *KDL) MergeProperties(src *k.Properties, dest map[string]interface{}) (m
 			dest[k] = v
 		}
 	default:
-		return dest, fmt.Errorf("unimplemented merge strategy: %v", p.options.MergeOptions.Properties)
+		return dest, fmt.Errorf("unimplemented merge strategy: %v", p.Options.MergeOptions.Properties)
 	}
 
 	return dest, nil
@@ -224,16 +236,16 @@ func (p *KDL) MergeNode(src *k.Node, dest map[string]interface{}) (map[string]in
 	}
 
 	_, destExists := dest[src.Name.ValueString()] // value will be needed for overlay and append
-	// strategy := Strategy{p.options.ParseStrategy, p.options.MergeOptions.Nodes, reflect.TypeOf(src), reflect.TypeOf(destValue), !destExists, p.options.MergeOptions.Strict}
+	// strategy := Strategy{p.Options.ParseStrategy, p.Options.MergeOptions.Nodes, reflect.TypeOf(src), reflect.TypeOf(destValue), !destExists, p.Options.MergeOptions.Strict}
 
 	switch {
-	case !destExists && p.options.MergeOptions.Strict:
+	case !destExists && p.Options.MergeOptions.Strict:
 		return dest, fmt.Errorf("node %s already exists in destination", src.Name)
-	case !destExists && p.options.MergeOptions.Nodes == Skip:
+	case !destExists && p.Options.MergeOptions.Nodes == Skip:
 		return dest, nil
-	case p.options.ParseStrategy == NodeMap && (p.options.MergeOptions.Nodes == Overwrite || !destExists) && len(src.Children) == 0:
+	case p.Options.ParseStrategy == NodeMap && (p.Options.MergeOptions.Nodes == Overwrite || !destExists) && len(src.Children) == 0:
 		dest[src.Name.ValueString()] = src
-	case p.options.ParseStrategy == NodeMap && (p.options.MergeOptions.Nodes == Overwrite || !destExists):
+	case p.Options.ParseStrategy == NodeMap && (p.Options.MergeOptions.Nodes == Overwrite || !destExists):
 		var result map[string]interface{}
 		var err error
 		switch {
@@ -247,10 +259,10 @@ func (p *KDL) MergeNode(src *k.Node, dest map[string]interface{}) (map[string]in
 		case
 			len(src.Properties) == 0 &&
 				len(src.Children) == 0 &&
-				!p.options.MergeOptions.ArgumentsAlwaysProperty &&
-				(len(src.Arguments) > 0 || p.options.MergeOptions.ArgumentsAlwaysIncluded):
+				!p.Options.MergeOptions.ArgumentsAlwaysProperty &&
+				(len(src.Arguments) > 0 || p.Options.MergeOptions.ArgumentsAlwaysIncluded):
 			switch {
-			case p.options.MergeOptions.ArgumentsAlwaysArray || len(src.Arguments) > 1:
+			case p.Options.MergeOptions.ArgumentsAlwaysArray || len(src.Arguments) > 1:
 				dest[src.Name.ValueString()] = src.Arguments
 			case len(src.Arguments) == 1:
 				dest[src.Name.ValueString()] = src.Arguments[0]
@@ -272,7 +284,7 @@ func (p *KDL) MergeNode(src *k.Node, dest map[string]interface{}) (map[string]in
 			dest[src.Name.ValueString()] = result
 		}
 	default:
-		return dest, fmt.Errorf("unimplemented parse strategy: %v merge strategy: %v", p.options.ParseStrategy, p.options.MergeOptions.Nodes)
+		return dest, fmt.Errorf("unimplemented parse strategy: %v merge strategy: %v", p.Options.ParseStrategy, p.Options.MergeOptions.Nodes)
 	}
 	return dest, nil
 }
@@ -295,7 +307,7 @@ func (p *KDL) MergeNodes(src []*k.Node, dest map[string]interface{}) (map[string
 func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
 	var input interface{}
 	var err error
-	if p.options.ParseStrategy == StringMap {
+	if p.Options.ParseStrategy == StringMap {
 		if err := kdl.Unmarshal(b, &input); err != nil {
 			return nil, err
 		}

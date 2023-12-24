@@ -288,6 +288,7 @@ var cases = []Case{
 	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
 	{koanf: koanf.New(delim), file: mockHJSON, parser: hjson.Parser(), typeName: "hjson"},
 	{koanf: koanf.New(delim), file: mockKDL, parser: kdl.Parser(), typeName: "kdl"},
+	{koanf: koanf.New(delim), file: mockKDL, parser: kdl.NodeMapParser(), typeName: "kdl-node-map"},
 }
 
 var emptyIsNilCases = []string{"kdl"}
@@ -383,8 +384,6 @@ func TestLoadFileAllKeys(t *testing.T) {
 		// Replace the "type" fields that varies across different files
 		// to do a complete key -> value map match with testAll.
 		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
-		// if contains(emptyIsNilCases, c.typeName) {
-		// if strings.Contains(c.typeName, "kdl") {
 
 		if arrayContains(emptyIsNilCases, c.typeName) {
 			s = strings.Replace(s, "empty -> <nil>", "empty -> map[]", -1)
