@@ -42,7 +42,7 @@ func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
 // Marshal marshals the given config map to KDL bytes.
 func (p *KDL) Marshal(o map[string]interface{}) ([]byte, error) {
 	wrapper := map[string]interface{}{
-		"root": o,
+		"config": o,
 	}
 	return kdl.Marshal(wrapper)
 }
