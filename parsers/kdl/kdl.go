@@ -3,6 +3,7 @@ package kdl
 
 import (
 	"fmt"
+	"reflect"
 
 	kdl "github.com/sblinch/kdl-go"
 	k "github.com/sblinch/kdl-go/document"
@@ -285,19 +286,31 @@ func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
 		return nil, nil
 	}
 
-	doc, ok := input.(*k.Document)
-	if !ok {
-		return nil, fmt.Errorf("input is not a kdl document, type: %T value: %v", input, input)
+	// doc, ok := input.(*k.Document)
+	// if !ok {
+	// 	return nil, fmt.Errorf("input is not a kdl document, type: %T value: %v", input, input)
+	// }
+	// docType, reflect
+	// if its a string map then return that, if its a document then do below
+	// get type with reflect
+	inputType := reflect.TypeOf(input)
+
+	switch {
+	case inputType == reflect.TypeOf(k.Document{}):
+		var dest map[string]interface{}
+
+		dest, err := p.MergeNodes(input.(*k.Document).Nodes, dest)
+
+		if err != nil {
+			return dest, err
+		}
+	case inputType == reflect.TypeOf(map[string]interface{}{}):
+		return input.(map[string]interface{}), nil
+	default:
+		return nil, fmt.Errorf("unimplemented input type: %v", inputType)
 	}
-	var dest map[string]interface{}
 
-	dest, err := p.MergeNodes(doc.Nodes, dest)
-
-	if err != nil {
-		return dest, err
-	}
-
-	return dest, err
+	return nil, fmt.Errorf("unimplemented")
 }
 
 // Marshal marshals the given config map to KDL bytes.
