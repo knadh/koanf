@@ -2,6 +2,7 @@
 package kdl
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 
@@ -16,6 +17,7 @@ type ParseStrategy int
 const (
 	Primitive ParseStrategy = iota
 	NodeMap
+	StringMap
 )
 
 type MergeStrategy int
@@ -85,9 +87,20 @@ func DefaultNodeMapOptions() Options {
 	}
 }
 
+func DefaultStringMapOptions() Options {
+	return Options{
+		ParseStrategy: StringMap,
+		MergeOptions:  DefaultMergeOptions(),
+	}
+}
+
+func DefaultOptions() Options {
+	return DefaultStringMapOptions()
+}
+
 // Parser returns a KDL Parser.
 func Parser() *KDL {
-	return &KDL{DefaultPrimitiveOptions()}
+	return &KDL{DefaultOptions()}
 }
 
 // Unmarshal parses the given KDL bytes.
@@ -281,20 +294,21 @@ func (p *KDL) MergeNodes(src []*k.Node, dest map[string]interface{}) (map[string
 
 func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
 	var input interface{}
-	if err := kdl.Unmarshal(b, &input); err != nil {
-		return nil, err
+	var err error
+	if p.options.ParseStrategy == StringMap {
+		if err := kdl.Unmarshal(b, &input); err != nil {
+			return nil, err
+		}
+	} else {
+		byteReader := bytes.NewReader(b)
+		if input, err = kdl.Parse(byteReader); err != nil {
+			return nil, err
+		}
 	}
 	if input == nil {
 		return nil, nil
 	}
 
-	// doc, ok := input.(*k.Document)
-	// if !ok {
-	// 	return nil, fmt.Errorf("input is not a kdl document, type: %T value: %v", input, input)
-	// }
-	// docType, reflect
-	// if its a string map then return that, if its a document then do below
-	// get type with reflect
 	inputType := reflect.TypeOf(input)
 
 	switch {
