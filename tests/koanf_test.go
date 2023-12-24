@@ -986,14 +986,27 @@ func TestUnmarshal(t *testing.T) {
 		assert.Nil(k.Unmarshal("", &ts), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
-		assert.Equal(real, ts, "unmarshalled structs don't match")
-
+		if arrayContains(emptyIsNilCases, c.typeName) {
+			copied := real
+			copied.Empty = nil
+			copied.Parent1.Child1.Empty = nil
+			assert.Equal(copied, ts, "unmarshalled structs don't match")
+		} else {
+			assert.Equal(real, ts, "unmarshalled structs don't match")
+		}
 		// Unmarshal with config.
 		ts = testStruct{}
 		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
-		assert.Equal(real, ts, "unmarshalled structs don't match")
+		if arrayContains(emptyIsNilCases, c.typeName) {
+			copied := real
+			copied.Empty = nil
+			copied.Parent1.Child1.Empty = nil
+			assert.Equal(copied, ts, "unmarshalled structs don't match")
+		} else {
+			assert.Equal(real, ts, "unmarshalled structs don't match")
+		}
 	}
 }
 
