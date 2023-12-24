@@ -1162,7 +1162,12 @@ func TestGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
 		assert.Equal(nil, c.koanf.Get("xxx"))
-		assert.Equal(make(map[string]interface{}), c.koanf.Get("empty"))
+
+		if arrayContains(emptyIsNilCases, c.typeName) {
+			assert.Equal(nil, c.koanf.Get("empty"))
+		} else {
+			assert.Equal(map[string]interface{}{}, c.koanf.Get("empty"))
+		}
 
 		// Int.
 		assert.Equal(int64(0), c.koanf.Int64("xxxx"))
