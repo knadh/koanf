@@ -35,7 +35,7 @@ func TestKDL_Unmarshal(t *testing.T) {
 				array 1 2 3
 				boolean true
 				color "gold"
-				null null
+				"null" null
 				number 123
 				object a="b" c="d" e=2.7 f=true
 				string "Hello World"
@@ -57,51 +57,53 @@ func TestKDL_Unmarshal(t *testing.T) {
 		{
 			name: "Complex KDL - Nested map",
 			input: []byte(`key "value"
-				map skipped
-			  map key=skipped key="value"
-				nested_map {
-					map key="value" 17 {
-						list "item1" "item2" "item3"
-						mixup ""=1 2 3 4
-						first "first"=1 2 3 4
-						child ""=1 2 3 4 { "" 5 }
-					}`),
+					map "skipped"
+					map key="skipped" key="value"
+					nested_map {
+						map key="value" 17 {
+							list "item1" "item2" "item3"
+							mixup ""=1 2 3 4
+							first "first"=1 2 3 4
+							child ""=1 2 3 4 { "" 5 ; "" 6 ; }
+						}
+					}
+				`),
 			keys: []string{"key", "map", "nested_map"},
 			values: []interface{}{
-					"value",
-					map[string]interface{}{
+				"value",
+				map[string]interface{}{
+					"key": "value",
+				},
+				map[string]interface{}{
+					"map": map[string]interface{}{
+						"":    17,
 						"key": "value",
-					},
-					map[string]interface{}{
-						"map": map[string]interface{}{
-							"": 17
-							"key": "value",
-							"list": []interface{}{
-								"item1",
-								"item2",
-								"item3",
-							},
-							"miupx": map[string]interface{}{
-								"": []interface{}{
-									2,
-									3,
-									4,
-								},
-							},
-							"first": map[string]interface{}{
-								"first": 1,
-								"": []interface{}{
-									2,
-									3,
-									4,
-								},
-							},
-							"child": map[string]interface{}{
-								"": 5,
+						"list": []interface{}{
+							"item1",
+							"item2",
+							"item3",
+						},
+						"mixup": map[string]interface{}{
+							"": []interface{}{
+								2,
+								3,
+								4,
 							},
 						},
+						"first": map[string]interface{}{
+							"first": 1,
+							"": []interface{}{
+								2,
+								3,
+								4,
+							},
+						},
+						"child": map[string]interface{}{
+							"": 6,
+						},
 					},
-				}
+				},
+			},
 		},
 	}
 

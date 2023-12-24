@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 
+	"log"
+
 	kdl "github.com/sblinch/kdl-go"
 	k "github.com/sblinch/kdl-go/document"
 )
@@ -300,12 +302,14 @@ func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
 		var dest map[string]interface{}
 
 		dest, err := p.MergeNodes(input.(*k.Document).Nodes, dest)
+		log.Println("dest: ", dest)
 
 		if err != nil {
 			return dest, err
 		}
 	case inputType == reflect.TypeOf(map[string]interface{}{}):
 		return input.(map[string]interface{}), nil
+
 	default:
 		return nil, fmt.Errorf("unimplemented input type: %v", inputType)
 	}
