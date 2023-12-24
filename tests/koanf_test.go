@@ -73,7 +73,7 @@ var flatTestAll = `COMMENT -> AFTER
 MORE -> vars
 MiXeD -> CaSe
 UPPER -> CASE
-empty -> 
+empty ->
 lower -> case
 quotedSpecial -> j18120734xn2&*@#*&R#d1j23d*(*)`
 
@@ -531,7 +531,7 @@ func TestWatchFileSymlink(t *testing.T) {
 	// Create a temp symlink to the YAML file and rename the old symlink to the new
 	// symlink. We do this to avoid removing the symlink and triggering a REMOVE event.
 	time.Sleep(1 * time.Second)
-	assert.NoError(os.Rename(symPath2, symPath), "error swaping symlink to another file type")
+	assert.NoError(os.Rename(symPath2, symPath), "error swapping symlink to another file type")
 	wg.Wait()
 
 	assert.Condition(func() bool {
