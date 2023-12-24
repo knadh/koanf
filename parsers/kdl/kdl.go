@@ -83,7 +83,7 @@ func DefaultNodeMapOptions() Options {
 }
 
 // Parser returns a KDL Parser.
-func (p *KDL) Parser() *KDL {
+func Parser() *KDL {
 	return &KDL{DefaultPrimitiveOptions()}
 }
 
