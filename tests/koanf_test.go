@@ -19,7 +19,6 @@ import (
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
 	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/parsers/kdl"
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/basicflag"
@@ -41,7 +40,6 @@ const (
 	mockJSON   = mockDir + "/mock.json"
 	mockYAML   = mockDir + "/mock.yml"
 	mockTOML   = mockDir + "/mock.toml"
-	mockKDL    = mockDir + "/mock.kdl"
 	mockHCL    = mockDir + "/mock.hcl"
 	mockProp   = mockDir + "/mock.prop"
 	mockDotEnv = mockDir + "/mock.env"
@@ -287,10 +285,7 @@ var cases = []Case{
 	{koanf: koanf.New(delim), file: mockTOML, parser: toml.Parser(), typeName: "toml"},
 	{koanf: koanf.New(delim), file: mockHCL, parser: hcl.Parser(true), typeName: "hcl"},
 	{koanf: koanf.New(delim), file: mockHJSON, parser: hjson.Parser(), typeName: "hjson"},
-	{koanf: koanf.New(delim), file: mockKDL, parser: kdl.Parser(), typeName: "kdl"},
 }
-
-var emptyIsNilCases = []string{"kdl"}
 
 func init() {
 	// Preload 4 Koanf instances with their providers and config.
@@ -307,9 +302,6 @@ func init() {
 		log.Fatalf("error loading config file: %v", err)
 	}
 	if err := cases[4].koanf.Load(file.Provider(cases[4].file), hjson.Parser()); err != nil {
-		log.Fatalf("error loading config file: %v", err)
-	}
-	if err := cases[5].koanf.Load(file.Provider(cases[5].file), kdl.Parser()); err != nil {
 		log.Fatalf("error loading config file: %v", err)
 	}
 
@@ -361,15 +353,6 @@ func TestLoadFlatFileAllKeys(t *testing.T) {
 	}
 }
 
-func arrayContains(slice []string, item string) bool {
-	for _, v := range slice {
-		if v == item {
-			return true
-		}
-	}
-	return false
-}
-
 func TestLoadFileAllKeys(t *testing.T) {
 	assert := assert.New(t)
 	re, _ := regexp.Compile("(.+?)?type \\-> (.*)\n")
@@ -383,10 +366,6 @@ func TestLoadFileAllKeys(t *testing.T) {
 		// Replace the "type" fields that varies across different files
 		// to do a complete key -> value map match with testAll.
 		s := strings.TrimSpace(re.ReplaceAllString(c.koanf.Sprint(), ""))
-
-		if arrayContains(emptyIsNilCases, c.typeName) {
-			s = strings.Replace(s, "empty -> <nil>", "empty -> map[]", -1)
-		}
 		assert.Equal(testAll, s, fmt.Sprintf("key -> value list mismatch: %v", c.typeName))
 	}
 }
@@ -546,7 +525,7 @@ func TestWatchFileSymlink(t *testing.T) {
 	// Create a temp symlink to the YAML file and rename the old symlink to the new
 	// symlink. We do this to avoid removing the symlink and triggering a REMOVE event.
 	time.Sleep(1 * time.Second)
-	assert.NoError(os.Rename(symPath2, symPath), "error swapping symlink to another file type")
+	assert.NoError(os.Rename(symPath2, symPath), "error swaping symlink to another file type")
 	wg.Wait()
 
 	assert.Condition(func() bool {
@@ -984,27 +963,14 @@ func TestUnmarshal(t *testing.T) {
 		assert.Nil(k.Unmarshal("", &ts), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
-		if arrayContains(emptyIsNilCases, c.typeName) {
-			copied := real
-			copied.Empty = nil
-			copied.Parent1.Child1.Empty = nil
-			assert.Equal(copied, ts, "unmarshalled structs don't match")
-		} else {
-			assert.Equal(real, ts, "unmarshalled structs don't match")
-		}
+		assert.Equal(real, ts, "unmarshalled structs don't match")
+
 		// Unmarshal with config.
 		ts = testStruct{}
 		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1.Child1.Type = c.typeName
-		if arrayContains(emptyIsNilCases, c.typeName) {
-			copied := real
-			copied.Empty = nil
-			copied.Parent1.Child1.Empty = nil
-			assert.Equal(copied, ts, "unmarshalled structs don't match")
-		} else {
-			assert.Equal(real, ts, "unmarshalled structs don't match")
-		}
+		assert.Equal(real, ts, "unmarshalled structs don't match")
 	}
 }
 
@@ -1033,14 +999,7 @@ func TestUnmarshalFlat(t *testing.T) {
 		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true}), "unmarshal failed")
 		real.Type = c.typeName
 		real.Parent1Child1Type = c.typeName
-		if arrayContains(emptyIsNilCases, c.typeName) {
-			copied := real
-			copied.Empty = nil
-			copied.Parent1Child1Empty = nil
-			assert.Equal(copied, ts, "unmarshalled structs don't match")
-		} else {
-			assert.Equal(real, ts, "unmarshalled structs don't match")
-		}
+		assert.Equal(real, ts, "unmarshalled structs don't match")
 	}
 }
 
@@ -1160,12 +1119,7 @@ func TestGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
 		assert.Equal(nil, c.koanf.Get("xxx"))
-
-		if arrayContains(emptyIsNilCases, c.typeName) {
-			assert.Equal(nil, c.koanf.Get("empty"))
-		} else {
-			assert.Equal(map[string]interface{}{}, c.koanf.Get("empty"))
-		}
+		assert.Equal(make(map[string]interface{}), c.koanf.Get("empty"))
 
 		// Int.
 		assert.Equal(int64(0), c.koanf.Int64("xxxx"))
