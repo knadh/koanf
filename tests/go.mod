@@ -8,7 +8,6 @@ replace (
 	github.com/knadh/koanf/parsers/hcl => ../parsers/hcl
 	github.com/knadh/koanf/parsers/hjson => ../parsers/hjson
 	github.com/knadh/koanf/parsers/json => ../parsers/json
-	github.com/knadh/koanf/parsers/kdl => ../parsers/kdl
 	github.com/knadh/koanf/parsers/toml => ../parsers/toml
 	github.com/knadh/koanf/parsers/yaml => ../parsers/yaml
 	github.com/knadh/koanf/providers/basicflag => ../providers/basicflag
@@ -28,7 +27,6 @@ require (
 	github.com/knadh/koanf/parsers/hcl v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/hjson v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/json v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf/parsers/kdl v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/toml v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/yaml v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/basicflag v0.0.0-00010101000000-000000000000
@@ -56,7 +54,6 @@ require (
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/sblinch/kdl-go v0.0.0-20231112203113-9fa9a505b79a // indirect
 	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
