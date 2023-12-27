@@ -2,9 +2,6 @@
 package kdl
 
 import (
-	"fmt"
-	"reflect"
-
 	kdl "github.com/sblinch/kdl-go"
 )
 
@@ -18,23 +15,9 @@ func Parser() *KDL {
 
 // Unmarshal parses the given KDL bytes.
 func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var input interface{}
-	if err := kdl.Unmarshal(b, &input); err != nil {
-		return nil, err
-	}
-	if input == nil {
-		return nil, nil
-	}
-
-	inputType := reflect.TypeOf(input)
-
-	switch {
-	case inputType == reflect.TypeOf(map[string]interface{}{}):
-		return input.(map[string]interface{}), nil
-
-	default:
-		return nil, fmt.Errorf("unimplemented input type: %v", inputType)
-	}
+	var o map[string]interface{}
+	err := kdl.Unmarshal(b, &o)
+	return o, err
 }
 
 // Marshal marshals the given config map to KDL bytes.

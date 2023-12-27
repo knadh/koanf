@@ -160,7 +160,7 @@ number 2.0
 				"color":   "gold",
 				"number":  int64(123),
 				"string":  "Hello World",
-				// "array":   []interface{}{1, 2, 3, 4, 5},
+				// "array":   []interface{}{1, 2, 3, 4, 5}, // https://github.com/sblinch/kdl-go/issues/3
 				"object": map[string]interface{}{"a": "b", "c": "d"},
 			},
 			stringifiedOutput: `boolean true
@@ -171,7 +171,6 @@ object a="b" c="d"
 null null
 `,
 		},
-		//,array 1 2 3 4 5
 	}
 
 	k := Parser() // Assuming Parser() is implemented for KDL
