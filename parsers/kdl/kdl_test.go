@@ -20,7 +20,7 @@ func TestKDL_Unmarshal(t *testing.T) {
 		},
 		{
 			name:   "Valid KDL",
-			input:  []byte(`key "val" ; name "test" ; number 2`),
+			input:  []byte(`key "val" ; name "test" ; number 2.0`),
 			keys:   []string{"key", "name", "number"},
 			values: []interface{}{"val", "test", 2.0},
 		},
@@ -32,7 +32,7 @@ func TestKDL_Unmarshal(t *testing.T) {
 		{
 			name: "Complex KDL - Different types",
 			input: []byte(`
-				array 1 2 3
+				array 1.0 2.0 3.0
 				boolean true
 				color "gold"
 				"null" null
@@ -45,7 +45,7 @@ func TestKDL_Unmarshal(t *testing.T) {
 				true,
 				"gold",
 				nil,
-				123.0,
+				int64(123),
 				map[string]interface{}{"a": "b", "c": "d", "e": 2.7, "f": true},
 				"Hello World"},
 		},
@@ -57,26 +57,27 @@ func TestKDL_Unmarshal(t *testing.T) {
 		{
 			name: "Complex KDL - Nested map",
 			input: []byte(`key "value"
-					map "skipped"
+					"1" "skipped"
 					map key="skipped" key="value"
 					nested_map {
 						map key="value" 17 {
 							list "item1" "item2" "item3"
-							mixup ""=1 2 3 4
+							mixup "y"=1 2 3 4
 							first "first"=1 2 3 4
-							child ""=1 2 3 4 { "" 5 ; "" 6 ; }
+							child "test"=1 2 3 4 { "y" 5 ; "d" 6 ; }
 						}
 					}
 				`),
-			keys: []string{"key", "map", "nested_map"},
+			keys: []string{"key", "1", "map", "nested_map"},
 			values: []interface{}{
 				"value",
+				"skipped",
 				map[string]interface{}{
 					"key": "value",
 				},
 				map[string]interface{}{
 					"map": map[string]interface{}{
-						"":    17,
+						"0":   int64(17),
 						"key": "value",
 						"list": []interface{}{
 							"item1",
@@ -84,22 +85,24 @@ func TestKDL_Unmarshal(t *testing.T) {
 							"item3",
 						},
 						"mixup": map[string]interface{}{
-							"": []interface{}{
-								2,
-								3,
-								4,
-							},
+							"y": int64(1),
+							"0": int64(2),
+							"1": int64(3),
+							"2": int64(4),
 						},
 						"first": map[string]interface{}{
-							"first": 1,
-							"": []interface{}{
-								2,
-								3,
-								4,
-							},
+							"first": int64(1),
+							"0":     int64(2),
+							"1":     int64(3),
+							"2":     int64(4),
 						},
 						"child": map[string]interface{}{
-							"": 6,
+							"test": int64(1),
+							"0":    int64(2),
+							"1":    int64(3),
+							"2":    int64(4),
+							"y":    int64(5),
+							"d":    int64(6),
 						},
 					},
 				},
@@ -127,15 +130,15 @@ func TestKDL_Unmarshal(t *testing.T) {
 
 func TestKDL_Marshal(t *testing.T) {
 	testCases := []struct {
-		name   string
-		input  map[string]interface{}
-		output []byte
-		isErr  bool
+		name              string
+		input             map[string]interface{}
+		stringifiedOutput string
+		isErr             bool
 	}{
 		{
-			name:   "Empty KDL",
-			input:  map[string]interface{}{},
-			output: []byte(``),
+			name:              "Empty KDL",
+			input:             map[string]interface{}{},
+			stringifiedOutput: ``,
 		},
 		{
 			name: "Valid KDL",
@@ -144,20 +147,27 @@ func TestKDL_Marshal(t *testing.T) {
 				"name":   "test",
 				"number": 2.0,
 			},
-			output: []byte(`node key="val" name="test" number=2`),
+			stringifiedOutput: `key="val" name="test" number=2.0` + "\n",
 		},
 		{
 			name: "Complex KDL - Different types",
 			input: map[string]interface{}{
-				"array":   []interface{}{1, 2, 3, 4, 5},
+				"null":    nil,
 				"boolean": true,
 				"color":   "gold",
-				"null":    nil,
-				"number":  123,
-				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"number":  int64(123),
 				"string":  "Hello World",
+				"array":   []interface{}{1, 2, 3, 4, 5},
+				"object":  map[string]interface{}{"a": "b", "c": "d"},
 			},
-			output: []byte(`node array=[1,2,3,4,5] boolean=true color="gold" null=null number=123 object={a="b" c="d"} string="Hello World"`),
+			stringifiedOutput: `null null
+boolean true
+color "gold"
+number 123
+string "Hello World"
+array 1 2 3 4 5
+object a="b" c="d"
+`,
 		},
 	}
 
@@ -170,8 +180,7 @@ func TestKDL_Marshal(t *testing.T) {
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, tc.output, out)
-
+				assert.Equal(t, tc.stringifiedOutput, string(out))
 			}
 		})
 	}

@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"strings"
+	"unicode"
 
 	kdl "github.com/sblinch/kdl-go"
 )
@@ -37,8 +38,16 @@ func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
 	default:
 		return nil, fmt.Errorf("unimplemented input type: %v", inputType)
 	}
+}
 
-	return nil, fmt.Errorf("unimplemented")
+func endsWithNonWhitespace(str string, char rune) bool {
+	for i := len(str) - 1; i >= 0; i-- {
+		if unicode.IsSpace(rune(str[i])) {
+			continue
+		}
+		return rune(str[i]) == char
+	}
+	return false
 }
 
 func transformFirstLine(firstLine string) (string, error) {
@@ -56,44 +65,42 @@ func transformFirstLine(firstLine string) (string, error) {
 	return strings.Join(transformedPairs, "\n"), nil
 }
 
-func transformWrappedInput(input string) (string, error) {
-	if len(input) < 6 {
-		return "", fmt.Errorf("input too short to trim")
+func transformWrappedInput(input []byte) ([]byte, error) {
+	inputStr := strings.TrimPrefix(strings.TrimSpace(string(input)), `"" `)
+	splitStr := strings.Split(inputStr, "\n")
+	if !strings.HasPrefix(splitStr[len(splitStr)-1], "}") {
+		return []byte(inputStr + "\n"), nil
 	}
-	trimmedInput := input[3 : len(input)-3]
+	splitStr[len(splitStr)-1] = strings.TrimFunc(strings.TrimSuffix(splitStr[len(splitStr)-1], "}"), unicode.IsSpace)
 
-	firstLineRegex := regexp.MustCompile(`^(.*?)\n`)
-	firstLineMatch := firstLineRegex.FindStringSubmatch(trimmedInput)
-	if len(firstLineMatch) < 2 {
-		return "", fmt.Errorf("no matching first line found")
-	}
-
-	transformedFirstLine, err := transformFirstLine(firstLineMatch[1])
+	transformedFirstLine, err := transformFirstLine(splitStr[0])
 	if err != nil {
-		return "", err
+		return nil, err
+	}
+	splitStr[0] = transformedFirstLine
+
+	for i := 1; i < len(splitStr); i++ {
+		splitStr[i] = strings.TrimPrefix(splitStr[i], "\t")
 	}
 
-	result := firstLineRegex.ReplaceAllString(trimmedInput, transformedFirstLine+"\n")
-
-	lines := strings.Split(result, "\n")
-	for i := 1; i < len(lines); i++ {
-		lines[i] = strings.TrimPrefix(lines[i], "\t")
-	}
-
-	return strings.Join(lines, "\n"), nil
+	return []byte(strings.Join(splitStr, "\n")), nil
 }
 
 // Marshal marshals the given config map to KDL bytes.
 func (p *KDL) Marshal(o map[string]interface{}) ([]byte, error) {
+	if len(o) == 0 {
+		return []byte{}, nil
+	}
 	wrapper := map[string]interface{}{
 		"": o,
 	}
 	result, err := kdl.Marshal(wrapper)
-
-	transformedResult, err := transformWrappedInput(string(result))
 	if err != nil {
 		return nil, err
 	}
-
+	transformedResult, err := transformWrappedInput(result)
+	if err != nil {
+		return nil, err
+	}
 	return []byte(transformedResult), nil
 }
