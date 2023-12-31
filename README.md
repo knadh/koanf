@@ -45,7 +45,7 @@ go get -u github.com/knadh/koanf/parsers/toml
 - [Reading raw bytes](#reading-raw-bytes)
 - [Reading from maps and structs](#reading-from-nested-maps)
 - [Unmarshalling and marshalling](#unmarshalling-and-marshalling)
-- [Order of merge and key case senstivity](#order-of-merge-and-key-case-sensitivity)
+- [Order of merge and key case sensitivity](#order-of-merge-and-key-case-sensitivity)
 - [Custom Providers and Parsers](#custom-providers-and-parsers)
 - [Custom merge strategies](#custom-merge-strategies)
 - [List of installable Providers and Parsers](#api)
