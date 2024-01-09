@@ -9,5 +9,5 @@ require (
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/sblinch/kdl-go v0.0.0-20231112203113-9fa9a505b79a // indirect
+	github.com/sblinch/kdl-go v0.0.0-20240108033718-e453df3dbf65 // indirect
 )
