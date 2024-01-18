@@ -295,3 +295,25 @@ func Int64SliceToLookupMap(s []int64) map[int64]bool {
 	}
 	return mp
 }
+
+// OmitEmpty returns same map type only empty values are omitted.
+func OmitEmpty(mp map[string]interface{}) {
+	for k, v := range mp {
+		rfl := reflect.ValueOf(v)
+		if isZero(rfl) {
+			delete(mp, k)
+		}
+		if rfl.Kind() == reflect.Map {
+			OmitEmpty(v.(map[string]interface{}))
+		}
+	}
+}
+
+func isZero(val reflect.Value) bool {
+	switch val.Type().Kind() {
+	case reflect.Slice, reflect.Array, reflect.Map:
+		return val.Len() == 0
+	default:
+		return reflect.DeepEqual(val.Interface(), reflect.Zero(val.Type()).Interface())
+	}
+}

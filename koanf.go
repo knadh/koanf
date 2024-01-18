@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strconv"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/maps"
 	"github.com/mitchellh/copystructure"
-	"github.com/go-viper/mapstructure/v2"
 )
 
 // Koanf is the configuration apparatus.
@@ -62,6 +62,11 @@ type UnmarshalConf struct {
 	// ```
 	FlatPaths     bool
 	DecoderConfig *mapstructure.DecoderConfig
+}
+
+type MarshalConf struct {
+	// OmitEmptyValues omits empty values from being marshalled.
+	OmitEmptyValues bool
 }
 
 // New returns a new instance of Koanf. delim is the delimiter to use
@@ -233,7 +238,15 @@ func (ko *Koanf) Set(key string, val interface{}) error {
 // Marshal takes a Parser implementation and marshals the config map into bytes,
 // for example, to TOML or JSON bytes.
 func (ko *Koanf) Marshal(p Parser) ([]byte, error) {
-	return p.Marshal(ko.Raw())
+	return ko.MarshalWithConf(p, MarshalConf{})
+}
+
+func (ko *Koanf) MarshalWithConf(p Parser, c MarshalConf) ([]byte, error) {
+	m := ko.Raw()
+	if c.OmitEmptyValues {
+		maps.OmitEmpty(m)
+	}
+	return p.Marshal(m)
 }
 
 // Unmarshal unmarshals a given key path into the given struct using

@@ -1054,6 +1054,73 @@ func TestMarshal(t *testing.T) {
 	}
 }
 
+func TestMarshalWithOmitEmptySanity(t *testing.T) {
+	assert := assert.New(t)
+
+	for _, c := range cases {
+		// HCL does not support marshalling.
+		if c.typeName == "hcl" {
+			continue
+		}
+
+		// Load config.
+		k := koanf.New(delim)
+		assert.NoError(k.Load(file.Provider(c.file), c.parser),
+			fmt.Sprintf("error loading: %v", c.file))
+
+		// Serialize / marshal into raw bytes using the parser.
+		b, err := k.MarshalWithConf(c.parser, koanf.MarshalConf{OmitEmptyValues: true})
+		assert.NoError(err, "error marshalling")
+
+		// Reload raw serialize bytes into a new koanf instance.
+		k = koanf.New(delim)
+		assert.NoError(k.Load(rawbytes.Provider(b), c.parser),
+			fmt.Sprintf("error loading: %v", c.file))
+
+		// Check if values are intact.
+		assert.Equal(float64(1234), c.koanf.MustFloat64("parent1.id"))
+		assert.Equal([]string{"red", "blue", "orange"}, c.koanf.MustStrings("orphan"))
+		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
+	}
+}
+
+func TestMarshalWithOmitEmpty(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	f := mockJSON
+	parser := json.Parser()
+	assert.NoError(k.Load(file.Provider(f), parser),
+		fmt.Sprintf("error loading: %v", f))
+
+	err := k.Set("empty_str", "")
+	assert.NoError(err, "error setting empty_str")
+
+	// Serialize / marshal into raw bytes using the parser.
+	b, err := k.MarshalWithConf(parser, koanf.MarshalConf{OmitEmptyValues: true})
+	assert.NoError(err, "error marshalling")
+
+	var mp map[string]interface{}
+	err = encjson.Unmarshal(b, &mp)
+	assert.NoError(err, "error json unmarshal")
+
+	_, ok := mp["empty"]
+	assert.False(ok, "empty key should be omitted")
+
+	_, ok = mp["empty_str"]
+	assert.False(ok, "empty_str key should be omitted")
+
+	_, ok = mp["negative_int"]
+	assert.True(ok, "negative_int key should not be omitted")
+
+	parent, ok := mp["parent1"]
+	assert.True(ok, "parent key should not be omitted")
+	child, ok := parent.(map[string]interface{})["child1"]
+	assert.True(ok, "child1 key should not be omitted")
+	_, ok = child.(map[string]interface{})["empty"]
+	assert.False(ok, "nested empty key should be omitted")
+}
+
 func TestGetExists(t *testing.T) {
 	assert := assert.New(t)
 
