@@ -1096,6 +1096,9 @@ func TestMarshalWithOmitEmpty(t *testing.T) {
 	err := k.Set("empty_str", "")
 	assert.NoError(err, "error setting empty_str")
 
+	err = k.Set("nil", nil)
+	assert.NoError(err, "error setting nil")
+
 	// Serialize / marshal into raw bytes using the parser.
 	b, err := k.MarshalWithConf(parser, koanf.MarshalConf{OmitEmptyValues: true})
 	assert.NoError(err, "error marshalling")
@@ -1109,6 +1112,9 @@ func TestMarshalWithOmitEmpty(t *testing.T) {
 
 	_, ok = mp["empty_str"]
 	assert.False(ok, "empty_str key should be omitted")
+
+	_, ok = mp["nil"]
+	assert.False(ok, "nil key should be omitted")
 
 	_, ok = mp["negative_int"]
 	assert.True(ok, "negative_int key should not be omitted")

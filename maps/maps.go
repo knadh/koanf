@@ -300,11 +300,11 @@ func Int64SliceToLookupMap(s []int64) map[int64]bool {
 func OmitEmpty(mp map[string]interface{}) {
 	for k, v := range mp {
 		rfl := reflect.ValueOf(v)
-		if isZero(rfl) {
-			delete(mp, k)
-		}
 		if rfl.Kind() == reflect.Map {
 			OmitEmpty(v.(map[string]interface{}))
+		}
+		if v == nil || isZero(rfl) {
+			delete(mp, k)
 		}
 	}
 }
