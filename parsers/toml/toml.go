@@ -2,7 +2,6 @@
 package toml
 
 import (
-	"fmt"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -16,14 +15,13 @@ func Parser() *TOML {
 
 // Unmarshal parses the given TOML bytes.
 func (p *TOML) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var test map[string]interface{}
+	var outMap map[string]interface{}
 
-	err := toml.Unmarshal(b, &test)
-	if err != nil {
+	if err := toml.Unmarshal(b, &outMap); err != nil {
 		return nil, err
 	}
 
-	return test, nil
+	return outMap, nil
 }
 
 // Marshal marshals the given config map to TOML bytes.
@@ -33,6 +31,5 @@ func (p *TOML) Marshal(o map[string]interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	fmt.Println(string(out))
 	return out, nil
 }
