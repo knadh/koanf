@@ -3,4 +3,5 @@ go 1.18
 use (
 	.
 	./tests
+	parsers/toml
 )
