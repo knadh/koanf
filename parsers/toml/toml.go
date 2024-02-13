@@ -3,6 +3,7 @@ package toml
 
 import (
 	"bytes"
+	"github.com/pelletier/go-toml"
 )
 
 // TOML implements a TOML parser.
