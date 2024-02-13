@@ -1,10 +1,10 @@
-module github.com/knadh/koanf/parsers/toml
+module github.com/knadh/koanf/parsers/toml/v2
 
 go 1.18
 
 require (
-	github.com/pelletier/go-toml v1.9.5
-	github.com/stretchr/testify v1.8.1
+	github.com/pelletier/go-toml/v2 v2.1.1
+	github.com/stretchr/testify v1.8.4
 )
 
 require (
