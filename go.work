@@ -4,5 +4,4 @@ use (
 	.
 	./tests
 	parsers/toml
-	parsers/toml/v2
 )
