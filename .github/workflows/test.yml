@@ -7,7 +7,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go: [ '1.18', '1.19', '1.20' ]
+        go: [ '1.18', '1.19', '1.20', '1.21' ]
 
     runs-on: ubuntu-20.04
 
@@ -20,11 +20,8 @@ jobs:
         with:
           go-version: ${{ matrix.go }}
 
-      - name: Run tests
-        run: go test -v ./...
-
-      - name: Run tests in test directory
-        run: cd tests && go test -v ./...
+      - name: Run all tests
+        run: go test -v github.com/knadh/koanf...
 
       - name: Run Coverage
         run: go test -v -cover ./...
