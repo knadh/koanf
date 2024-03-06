@@ -195,5 +195,14 @@ null null
 func sortLines(s string) string {
 	lines := strings.Split(s, "\n")
 	sort.Strings(lines)
+	for i, l := range lines {
+		if strings.HasPrefix(l, "object") {
+			// object a="b" c="d" should be sorted to be able to compare and
+			// remove flakiness.
+			parts := strings.Split(l, " ")
+			sort.Strings(parts[1:])
+			lines[i] = strings.Join(parts, " ")
+		}
+	}
 	return strings.Join(lines, "\n")
 }
