@@ -16,7 +16,7 @@ func TestTOML_Unmarshal(t *testing.T) {
 		{
 			name:   "Empty TOML",
 			input:  []byte(``),
-			output: map[string]interface{}{},
+			output: map[string]interface{}(nil),
 		},
 		{
 			name: "Valid TOML",
@@ -95,8 +95,8 @@ func TestTOML_Marshal(t *testing.T) {
 				"name":   "test",
 				"number": 2.0,
 			},
-			output: []byte(`key = "val"
-name = "test"
+			output: []byte(`key = 'val'
+name = 'test'
 number = 2.0
 `),
 		},
@@ -110,15 +110,15 @@ number = 2.0
 				"object":  map[string]interface{}{"a": "b", "c": "d"},
 				"string":  "Hello World",
 			},
-			output: []byte(`array = [1,2,3,4,5]
+			output: []byte(`array = [1, 2, 3, 4, 5]
 boolean = true
-color = "gold"
+color = 'gold'
 number = 123
-string = "Hello World"
+string = 'Hello World'
 
 [object]
-  a = "b"
-  c = "d"
+a = 'b'
+c = 'd'
 `),
 		},
 	}
