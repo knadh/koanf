@@ -1,6 +1,8 @@
 package kdl
 
 import (
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -182,8 +184,16 @@ null null
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, tc.stringifiedOutput, string(out))
+				assert.Equal(t, sortLines(tc.stringifiedOutput), sortLines(string(out)))
 			}
 		})
 	}
+}
+
+// kdl marshal is not guaranteed to produce the same output every time
+// so we sort the lines to compare the output.
+func sortLines(s string) string {
+	lines := strings.Split(s, "\n")
+	sort.Strings(lines)
+	return strings.Join(lines, "\n")
 }
