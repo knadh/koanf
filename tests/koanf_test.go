@@ -476,6 +476,39 @@ func TestWatchFile(t *testing.T) {
 	}, "file watch reload didn't change config")
 }
 
+func TestUnwatchFile(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	// Create a tmp config file.
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "koanf_mock")
+	err := os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600)
+	require.NoError(t, err, "error creating temp config file: %v", err)
+
+	// Load the new config file.
+	f := file.Provider(tmpFile)
+	k.Load(f, json.Parser())
+
+	var wg sync.WaitGroup
+	wg.Add(1) // our assurance that cb is called max once
+	f.Watch(func(event interface{}, err error) {
+		expectedErrorMessage := "fsnotify watch channel closed"
+		// When the file is changed, and the fsnotify watch channel is closed, an error is thrown. Assert this condition.
+		assert.EqualError(err, expectedErrorMessage, "Expected error message: %s", expectedErrorMessage)
+		wg.Done()
+	})
+
+	// unwatch the file so that it is not reloaded when changed
+	f.Unwatch()
+	// Wait a second and change the file.
+	time.Sleep(1 * time.Second)
+	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600)
+	wg.Wait()
+}
+
 func TestWatchFileSymlink(t *testing.T) {
 	var (
 		assert = assert.New(t)
