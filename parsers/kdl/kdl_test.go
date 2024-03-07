@@ -1,6 +1,8 @@
 package kdl
 
 import (
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -182,8 +184,25 @@ null null
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, tc.stringifiedOutput, string(out))
+				assert.Equal(t, sortLines(tc.stringifiedOutput), sortLines(string(out)))
 			}
 		})
 	}
+}
+
+// kdl marshal is not guaranteed to produce the same output every time
+// so we sort the lines to compare the output.
+func sortLines(s string) string {
+	lines := strings.Split(s, "\n")
+	sort.Strings(lines)
+	for i, l := range lines {
+		if strings.HasPrefix(l, "object") {
+			// object a="b" c="d" should be sorted to be able to compare and
+			// remove flakiness.
+			parts := strings.Split(l, " ")
+			sort.Strings(parts[1:])
+			lines[i] = strings.Join(parts, " ")
+		}
+	}
+	return strings.Join(lines, "\n")
 }

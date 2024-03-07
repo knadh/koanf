@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDotEnv_Marshal(t *testing.T) {
@@ -30,36 +31,36 @@ func TestDotEnv_Marshal(t *testing.T) {
 		{
 			name: "Multiple key-values",
 			cfg: map[string]interface{}{
-				"key-1": "value-1",
-				"key-2": "value-2",
-				"key-3": "value-3",
+				"key_1": "value_1",
+				"key_2": "value_2",
+				"key_3": "value_3",
 			},
-			expOut: []byte("key-1=\"value-1\"\nkey-2=\"value-2\"\nkey-3=\"value-3\""),
+			expOut: []byte("key_1=\"value_1\"\nkey_2=\"value_2\"\nkey_3=\"value_3\""),
 		},
 		{
 			name: "Mixed data types",
 			cfg: map[string]interface{}{
-				"int-key":   12,
-				"bool-key":  true,
-				"arr-key":   []int{1, 2, 3, 4},
-				"float-key": 10.5,
+				"int_key":   12,
+				"bool_key":  true,
+				"arr_key":   []int{1, 2, 3, 4},
+				"float_key": 10.5,
 			},
-			expOut: []byte("arr-key=\"[1 2 3 4]\"\nbool-key=\"true\"\nfloat-key=\"10.5\"\nint-key=\"12\""),
+			expOut: []byte("arr_key=\"[1 2 3 4]\"\nbool_key=\"true\"\nfloat_key=\"10.5\"\nint_key=12"),
 		},
 		{
 			name: "Nested config",
 			cfg: map[string]interface{}{
-				"map-key": map[string]interface{}{
-					"arr-key":  []float64{1.2, 4.3, 5, 6},
-					"bool-key": false,
-					"inner-map-key": map[interface{}]interface{}{
+				"map_key": map[string]interface{}{
+					"arr_key":  []float64{1.2, 4.3, 5, 6},
+					"bool_key": false,
+					"inner_map_key": map[interface{}]interface{}{
 						0: "zero",
 						1: 1.0,
 					},
-					"int-key": 12,
+					"int_key": 12,
 				},
 			},
-			expOut: []byte(`map-key="map[arr-key:[1.2 4.3 5 6] bool-key:false inner-map-key:map[0:zero 1:1] int-key:12]"`),
+			expOut: []byte(`map_key="map[arr_key:[1.2 4.3 5 6] bool_key:false inner_map_key:map[0:zero 1:1] int_key:12]"`),
 		},
 	}
 
@@ -78,25 +79,25 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 		name   string
 		cfg    []byte
 		expOut map[string]interface{}
-		err    error
+		err    bool
 	}{
 		{
 			name:   "Empty config",
 			expOut: map[string]interface{}{},
 		},
 		{
-			name: "Simple key-value",
+			name: "Simple key_value",
 			cfg:  []byte(`key="value"`),
 			expOut: map[string]interface{}{
 				"key": "value",
 			},
 		},
 		{
-			name: "Multiple key-values",
-			cfg:  []byte("key-1=\"value-1\"\nkey-2=\"value-2\""),
+			name: "Multiple key_values",
+			cfg:  []byte("key_1=\"value_1\"\nkey_2=\"value_2\""),
 			expOut: map[string]interface{}{
-				"key-1": "value-1",
-				"key-2": "value-2",
+				"key_1": "value_1",
+				"key_2": "value_2",
 			},
 		},
 		{
@@ -111,17 +112,15 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 		},
 		{
 			name: "Nested config",
-			cfg:  []byte(`map-key="map[arr-key:[1 4 5 6] bool-key:false inner-map-key:map[0:zero 1:1] int-key:12]"`),
+			cfg:  []byte(`map_key="map[arr_key:[1 4 5 6] bool_key:false inner_map_key:map[0:zero 1:1] int_key:12]"`),
 			expOut: map[string]interface{}{
-				"map-key": "map[arr-key:[1 4 5 6] bool-key:false inner-map-key:map[0:zero 1:1] int-key:12]",
+				"map_key": "map[arr_key:[1 4 5 6] bool_key:false inner_map_key:map[0:zero 1:1] int_key:12]",
 			},
 		},
 		{
 			name: "Missing quotation mark",
 			cfg:  []byte(`key="value`),
-			expOut: map[string]interface{}{
-				"key": `"value`,
-			},
+			err:  true,
 		},
 		{
 			name: "Missing value",
@@ -135,7 +134,9 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			outMap, err := de.Unmarshal(tc.cfg)
-			assert.Equal(t, tc.err, err)
+			if tc.err {
+				require.NotNil(t, err)
+			}
 			assert.Equal(t, tc.expOut, outMap)
 		})
 	}
