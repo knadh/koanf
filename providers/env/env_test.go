@@ -1,14 +1,14 @@
 package env
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestProvider(t *testing.T) {
-
 	testCases := []struct {
 		name     string
 		prefix   string
@@ -18,17 +18,7 @@ func TestProvider(t *testing.T) {
 		expKey   string
 		expValue string
 		cb       func(key string) string
-		want     *Env
 	}{
-		{
-			name:   "Nil cb",
-			prefix: "TESTVAR_",
-			delim:  ".",
-			want: &Env{
-				prefix: "TESTVAR_",
-				delim:  ".",
-			},
-		},
 		{
 			name:     "Simple cb",
 			prefix:   "TESTVAR_",
@@ -39,19 +29,6 @@ func TestProvider(t *testing.T) {
 			expValue: "TestVal",
 			cb: func(key string) string {
 				return strings.ToLower(key)
-			},
-			want: &Env{
-				prefix: "TESTVAR_",
-				delim:  ".",
-			},
-		},
-		{
-			name:   "Empty string nil cb",
-			prefix: "",
-			delim:  ".",
-			want: &Env{
-				prefix: "",
-				delim:  ".",
 			},
 		},
 		{
@@ -71,62 +48,21 @@ func TestProvider(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			gotProvider := Provider(tc.prefix, tc.delim, tc.cb)
-			if tc.cb == nil {
-				assert.Equal(t, tc.want, gotProvider)
-			}
-			if tc.cb != nil {
-				k, v := gotProvider.cb(tc.key, tc.value)
-				assert.Equal(t, tc.expKey, k)
-				assert.Equal(t, tc.expValue, v)
-			}
+			k, v := gotProvider.cb(tc.key, tc.value)
+			assert.Equal(t, tc.expKey, k)
+			assert.Equal(t, tc.expValue, v)
 		})
 	}
 }
 
 func TestProviderWithValue(t *testing.T) {
 	testCases := []struct {
-		name        string
-		prefix      string
-		delim       string
-		cb          func(key string, value string) (string, interface{})
-		nilCallback bool
-		want        *Env
+		name   string
+		prefix string
+		delim  string
+		cb     func(key string, value string) (string, interface{})
+		want   *Env
 	}{
-		{
-			name:        "Nil cb",
-			prefix:      "TEST_",
-			delim:       ".",
-			nilCallback: true,
-			want: &Env{
-				prefix: "TEST_",
-				delim:  ".",
-			},
-		},
-		{
-			name:        "Empty string nil cb",
-			prefix:      "",
-			delim:       ".",
-			nilCallback: true,
-			want: &Env{
-				prefix: "",
-				delim:  ".",
-			},
-		},
-		{
-			name:   "Return the same key-value pair in cb",
-			prefix: "TEST_",
-			delim:  ".",
-			cb: func(key string, value string) (string, interface{}) {
-				return key, value
-			},
-			want: &Env{
-				prefix: "TEST_",
-				delim:  ".",
-				cb: func(key string, value string) (string, interface{}) {
-					return key, value
-				},
-			},
-		},
 		{
 			name:   "Custom cb function",
 			prefix: "TEST_",
@@ -138,6 +74,9 @@ func TestProviderWithValue(t *testing.T) {
 			want: &Env{
 				prefix: "TEST_",
 				delim:  ".",
+				environFunc: func() []string {
+					return os.Environ()
+				},
 				cb: func(key string, value string) (string, interface{}) {
 					key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
 					return key, value
@@ -149,15 +88,147 @@ func TestProviderWithValue(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := ProviderWithValue(tc.prefix, tc.delim, tc.cb)
-			if tc.nilCallback {
+			keyGot, valGot := got.cb("test_key_env_1", "test_val")
+			keyWant, valWant := tc.want.cb("test_key_env_1", "test_val")
+			assert.Equal(t, tc.prefix, got.prefix)
+			assert.Equal(t, tc.delim, got.delim)
+			assert.Equal(t, keyWant, keyGot)
+			assert.Equal(t, valWant, valGot)
+		})
+	}
+}
+
+func TestProviderWithOptions(t *testing.T) {
+	testCases := []struct {
+		name    string
+		options []Option
+		want    *Env
+	}{
+		{
+			name: "Nil cb",
+			options: []Option{
+				WithPrefix("TEST_"),
+				WithDelimiter("."),
+				WithEnviron([]string{"FOO=BAR"}),
+				WithCallback(nil),
+			},
+			want: &Env{
+				prefix: "TEST_",
+				delim:  ".",
+				environFunc: func() []string {
+					return []string{"FOO=BAR"}
+				},
+			},
+		},
+		{
+			name: "Empty prefix nil cb",
+			options: []Option{
+				WithPrefix(""),
+				WithDelimiter("."),
+				WithEnviron([]string{"FOO=BAR"}),
+				WithCallback(nil),
+			},
+			want: &Env{
+				prefix: "",
+				delim:  ".",
+				environFunc: func() []string {
+					return []string{"FOO=BAR"}
+				},
+			},
+		},
+		{
+			name: "Return the same key-value pair in cb",
+			options: []Option{
+				WithPrefix("TEST_"),
+				WithDelimiter("."),
+				WithEnviron([]string{"FOO=BAR"}),
+				WithCallback(func(key string, value string) (string, interface{}) {
+					return key, value
+				}),
+			},
+			want: &Env{
+				prefix: "TEST_",
+				delim:  ".",
+				environFunc: func() []string {
+					return []string{"FOO=BAR"}
+				},
+				cb: func(key string, value string) (string, interface{}) {
+					return key, value
+				},
+			},
+		},
+		{
+			name: "Custom cb function",
+			options: []Option{
+				WithPrefix("TEST_"),
+				WithDelimiter("."),
+				WithEnviron([]string{"FOO=BAR"}),
+				WithCallback(func(key string, value string) (string, interface{}) {
+					key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
+					return key, value
+				}),
+			},
+			want: &Env{
+				prefix: "TEST_",
+				delim:  ".",
+				environFunc: func() []string {
+					return []string{"FOO=BAR"}
+				},
+				cb: func(key string, value string) (string, interface{}) {
+					key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
+					return key, value
+				},
+			},
+		},
+		{
+			name: "with custom environment slice",
+			options: []Option{
+				WithPrefix("TEST_"),
+				WithDelimiter("."),
+				WithEnviron([]string{"FOO=BAR"}),
+			},
+			want: &Env{
+				prefix: "TEST_",
+				delim:  ".",
+				environFunc: func() []string {
+					return []string{"FOO=BAR"}
+				},
+			},
+		},
+		{
+			name: "with custom environment map",
+			options: []Option{
+				WithPrefix("TEST_"),
+				WithDelimiter("."),
+				WithEnvironMap(map[string]string{
+					"FOO": "BAR",
+				}),
+			},
+			want: &Env{
+				prefix: "TEST_",
+				delim:  ".",
+				environFunc: func() []string {
+					return []string{"FOO=BAR"}
+				},
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := ProviderWithOptions(tc.options...)
+			if got.cb == nil && got.environFunc == nil {
 				assert.Equal(t, tc.want, got)
 			} else {
-				keyGot, valGot := got.cb("test_key_env_1", "test_val")
-				keyWant, valWant := tc.want.cb("test_key_env_1", "test_val")
-				assert.Equal(t, tc.prefix, got.prefix)
-				assert.Equal(t, tc.delim, got.delim)
-				assert.Equal(t, keyWant, keyGot)
-				assert.Equal(t, valWant, valGot)
+				if got.cb != nil {
+					keyGot, valGot := got.cb("test_key_env_1", "test_val")
+					keyWant, valWant := tc.want.cb("test_key_env_1", "test_val")
+					assert.Equal(t, keyWant, keyGot)
+					assert.Equal(t, valWant, valGot)
+				}
+				if got.environFunc != nil {
+					assert.Equal(t, tc.want.environFunc(), got.environFunc())
+				}
 			}
 		})
 	}
@@ -166,30 +237,30 @@ func TestProviderWithValue(t *testing.T) {
 func TestRead(t *testing.T) {
 	testCases := []struct {
 		name     string
-		key      string
-		value    string
 		expKey   string
 		expValue string
 		env      *Env
 	}{
 		{
 			name:     "No cb",
-			key:      "TEST_KEY",
-			value:    "TEST_VAL",
 			expKey:   "TEST_KEY",
 			expValue: "TEST_VAL",
 			env: &Env{
 				delim: ".",
+				environFunc: func() []string {
+					return []string{"TEST_KEY=TEST_VAL"}
+				},
 			},
 		},
 		{
 			name:     "cb given",
-			key:      "TEST_KEY",
-			value:    "TEST_VAL",
 			expKey:   "test.key",
 			expValue: "TEST_VAL",
 			env: &Env{
 				delim: "_",
+				environFunc: func() []string {
+					return []string{"TEST_KEY=TEST_VAL"}
+				},
 				cb: func(key string, value string) (string, interface{}) {
 					return strings.Replace(strings.ToLower(key), "_", ".", -1), value
 				},
@@ -197,13 +268,14 @@ func TestRead(t *testing.T) {
 		},
 		{
 			name:     "No cb - prefix given",
-			key:      "TEST_KEY",
-			value:    "TEST_VAL",
 			expKey:   "test.key",
 			expValue: "TEST_VAL",
 			env: &Env{
 				prefix: "TEST",
 				delim:  "/",
+				environFunc: func() []string {
+					return []string{"TEST_KEY=TEST_VAL"}
+				},
 				cb: func(key string, value string) (string, interface{}) {
 					return strings.Replace(strings.ToLower(key), "_", ".", -1), value
 				},
@@ -211,22 +283,24 @@ func TestRead(t *testing.T) {
 		},
 		{
 			name:     "Path value",
-			key:      "TEST_DIR",
-			value:    "/test/dir/file",
 			expKey:   "TEST_DIR",
 			expValue: "/test/dir/file",
 			env: &Env{
+				environFunc: func() []string {
+					return []string{"TEST_DIR=/test/dir/file"}
+				},
 				delim: ".",
 			},
 		},
 		{
 			name:     "Replace value with underscore",
-			key:      "TEST_DIR",
-			value:    "/test/dir/file",
 			expKey:   "TEST_DIR",
 			expValue: "_test_dir_file",
 			env: &Env{
 				delim: ".",
+				environFunc: func() []string {
+					return []string{"TEST_DIR=/test/dir/file"}
+				},
 				cb: func(key string, value string) (string, interface{}) {
 					return key, strings.Replace(strings.ToLower(value), "/", "_", -1)
 				},
@@ -234,11 +308,12 @@ func TestRead(t *testing.T) {
 		},
 		{
 			name:     "Empty value",
-			key:      "KEY",
-			value:    "",
 			expKey:   "KEY",
 			expValue: "",
 			env: &Env{
+				environFunc: func() []string {
+					return []string{"KEY="}
+				},
 				delim: ".",
 			},
 		},
@@ -246,10 +321,6 @@ func TestRead(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := os.Setenv(tc.key, tc.value)
-			assert.Nil(t, err)
-			defer os.Unsetenv(tc.key)
-
 			envs, err := tc.env.Read()
 			assert.Nil(t, err)
 			v, ok := envs[tc.expKey]
