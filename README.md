@@ -8,7 +8,7 @@ koanf v2 has modules (Providers) for reading configuration from a variety of sou
 
 All external dependencies in providers and parsers are detached from the core and can be installed separately as necessary.
 
-[![Run Tests](https://github.com/knadh/koanf/actions/workflows/test.yml/badge.svg)](https://github.com/knadh/koanf/actions/workflows/test.yml) [![GoDoc](https://godoc.org/github.com/knadh/koanf?status.svg)](https://godoc.org/github.com/knadh/koanf) 
+[![Run Tests](https://github.com/knadh/koanf/actions/workflows/test.yml/badge.svg)](https://github.com/knadh/koanf/actions/workflows/test.yml) [![GoDoc](https://pkg.go.dev/badge/github.com/knadh/koanf?utm_source=godoc)](https://pkg.go.dev/github.com/knadh/koanf/v2) 
 
 ### Installation
 
