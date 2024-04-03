@@ -35,6 +35,16 @@ func ParserEnv(prefix, delim string, cb func(s string) string) *DotEnv {
 	}
 }
 
+// ParserEnvWithValue allows to make the DOTENV Parser behave like the env.ProviderWithValue.
+func ParserEnvWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *DotEnv {
+	return &DotEnv{
+		delim:     delim,
+		prefix:    prefix,
+		cb:        cb,
+		reverseCB: make(map[string]string),
+	}
+}
+
 // Unmarshal parses the given DOTENV bytes.
 func (p *DotEnv) Unmarshal(b []byte) (map[string]interface{}, error) {
 	// Unmarshal DOTENV from []byte
