@@ -1,6 +1,7 @@
 package dotenv
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -210,6 +211,90 @@ func TestCompareToEnvProvider(t *testing.T) {
 				assert.Equal(t, tc.prefix, gotProvider.prefix)
 				assert.Equal(t, tc.delim, gotProvider.delim)
 				// do not compare cb or reverseCB
+			}
+			if tc.cb != nil {
+				k, v := gotProvider.cb(tc.key, tc.value)
+				assert.Equal(t, tc.expKey, k)
+				assert.Equal(t, tc.expValue, v)
+			}
+		})
+	}
+}
+
+func TestParserEnvWithValue(t *testing.T) {
+	testCases := []struct {
+		name     string
+		prefix   string
+		delim    string
+		key      string
+		value    string
+		expKey   string
+		expValue interface{}
+		cb       func(key, value string) (string, interface{})
+	}{
+		{
+			name:   "Nil cb",
+			prefix: "TESTVAR_",
+			delim:  ".",
+		},
+		{
+			name:     "Simple cb",
+			prefix:   "TESTVAR_",
+			delim:    ".",
+			key:      "TestKey",
+			value:    "TestVal",
+			expKey:   "testkey",
+			expValue: "TestVal",
+			cb: func(key, value string) (string, interface{}) {
+				return strings.ToLower(key), value
+			},
+		},
+		{
+			name:   "Empty string nil cb",
+			prefix: "",
+			delim:  ".",
+		},
+		{
+			name:     "Cb is given",
+			prefix:   "",
+			delim:    ".",
+			key:      "test_key",
+			value:    "test_val",
+			expKey:   "TEST.KEY",
+			expValue: "test_val",
+			cb: func(key, value string) (string, interface{}) {
+				return strings.Replace(strings.ToUpper(key), "_", ".", -1), value
+			},
+		},
+		{
+			name:   "Cb is given and changes value",
+			prefix: "",
+			delim:  ".",
+			key:    "test_key",
+			value:  `{"foo": "bar"}`,
+			expKey: "TEST.KEY",
+			expValue: map[string]interface{}{
+				"foo": "bar",
+			},
+			cb: func(key, value string) (string, interface{}) {
+				key = strings.Replace(strings.ToUpper(key), "_", ".", -1)
+
+				var v map[string]interface{}
+				err := json.Unmarshal([]byte(value), &v)
+				if err == nil {
+					return key, v
+				}
+				return key, value
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			gotProvider := ParserEnvWithValue(tc.prefix, tc.delim, tc.cb)
+			if tc.cb == nil {
+				assert.Equal(t, tc.prefix, gotProvider.prefix)
+				assert.Equal(t, tc.delim, gotProvider.delim)
 			}
 			if tc.cb != nil {
 				k, v := gotProvider.cb(tc.key, tc.value)
