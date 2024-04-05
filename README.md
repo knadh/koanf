@@ -29,7 +29,7 @@ go get -u github.com/knadh/koanf/providers/file
 # Available: toml, json, yaml, dotenv, hcl, hjson, nestedtext
 # go get -u github.com/knadh/koanf/parsers/$parser
 
-go get -u github.com/knadh/koanf/parsers/toml
+go get -u github.com/knadh/koanf/parsers/toml/v2
 
 ```
 
@@ -167,7 +167,7 @@ import (
 	"os"
 
 	"github.com/knadh/koanf/v2"
-	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/parsers/toml/v2"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	flag "github.com/spf13/pflag"
