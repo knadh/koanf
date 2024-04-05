@@ -677,6 +677,7 @@ Install with `go get -u github.com/knadh/koanf/parsers/$parser`
 | json       | `json.Parser()`                  | Parses JSON bytes into a nested map                                                                                                                       |
 | yaml       | `yaml.Parser()`                  | Parses YAML bytes into a nested map                                                                                                                       |
 | toml       | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
+| toml/v2    | `toml.Parser()`                  | Parses TOML bytes into a nested map (using go-toml v2)                                                                                                    |
 | dotenv     | `dotenv.Parser()`              | Parses DotEnv bytes into a flat map                                                                                                                       |
 | hcl        | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
 | nestedtext | `nestedtext.Parser()`              | Parses NestedText bytes into a flat map                                                                                                                 |
