@@ -37,6 +37,11 @@ func (f *File) Read() (map[string]interface{}, error) {
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
+	// If a watcher already exists, return an error.
+	if f.w != nil {
+		return errors.New("watcher already exists")
+	}
+
 	// Resolve symlinks and save the original path so that changes to symlinks
 	// can be detected.
 	realPath, err := filepath.EvalSymlinks(f.path)
