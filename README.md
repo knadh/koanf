@@ -26,11 +26,10 @@ go get -u github.com/knadh/koanf/providers/file
 
 
 # Install the necessary Parser(s).
-# Available: toml, json, yaml, dotenv, hcl, hjson, nestedtext
+# Available: toml, toml/v2, json, yaml, dotenv, hcl, hjson, nestedtext
 # go get -u github.com/knadh/koanf/parsers/$parser
 
-go get -u github.com/knadh/koanf/parsers/toml/v2
-
+go get -u github.com/knadh/koanf/parsers/toml
 ```
 
 [See the list](#api) of all bundled Providers and Parsers.
@@ -167,7 +166,11 @@ import (
 	"os"
 
 	"github.com/knadh/koanf/v2"
-	"github.com/knadh/koanf/parsers/toml/v2"
+	"github.com/knadh/koanf/parsers/toml"
+
+	// TOML version 2 is available at:
+	// "github.com/knadh/koanf/parsers/toml/v2"
+
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	flag "github.com/spf13/pflag"
