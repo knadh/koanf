@@ -26,11 +26,10 @@ go get -u github.com/knadh/koanf/providers/file
 
 
 # Install the necessary Parser(s).
-# Available: toml, json, yaml, dotenv, hcl, hjson, nestedtext
+# Available: toml, toml/v2, json, yaml, dotenv, hcl, hjson, nestedtext
 # go get -u github.com/knadh/koanf/parsers/$parser
 
 go get -u github.com/knadh/koanf/parsers/toml
-
 ```
 
 [See the list](#api) of all bundled Providers and Parsers.
@@ -168,6 +167,10 @@ import (
 
 	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/toml"
+
+	// TOML version 2 is available at:
+	// "github.com/knadh/koanf/parsers/toml/v2"
+
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	flag "github.com/spf13/pflag"
@@ -677,6 +680,7 @@ Install with `go get -u github.com/knadh/koanf/parsers/$parser`
 | json       | `json.Parser()`                  | Parses JSON bytes into a nested map                                                                                                                       |
 | yaml       | `yaml.Parser()`                  | Parses YAML bytes into a nested map                                                                                                                       |
 | toml       | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
+| toml/v2    | `toml.Parser()`                  | Parses TOML bytes into a nested map (using go-toml v2)                                                                                                    |
 | dotenv     | `dotenv.Parser()`              | Parses DotEnv bytes into a flat map                                                                                                                       |
 | hcl        | `hcl.Parser(flattenSlices bool)` | Parses Hashicorp HCL bytes into a nested map. `flattenSlices` is recommended to be set to true. [Read more](https://github.com/hashicorp/hcl/issues/162). |
 | nestedtext | `nestedtext.Parser()`              | Parses NestedText bytes into a flat map                                                                                                                 |

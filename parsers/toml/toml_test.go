@@ -1,8 +1,6 @@
 package toml
 
 import (
-	"sort"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -18,7 +16,7 @@ func TestTOML_Unmarshal(t *testing.T) {
 		{
 			name:   "Empty TOML",
 			input:  []byte(``),
-			output: map[string]interface{}{},
+			output: map[string]interface{}(nil),
 		},
 		{
 			name: "Valid TOML",
@@ -97,8 +95,8 @@ func TestTOML_Marshal(t *testing.T) {
 				"name":   "test",
 				"number": 2.0,
 			},
-			output: []byte(`key = "val"
-name = "test"
+			output: []byte(`key = 'val'
+name = 'test'
 number = 2.0
 `),
 		},
@@ -114,13 +112,13 @@ number = 2.0
 			},
 			output: []byte(`array = [1, 2, 3, 4, 5]
 boolean = true
-color = "gold"
+color = 'gold'
 number = 123
-string = "Hello World"
+string = 'Hello World'
 
 [object]
-  a = "b"
-  c = "d"
+a = 'b'
+c = 'd'
 `),
 		},
 	}
@@ -134,16 +132,8 @@ string = "Hello World"
 				assert.NotNil(t, err)
 			} else {
 				assert.Nil(t, err)
-				assert.Equal(t, sortLines(tc.output), sortLines(out))
+				assert.Equal(t, tc.output, out)
 			}
 		})
 	}
-}
-
-// toml marshal is not guaranteed to produce the same output every time
-// so we sort the lines before comparing.
-func sortLines(s []byte) string {
-	lines := strings.Split(string(s), "\n")
-	sort.Strings(lines)
-	return strings.Join(lines, "\n")
 }
