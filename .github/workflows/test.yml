@@ -13,12 +13,13 @@ jobs:
 
     name: Go ${{ matrix.go }} Tests
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
  
       - name: Setup Go
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
+          check-latest: true
 
       - name: Run all tests
         run: go test -v github.com/knadh/koanf...
