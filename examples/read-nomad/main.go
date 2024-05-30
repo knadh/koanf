@@ -9,8 +9,8 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/nomad/api"
+	"github.com/knadh/koanf/providers/nomad/v2"
 	"github.com/knadh/koanf/v2"
-	"github.com/knadh/koanf/v2/providers/nomad"
 )
 
 // Example and test
