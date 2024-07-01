@@ -669,6 +669,7 @@ Install with `go get -u github.com/knadh/koanf/providers/$provider`
 | etcd/v2     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
 | consul/v2     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
 | parameterstore/v2 | `parameterstore.Provider(parameterstore.Config{})` | AWS Systems Manager Parameter Store provider |
+| nomad/v2 | `nomad.Provider(api.Config{}, datatype string)` | Nomad provider |
 
 
 ### Bundled Parsers
