@@ -36,11 +36,16 @@ func (f *File) Read() (map[string]interface{}, error) {
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
+	_, err := f.WatchEx(cb)
+	return err
+}
+
+func (f *File) WatchEx(cb func(event interface{}, err error)) (*fsnotify.Watcher, error) {
 	// Resolve symlinks and save the original path so that changes to symlinks
 	// can be detected.
 	realPath, err := filepath.EvalSymlinks(f.path)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	realPath = filepath.Clean(realPath)
 
@@ -50,7 +55,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	var (
@@ -124,5 +129,5 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	}()
 
 	// Watch the directory for changes.
-	return w.Add(fDir)
+	return w, w.Add(fDir)
 }
