@@ -16,6 +16,7 @@ import (
 // File implements a File provider.
 type File struct {
 	path string
+	w    *fsnotify.Watcher
 }
 
 // Provider returns a file provider.
@@ -36,6 +37,11 @@ func (f *File) Read() (map[string]interface{}, error) {
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
+	// If a watcher already exists, return an error.
+	if f.w != nil {
+		return errors.New("watcher already exists")
+	}
+
 	// Resolve symlinks and save the original path so that changes to symlinks
 	// can be detected.
 	realPath, err := filepath.EvalSymlinks(f.path)
@@ -48,7 +54,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	// the whole parent directory to pick up all events such as symlink changes.
 	fDir, _ := filepath.Split(f.path)
 
-	w, err := fsnotify.NewWatcher()
+	f.w, err = fsnotify.NewWatcher()
 	if err != nil {
 		return err
 	}
@@ -62,7 +68,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	loop:
 		for {
 			select {
-			case event, ok := <-w.Events:
+			case event, ok := <-f.w.Events:
 				if !ok {
 					cb(nil, errors.New("fsnotify watch channel closed"))
 					break loop
@@ -108,7 +114,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 				cb(nil, nil)
 
 			// There's an error.
-			case err, ok := <-w.Errors:
+			case err, ok := <-f.w.Errors:
 				if !ok {
 					cb(nil, errors.New("fsnotify err channel closed"))
 					break loop
@@ -120,9 +126,14 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 			}
 		}
 
-		w.Close()
+		f.w.Close()
 	}()
-
 	// Watch the directory for changes.
-	return w.Add(fDir)
+	return f.w.Add(fDir)
+}
+
+// Unwatch stops watching the files. It closes all the fsnotify watchers
+// and event channels associated with them.
+func (f *File) Unwatch() error {
+	return f.w.Close()
 }
