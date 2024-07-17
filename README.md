@@ -145,6 +145,9 @@ func main() {
 		k.Print()
 	})
 
+	// To stop a file watcher, call:
+	// f.Unwatch()
+
 	// Block forever (and manually make a change to mock/mock.json) to
 	// reload the config.
 	log.Println("waiting forever. Try making a change to mock/mock.json to live reload")
