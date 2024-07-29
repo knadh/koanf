@@ -533,6 +533,55 @@ func TestWatchFileSymlink(t *testing.T) {
 	}, "symlink watch reload didn't change config")
 }
 
+func TestUnwatchFile(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+
+	// Create a tmp config file.
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "koanf_mock")
+	require.NoError(t, os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600))
+
+	// Load the new config file.
+	f := file.Provider(tmpFile)
+	k.Load(f, json.Parser())
+
+	// Watch.
+	reloaded := false
+	f.Watch(func(event interface{}, err error) {
+		reloaded = true
+		assert.NoError(err)
+	})
+
+	// Change the file and check whether the watch triggered.
+	time.Sleep(100 * time.Millisecond)
+	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600)
+	time.Sleep(100 * time.Millisecond)
+	assert.True(reloaded, "watched file didn't reload")
+
+	// Unwatch the file and verify that the watch didn't triger.
+	assert.NoError(f.Unwatch())
+	reloaded = false
+	time.Sleep(100 * time.Millisecond)
+	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name3"}}`), 0600)
+	time.Sleep(100 * time.Millisecond)
+	assert.False(reloaded, "unwatched file reloaded")
+
+	// Re-watch and check again.
+	reloaded = false
+	f.Watch(func(event interface{}, err error) {
+		reloaded = true
+		assert.NoError(err)
+	})
+	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name4"}}`), 0600)
+	time.Sleep(100 * time.Millisecond)
+	assert.True(reloaded, "watched file didn't reload")
+
+	f.Unwatch()
+}
+
 func TestLoadMerge(t *testing.T) {
 	var (
 		assert = assert.New(t)
