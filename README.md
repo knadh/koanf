@@ -323,7 +323,7 @@ func main() {
 ```
 
 ### Unmarshalling and marshalling
-`Parser`s can be used to unmarshal and scan the values in a Koanf instance into a struct based on the field tags, and to marshal a Koanf instance back into serialized bytes, for example, back to JSON or YAML, to write back to files.
+`Parser`s can be used to unmarshal and scan the values in a Koanf instance into a struct based on the field tags, and to marshal a Koanf instance back into serialized bytes, for example to JSON or YAML files
 
 ```go
 package main
@@ -372,7 +372,7 @@ func main() {
 	fmt.Println(out)
 
 	// Marshal the instance back to JSON.
-	// The paser instance can be anything, eg: json.Paser(), yaml.Parser() etc.
+	// The parser instance can be anything, eg: json.Parser(), yaml.Parser() etc.
 	b, _ := k.Marshal(parser)
 	fmt.Println(string(b))
 }
