@@ -63,7 +63,6 @@ type Config struct {
 type AppConfig struct {
 	client *appconfigdata.Client
 	config Config
-	input  appconfigdata.StartConfigurationSessionInput
 	token  *string
 }
 
