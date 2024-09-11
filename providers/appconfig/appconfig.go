@@ -5,13 +5,13 @@ package appconfig
 import (
 	"context"
 	"errors"
+	"github.com/aws/aws-sdk-go-v2/service/appconfigdata"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
-	"github.com/aws/aws-sdk-go-v2/service/appconfig"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 )
 
@@ -20,10 +20,6 @@ type Config struct {
 	// The AWS AppConfig Application to get. Specify either the application
 	// name or the application ID.
 	Application string
-
-	// The Client ID for the AppConfig. Enables AppConfig to deploy the
-	// configuration in intervals, as defined in the deployment strategy.
-	ClientID string
 
 	// The AppConfig configuration to fetch. Specify either the configuration
 	// name or the configuration ID.
@@ -56,13 +52,19 @@ type Config struct {
 	// Time interval at which the watcher will refresh the configuration.
 	// Defaults to 60 seconds.
 	WatchInterval time.Duration
+
+	// (Optional) Sets a constraint on a session. If you specify a value of, for example, 60 seconds, then the client
+	// that established the session can't call GetLatestConfiguration more frequently than every 60 seconds.
+	// Valid Range: Minimum value of 15. Maximum value of 86400.
+	RequiredMinimumPollIntervalInSeconds *int32
 }
 
 // AppConfig implements an AWS AppConfig provider.
 type AppConfig struct {
-	client *appconfig.Client
+	client *appconfigdata.Client
 	config Config
-	input  appconfig.GetConfigurationInput
+	input  appconfigdata.StartConfigurationSessionInput
+	token  *string
 }
 
 // Provider returns an AWS AppConfig provider.
@@ -84,42 +86,60 @@ func Provider(cfg Config) (*AppConfig, error) {
 	// Check if AWS Role ARN is present.
 	if cfg.AWSRoleARN != "" {
 		stsSvc := sts.NewFromConfig(c)
-		credentials := stscreds.NewAssumeRoleProvider(stsSvc, cfg.AWSRoleARN)
-		c.Credentials = aws.NewCredentialsCache(credentials)
+		roleCredentials := stscreds.NewAssumeRoleProvider(stsSvc, cfg.AWSRoleARN)
+		c.Credentials = aws.NewCredentialsCache(roleCredentials)
 	}
-	client := appconfig.NewFromConfig(c)
+
+	client := appconfigdata.NewFromConfig(c)
 
 	return &AppConfig{client: client, config: cfg}, nil
 }
 
 // ProviderWithClient returns an AWS AppConfig provider
 // using an existing AWS appconfig client.
-func ProviderWithClient(cfg Config, client *appconfig.Client) *AppConfig {
+func ProviderWithClient(cfg Config, client *appconfigdata.Client) *AppConfig {
 	return &AppConfig{client: client, config: cfg}
 }
 
-// ReadBytes returns the raw bytes for parsing.
-func (ac *AppConfig) ReadBytes() ([]byte, error) {
-	ac.input = appconfig.GetConfigurationInput{
-		Application:   &ac.config.Application,
-		ClientId:      &ac.config.ClientID,
-		Configuration: &ac.config.Configuration,
-		Environment:   &ac.config.Environment,
-	}
-	if ac.config.ClientConfigurationVersion != "" {
-		ac.input.ClientConfigurationVersion = &ac.config.ClientConfigurationVersion
+func (ac *AppConfig) getLatestConfiguration() ([]byte, error) {
+	ctx := context.TODO()
+
+	if ac.token == nil {
+		// We don't need to save off this input anymore
+		input := &appconfigdata.StartConfigurationSessionInput{
+			ApplicationIdentifier:                &ac.config.Application,
+			ConfigurationProfileIdentifier:       &ac.config.Configuration,
+			EnvironmentIdentifier:                &ac.config.Environment,
+			RequiredMinimumPollIntervalInSeconds: ac.config.RequiredMinimumPollIntervalInSeconds,
+		}
+
+		startOutput, err := ac.client.StartConfigurationSession(ctx, input)
+
+		if err != nil {
+			return nil, err
+		}
+
+		ac.token = startOutput.InitialConfigurationToken
 	}
 
-	conf, err := ac.client.GetConfiguration(context.TODO(), &ac.input)
+	configInput := &appconfigdata.GetLatestConfigurationInput{
+		ConfigurationToken: ac.token,
+	}
+
+	configOutput, err := ac.client.GetLatestConfiguration(ctx, configInput)
+
 	if err != nil {
 		return nil, err
 	}
 
-	// Set the response configuration version as the current configuration version.
-	// Useful for Watch().
-	ac.input.ClientConfigurationVersion = conf.ConfigurationVersion
+	ac.token = configOutput.NextPollConfigurationToken
 
-	return conf.Content, nil
+	return configOutput.Configuration, nil
+}
+
+// ReadBytes returns the raw bytes for parsing.
+func (ac *AppConfig) ReadBytes() ([]byte, error) {
+	return ac.getLatestConfiguration()
 }
 
 // Read is not supported by the appconfig provider.
@@ -137,14 +157,14 @@ func (ac *AppConfig) Watch(cb func(event interface{}, err error)) error {
 	go func() {
 	loop:
 		for {
-			conf, err := ac.client.GetConfiguration(context.TODO(), &ac.input)
+			conf, err := ac.getLatestConfiguration()
 			if err != nil {
 				cb(nil, err)
 				break loop
 			}
 
-			// Check if the the configuration has been updated.
-			if len(conf.Content) == 0 {
+			// Check if the configuration has been updated.
+			if len(conf) == 0 {
 				// Configuration is not updated and we have the latest version.
 				// Sleep for WatchInterval and retry watcher.
 				time.Sleep(ac.config.WatchInterval)
