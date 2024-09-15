@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/nats
 
-go 1.18
+go 1.21
 
 require (
 	github.com/knadh/koanf/v2 v2.0.0

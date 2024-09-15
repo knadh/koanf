@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/v2
 
-go 1.18
+go 1.21
 
 require (
 	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1

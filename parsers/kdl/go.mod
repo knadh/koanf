@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/parsers/kdl
 
-go 1.18
+go 1.21
 
 require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect

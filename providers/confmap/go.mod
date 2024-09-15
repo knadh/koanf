@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/confmap
 
-go 1.18
+go 1.21
 
 require github.com/knadh/koanf/maps v0.1.1
 

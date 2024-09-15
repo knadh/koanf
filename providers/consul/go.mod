@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/consul/v2
 
-go 1.18
+go 1.21
 
 require github.com/hashicorp/consul/api v1.19.1
 

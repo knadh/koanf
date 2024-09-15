@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/parsers/dotenv
 
-go 1.18
+go 1.21
 
 require (
 	github.com/joho/godotenv v1.5.1
