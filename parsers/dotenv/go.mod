@@ -5,7 +5,7 @@ go 1.21
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/knadh/koanf/maps v0.1.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (

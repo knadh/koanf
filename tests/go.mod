@@ -27,7 +27,7 @@ require (
 	github.com/knadh/koanf/parsers/hcl v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/hjson v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/json v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf/parsers/toml v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/parsers/yaml v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/basicflag v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/confmap v0.0.0-00010101000000-000000000000

@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/hjson/hjson-go/v4 v4.3.0
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (

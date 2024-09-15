@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require github.com/sblinch/kdl-go v0.0.0-20240108033718-e453df3dbf65
