@@ -10,6 +10,4 @@ require (
 
 require github.com/mitchellh/reflectwalk v1.0.2 // indirect
 
-retract (
-	v2.0.2 // Tagged as minor version, but contains breaking changes.
-)
+retract v2.0.2 // Tagged as minor version, but contains breaking changes.
