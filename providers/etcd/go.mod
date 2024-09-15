@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/etcd/v2
 
-go 1.18
+go 1.23
 
 require go.etcd.io/etcd/client/v3 v3.5.7
 

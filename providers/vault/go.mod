@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/vault/v2
 
-go 1.18
+go 1.23
 
 require (
 	github.com/hashicorp/vault/api v1.9.0

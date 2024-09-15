@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/koanf_tests
 
-go 1.18
+go 1.23
 
 replace (
 	github.com/knadh/koanf/maps => ../maps
