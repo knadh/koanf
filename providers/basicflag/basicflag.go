@@ -66,11 +66,18 @@ func Provider(f *flag.FlagSet, delim string, opt ...*Opt) *Pflag {
 // function definition.
 // See https://github.com/knadh/koanf/issues/255
 func ProviderWithValue(f *flag.FlagSet, delim string, cb func(key string, value string) (string, interface{}), ko ...KoanfIntf) *Pflag {
-	return &Pflag{
+	pf := &Pflag{
 		flagset: f,
 		delim:   delim,
 		cb:      cb,
 	}
+
+	if len(ko) > 0 {
+		pf.opt = &Opt{
+			KeyMap: ko[0],
+		}
+	}
+	return pf
 }
 
 // Read reads the flag variables and returns a nested conf map.
