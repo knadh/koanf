@@ -714,6 +714,30 @@ func TestFlags(t *testing.T) {
 		k := def.Copy()
 		bf := flag.NewFlagSet("test", flag.ContinueOnError)
 		bf.String("parent1.child1.type", "flag", "")
+		bf.String("parent2.child2.name", "override-default", "")
+		bf.Set("parent1.child1.type", "basicflag")
+		assert.Nil(k.Load(basicflag.ProviderWithValue(bf, ".",nil), nil), "error loading basicflag")
+		assert.Equal("basicflag", k.String("parent1.child1.type"), "types don't match")
+		assert.Equal("override-default", k.String("parent2.child2.name"), "basicflag default value override failed")
+	}
+
+	// No defualt-value override behaviour.
+	{
+		k := def.Copy()
+		bf := flag.NewFlagSet("test", flag.ContinueOnError)
+		bf.String("parent1.child1.name", "override-default", "")
+		bf.String("parent2.child2.name", "override-default", "")
+		bf.Set("parent2.child2.name", "custom")
+		assert.Nil(k.Load(basicflag.ProviderWithValue(bf, ".",nil, def),nil), "error loading basicflag")
+		assert.Equal("child1", k.String("parent1.child1.name"), "basicflag default overwrote")
+		assert.Equal("custom", k.String("parent2.child2.name"), "basicflag set failed")
+	}
+
+	// Override with the basicflag provider.
+	{
+		k := def.Copy()
+		bf := flag.NewFlagSet("test", flag.ContinueOnError)
+		bf.String("parent1.child1.type", "flag", "")
 		bf.Set("parent1.child1.type", "basicflag")
 		assert.Nil(k.Load(basicflag.Provider(bf, "."), nil), "error loading basicflag")
 		assert.Equal("basicflag", k.String("parent1.child1.type"), "types don't match")
