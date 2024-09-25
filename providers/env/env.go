@@ -94,5 +94,9 @@ func (e *Env) Read() (map[string]interface{}, error) {
 
 	}
 
-	return maps.Unflatten(mp, e.delim), nil
+	if e.delim != "" {
+		return maps.Unflatten(mp, e.delim), nil
+	}
+
+	return mp, nil
 }
