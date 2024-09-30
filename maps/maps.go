@@ -11,6 +11,12 @@ import (
 	"github.com/mitchellh/copystructure"
 )
 
+const (
+	escapeChar  = "~"
+	tildeEscape = escapeChar + "0"
+	delimEscape = escapeChar + "1"
+)
+
 // Flatten takes a map[string]interface{} and traverses it and flattens
 // nested children into keys delimited by delim.
 //
@@ -33,6 +39,18 @@ func Flatten(m map[string]interface{}, keys []string, delim string) (map[string]
 	return out, keyMap
 }
 
+func escape(keyPairs []string, delim string) []string {
+	var result []string
+	for _, kp := range keyPairs {
+		// first pass, escape all escape characters
+		out := strings.ReplaceAll(kp, escapeChar, tildeEscape)
+		// second pass, escape the delimiter
+		out = strings.Replace(out, delim, delimEscape, -1)
+		result = append(result, out)
+	}
+	return result
+}
+
 func flatten(m map[string]interface{}, keys []string, delim string, out map[string]interface{}, keyMap map[string][]string) {
 	for key, val := range m {
 		// Copy the incoming key paths into a fresh list
@@ -45,7 +63,8 @@ func flatten(m map[string]interface{}, keys []string, delim string, out map[stri
 		case map[string]interface{}:
 			// Empty map.
 			if len(cur) == 0 {
-				newKey := strings.Join(kp, delim)
+				newKey := strings.Join(escape(kp, delim), delim)
+				// newKey := strings.Join(kp, delim)
 				out[newKey] = val
 				keyMap[newKey] = kp
 				continue
@@ -54,11 +73,24 @@ func flatten(m map[string]interface{}, keys []string, delim string, out map[stri
 			// It's a nested map. Flatten it recursively.
 			flatten(cur, kp, delim, out, keyMap)
 		default:
-			newKey := strings.Join(kp, delim)
+			newKey := strings.Join(escape(kp, delim), delim)
+			// newKey := strings.Join(kp, delim)
 			out[newKey] = val
 			keyMap[newKey] = kp
 		}
 	}
+}
+
+func unescape(keyPairs []string, delim string) []string {
+	var result []string
+	for _, kp := range keyPairs {
+		// first pass, unescape the delimiter
+		out := strings.Replace(kp, delimEscape, delim, -1)
+		// second pass, unescape all escape characters
+		out = strings.Replace(out, tildeEscape, escapeChar, -1)
+		result = append(result, out)
+	}
+	return result
 }
 
 // Unflatten takes a flattened key:value map (non-nested with delimited keys)
@@ -79,7 +111,7 @@ func Unflatten(m map[string]interface{}, delim string) map[string]interface{} {
 		)
 
 		if delim != "" {
-			keys = strings.Split(k, delim)
+			keys = unescape(strings.Split(k, delim), delim)
 		} else {
 			keys = []string{k}
 		}
