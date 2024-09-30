@@ -83,6 +83,9 @@ func flatten(m map[string]interface{}, keys []string, delim string, out map[stri
 }
 
 func unescape(keyPairs []string, delim string) []string {
+	if delim == "" {
+		return keyPairs
+	}
 	var result []string
 	for _, kp := range keyPairs {
 		// first pass, unescape the delimiter
