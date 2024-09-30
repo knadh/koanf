@@ -28,6 +28,9 @@ func TestNats(t *testing.T) {
 	kv, err := js.CreateKeyValue(&nats.KeyValueConfig{
 		Bucket: "test",
 	})
+	if err != nil {
+		t.Fatal(err)
+	}
 	_, err = kv.Put("some.test.color", []byte("blue"))
 	if err != nil {
 		t.Fatal(err)
@@ -46,8 +49,8 @@ func TestNats(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	assert.Equal(t, k.Keys(), []string{"some.test.color"})
-	assert.Equal(t, k.Get("some.test.color"), "blue")
+	assert.Equal(t, []string{"some.test.color"}, k.Keys())
+	assert.Equal(t, "blue", k.Get("some.test.color"))
 
 	err = provider.Watch(func(event interface{}, err error) {
 		if err != nil {

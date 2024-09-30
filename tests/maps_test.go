@@ -103,16 +103,16 @@ var testMap3 = map[string]interface{}{
 func TestFlatten(t *testing.T) {
 	f, k := maps.Flatten(testMap, nil, delim)
 	assert.Equal(t, map[string]interface{}{
-		"parent.child.key":          123,
-		"parent.child.key.with.dot": 456,
-		"top":                       789,
-		"empty":                     map[string]interface{}{},
+		"parent.child.key":            123,
+		"parent.child.key~1with~1dot": 456,
+		"top":                         789,
+		"empty":                       map[string]interface{}{},
 	}, f)
 	assert.Equal(t, map[string][]string{
-		"parent.child.key":          {"parent", "child", "key"},
-		"parent.child.key.with.dot": {"parent", "child", "key.with.dot"},
-		"top":                       {"top"},
-		"empty":                     {"empty"},
+		"parent.child.key":            {"parent", "child", "key"},
+		"parent.child.key~1with~1dot": {"parent", "child", "key.with.dot"},
+		"top":                         {"top"},
+		"empty":                       {"empty"},
 	}, k)
 }
 
@@ -125,11 +125,11 @@ func BenchmarkFlatten(b *testing.B) {
 func TestUnflatten(t *testing.T) {
 	m, _ := maps.Flatten(testMap, nil, delim)
 	um := maps.Unflatten(m, delim)
-	assert.NotEqual(t, um, testMap)
+	assert.Equal(t, testMap, um)
 
 	m, _ = maps.Flatten(testMap2, nil, delim)
 	um = maps.Unflatten(m, delim)
-	assert.Equal(t, um, testMap2)
+	assert.Equal(t, testMap2, um)
 }
 
 func TestIntfaceKeysToStrings(t *testing.T) {
