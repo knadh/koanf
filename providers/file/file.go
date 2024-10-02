@@ -95,18 +95,6 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 
 				evFile := filepath.Clean(event.Name)
 
-				// Since the event is triggered on a directory, is this
-				// one on the file being watched?
-				if evFile != realPath && evFile != f.path {
-					continue
-				}
-
-				// The file was removed.
-				if event.Op&fsnotify.Remove != 0 {
-					cb(nil, fmt.Errorf("file %s was removed", event.Name))
-					break loop
-				}
-
 				// Resolve symlink to get the real path, in case the symlink's
 				// target has changed.
 				curPath, err := filepath.EvalSymlinks(f.path)
@@ -114,15 +102,26 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					cb(nil, err)
 					break loop
 				}
-				realPath = filepath.Clean(curPath)
+				curPath = filepath.Clean(curPath)
 
-				// Finally, we only care about create and write.
-				if event.Op&(fsnotify.Write|fsnotify.Create) == 0 {
-					continue
+				onWatchedFile := evFile == realPath || evFile == f.path
+
+				// Since the event is triggered on a directory, is this
+				// a create or write on the file being watched?
+				//
+				// Or has the real path of the file being watched changed?
+				//
+				// If either of the above are true, trigger the callback.
+				if event.Has(fsnotify.Create|fsnotify.Write) && (onWatchedFile ||
+					(curPath != "" && curPath != realPath)) {
+					realPath = curPath
+
+					// Trigger event.
+					cb(nil, nil)
+				} else if onWatchedFile && event.Has(fsnotify.Remove) {
+					cb(nil, fmt.Errorf("file %s was removed", event.Name))
+					break loop
 				}
-
-				// Trigger event.
-				cb(nil, nil)
 
 			// There's an error.
 			case err, ok := <-f.w.Errors:
