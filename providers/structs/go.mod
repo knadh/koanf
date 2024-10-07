@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/structs
 
-go 1.18
+go 1.21
 
 require (
 	github.com/fatih/structs v1.1.0

@@ -1,10 +1,10 @@
 module github.com/knadh/koanf/providers/env
 
-go 1.18
+go 1.21
 
 require (
 	github.com/knadh/koanf/maps v0.1.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (

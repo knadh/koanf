@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/parameterstore/v2
 
-go 1.18
+go 1.21
 
 require (
 	github.com/aws/aws-sdk-go-v2 v1.21.0
@@ -9,7 +9,7 @@ require (
 	github.com/aws/smithy-go v1.14.2
 	github.com/knadh/koanf/maps v0.1.1
 	github.com/knadh/koanf/v2 v2.0.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.9.0
 )
 
 require (
