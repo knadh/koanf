@@ -19,6 +19,9 @@ type Structs struct {
 
 // Provider returns a provider that takes a takes a struct and a struct tag
 // and uses structs to parse and provide it to koanf.
+//
+// NOTE: only exported fields of a struct can be accessed, non exported
+// fields will be neglected.
 func Provider(s interface{}, tag string) *Structs {
 	return &Structs{s: s, tag: tag}
 }

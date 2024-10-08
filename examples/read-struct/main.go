@@ -49,6 +49,8 @@ func main() {
 		},
 	}
 
+	// NOTE: only exported fields of a struct can be accessed, non exported
+	// fields will be neglected.
 	k.Load(structs.Provider(s, "koanf"), nil)
 
 	fmt.Printf("name is = `%s`\n", k.String("parent1.child1.name"))

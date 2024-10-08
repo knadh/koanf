@@ -350,6 +350,8 @@ func main() {
 	}
 
 	// Structure to unmarshal nested conf to.
+	// NOTE: only exported fields of a struct can be accessed, non exported 
+	// fields will be neglected.
 	type childStruct struct {
 		Name       string            `koanf:"name"`
 		Type       string            `koanf:"type"`
@@ -522,6 +524,8 @@ func main() {
 	// Load default values using the structs provider.
 	// We provide a struct along with the struct tag `koanf` to the
 	// provider.
+	// NOTE: only exported fields of a struct can be accessed, non exported 
+	// fields will be neglected.
 	k.Load(structs.Provider(sampleStruct{
 		Type:  "json",
 		Empty: make(map[string]string),
