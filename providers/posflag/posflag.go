@@ -32,7 +32,7 @@ type Posflag struct {
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
 //
-// It takes an optional (but recommended) Koanf instance to see if the
+// It takes an optional (but recommended) Koanf instance to see if
 // the flags defined have been set from other providers, for instance,
 // a config file. If they are not, then the default values of the flags
 // are merged. If they do exist, the flag values are not merged but only
@@ -62,7 +62,7 @@ func ProviderWithValue(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(key
 // ProviderWithFlag takes pflag.FlagSet and a callback that takes *pflag.Flag
 // and applies the callback to all items in the flagset. It does not parse
 // pflag.Flag values and expects the callback to process the keys and values
-// from *pflag.Flag however. FlagVal() can be used in the callbakc to avoid
+// from *pflag.Flag however. FlagVal() can be used in the callback to avoid
 // repeating the type-switch block for parsing values.
 // Returning "" for the key causes the particular flag to be disregarded.
 //

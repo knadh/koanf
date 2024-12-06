@@ -175,7 +175,7 @@ func main() {
 	fmt.Printf("Second request test passed.\n")
 	kCheck.Delete("")
 
-	// adding metainformation: age (flags)
+	// adding metadata: age (flags)
 	newPair = &api.KVPair{Key: "parent1", Flags: uint64(42), Value: []byte("father")}
 	_, err = kv.Put(newPair, nil)
 	if err != nil {

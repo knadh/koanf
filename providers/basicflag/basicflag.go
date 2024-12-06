@@ -57,7 +57,7 @@ func Provider(f *flag.FlagSet, delim string, opt ...*Opt) *Pflag {
 // to modify both. This is useful for cases where you may want to return
 // other types like a string slice instead of just a string.
 //
-// It takes an optional Opt{} (but recommended) argument with a Koanf instance (opt.KeyMap) to see if the
+// It takes an optional Opt{} (but recommended) argument with a Koanf instance (opt.KeyMap) to see if
 // the flags defined have been set from other providers, for instance,
 // a config file. If they are not, then the default values of the flags
 // are merged. If they do exist, the flag values are not merged but only

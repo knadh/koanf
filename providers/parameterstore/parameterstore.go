@@ -11,7 +11,7 @@ import (
 )
 
 // Input is a constraint that permits any input type
-// to get paramers from AWS Systems Manager Parameter Store.
+// to get parameters from AWS Systems Manager Parameter Store.
 type Input interface {
 	ssm.GetParameterInput | ssm.GetParametersInput | ssm.GetParametersByPathInput
 }
