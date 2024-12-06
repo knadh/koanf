@@ -39,7 +39,7 @@ func main() {
 	// for example, turn space separated env vars into slices.
 	// k.Load(env.ProviderWithValue("MYVAR_", ".", func(s string, v string) (string, interface{}) {
 	// 	// Strip out the MYVAR_ prefix and lowercase and get the key while also replacing
-	// 	// the _ character with . in the key (koanf delimeter).
+	// 	// the _ character with . in the key (koanf delimiter).
 	// 	key := strings.Replace(strings.ToLower(strings.TrimPrefix(s, "MYVAR_")), "_", ".", -1)
 
 	// 	// If there is a space in the value, split the value into a slice by the space.

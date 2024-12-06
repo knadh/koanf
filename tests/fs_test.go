@@ -27,7 +27,7 @@ func TestFSProvider(t *testing.T) {
 	testFS := os.DirFS("../mock")
 
 	for _, c := range cases {
-		// Test fs.FS before setting up kaonf
+		// Test fs.FS before setting up koanf
 		err := fstest.TestFS(testFS, c.file)
 		require.NoError(t, err, "failed asserting file existence in fs.FS")
 

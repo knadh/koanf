@@ -19,7 +19,7 @@ func TestHCL_Unmarshal(t *testing.T) {
 		function HCL
 	}{
 		{
-			name:     "Empty HCL - With faltten",
+			name:     "Empty HCL - With flatten",
 			input:    []byte(`{}`),
 			function: *hclParserWithFlatten,
 			output:   map[string]interface{}{},
@@ -31,7 +31,7 @@ func TestHCL_Unmarshal(t *testing.T) {
 			output:   map[string]interface{}{},
 		},
 		{
-			name: "Valid HCL - With faltten",
+			name: "Valid HCL - With flatten",
 			input: []byte(`resource "aws_instance" "example" {
 				count = 2 # meta-argument first
 				ami           = "abc123"
@@ -57,7 +57,7 @@ func TestHCL_Unmarshal(t *testing.T) {
 			},
 		},
 		{
-			name: "Valid HCL - Without faltten",
+			name: "Valid HCL - Without flatten",
 			input: []byte(`resource "aws_instance" "example" {
 				count = 2 # meta-argument first
 				ami           = "abc123"

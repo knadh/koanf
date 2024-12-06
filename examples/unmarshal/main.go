@@ -44,7 +44,7 @@ func main() {
 	fmt.Println(out)
 
 	// Marshal the instance back to JSON.
-	// The paser instance can be anything, eg: json.Paser(),
+	// The parser instance can be anything, eg: json.Parser(),
 	// yaml.Parser() etc.
 	b, _ := k.Marshal(parser)
 	fmt.Println(string(b))
