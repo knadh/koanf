@@ -17,7 +17,7 @@ type Structs struct {
 	delim string
 }
 
-// Provider returns a provider that takes a takes a struct and a struct tag
+// Provider returns a provider that takes a struct and a struct tag
 // and uses structs to parse and provide it to koanf.
 func Provider(s interface{}, tag string) *Structs {
 	return &Structs{s: s, tag: tag}

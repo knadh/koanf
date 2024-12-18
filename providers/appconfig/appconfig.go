@@ -50,7 +50,7 @@ type Config struct {
 	// The AWS IAM Role ARN to use. Useful for access requiring IAM AssumeRole.
 	AWSRoleARN string
 
-	// The AWS Region to use. This value is fetched from teh environment if not specified.
+	// The AWS Region to use. This value is fetched from the environment if not specified.
 	AWSRegion string
 
 	// Time interval at which the watcher will refresh the configuration.
@@ -143,7 +143,7 @@ func (ac *AppConfig) Watch(cb func(event interface{}, err error)) error {
 				break loop
 			}
 
-			// Check if the the configuration has been updated.
+			// Check if the configuration has been updated.
 			if len(conf.Content) == 0 {
 				// Configuration is not updated and we have the latest version.
 				// Sleep for WatchInterval and retry watcher.

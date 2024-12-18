@@ -28,7 +28,7 @@ number: 2`),
 			values: []interface{}{"val", "test", 2},
 		},
 		{
-			name: "Invalid YAML - wrong intendation",
+			name: "Invalid YAML - wrong indentation",
 			input: []byte(`key: val
 			name: test
 			number: 2`),

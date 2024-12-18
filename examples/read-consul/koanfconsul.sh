@@ -22,6 +22,6 @@ if [ $exitcode -eq 0 ]; then
 	echo -e "\nShutdown..."
 	consul leave
 else
-	echo "Consul server is inavailable."
+	echo "Consul server is unavailable."
 	consul leave
 fi

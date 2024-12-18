@@ -527,7 +527,7 @@ func TestWatchFileSymlink(t *testing.T) {
 	// Create a temp symlink to the YAML file and rename the old symlink to the new
 	// symlink. We do this to avoid removing the symlink and triggering a REMOVE event.
 	time.Sleep(1 * time.Second)
-	assert.NoError(os.Rename(symPath2, symPath), "error swaping symlink to another file type")
+	assert.NoError(os.Rename(symPath2, symPath), "error swapping symlink to another file type")
 	if waitTimeout(&wg, time.Second*10) {
 		assert.Fail("timeout waiting for file watch trigger")
 	} else {
@@ -648,7 +648,7 @@ func TestUnwatchFile(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	assert.True(reloaded, "watched file didn't reload")
 
-	// Unwatch the file and verify that the watch didn't triger.
+	// Unwatch the file and verify that the watch didn't trigger.
 	assert.NoError(f.Unwatch())
 	reloaded = false
 	time.Sleep(100 * time.Millisecond)
@@ -739,7 +739,7 @@ func TestFlags(t *testing.T) {
 	// Key that doesn't exist in the loaded file conf. Should merge the default value.
 	f.String("flagkey", "flag", "")
 
-	// Key that exists in the loadd conf but no Set(). Default value shouldn't be merged.
+	// Key that exists in the loaded conf but no Set(). Default value shouldn't be merged.
 	f.String("parent1.name", "flag", "")
 
 	// Initialize the provider with the Koanf instance passed where default values
@@ -784,7 +784,7 @@ func TestFlags(t *testing.T) {
 		assert.Equal("override-default", k.String("parent2.child2.name"), "basicflag default value override failed")
 	}
 
-	// No defualt-value override behaviour.
+	// No default-value override behaviour.
 	{
 		k := def.Copy()
 		bf := flag.NewFlagSet("test", flag.ContinueOnError)
@@ -808,7 +808,7 @@ func TestFlags(t *testing.T) {
 		assert.Equal("override-default", k.String("parent2.child2.name"), "basicflag default value override failed")
 	}
 
-	// No defualt-value override behaviour.
+	// No default-value override behaviour.
 	{
 		k := def.Copy()
 		bf := flag.NewFlagSet("test", flag.ContinueOnError)
@@ -1171,7 +1171,7 @@ func TestUnmarshalCustomText(t *testing.T) {
 	}{}
 
 	// Test custom unmarshalling of strings via mapstructure's UnmarshalText()
-	// methods. customText is a int type that strips of the `mb` suffix and parses
+	// methods. customText is an int type that strips of the `mb` suffix and parses
 	// the rest into a number.
 
 	k := koanf.New(delim)
