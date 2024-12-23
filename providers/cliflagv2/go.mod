@@ -1,4 +1,4 @@
-module github.com/knadh/koanf/v2/providers/cliflag
+module github.com/knadh/koanf/v2/providers/cliflagv2
 
 go 1.21.5
 

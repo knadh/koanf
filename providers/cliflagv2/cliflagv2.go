@@ -1,6 +1,6 @@
-// Package cliflag implements a koanf.Provider that reads commandline
-// parameters as conf maps using ufafe/cli flag.
-package cliflag
+// Package cliflagv2 implements a koanf.Provider that reads commandline
+// parameters as conf maps using ufafe/cli/v2 flag.
+package cliflagv2
 
 import (
 	"strings"
