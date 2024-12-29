@@ -89,30 +89,68 @@ func (p *CliFlag) setNestedValue(path string, value interface{}, out map[string]
 	current[parts[len(parts)-1]] = value
 }
 
-// getFlagValue extracts the typed value from the flag
+// getFlagValue extracts the typed value from the flag.
 func (p *CliFlag) getFlagValue(name string) interface{} {
-	switch {
-	case p.ctx.IsSet(name):
-		switch {
-		case p.ctx.String(name) != "":
-			return p.ctx.String(name)
-		case p.ctx.StringSlice(name) != nil:
-			return p.ctx.StringSlice(name)
-		case p.ctx.Int(name) != 0:
-			return p.ctx.Int(name)
-		case p.ctx.Int64(name) != 0:
-			return p.ctx.Int64(name)
-		case p.ctx.IntSlice(name) != nil:
-			return p.ctx.IntSlice(name)
-		case p.ctx.Float64(name) != 0:
-			return p.ctx.Float64(name)
-		case p.ctx.Bool(name):
-			return p.ctx.Bool(name)
-		case p.ctx.Duration(name).String() != "0s":
-			return p.ctx.Duration(name)
-		default:
-			return p.ctx.Generic(name)
+	if !p.ctx.IsSet(name) {
+		return nil
+	}
+
+	// Find the flag definition
+	flag := p.findFlag(name)
+	if flag == nil {
+		return nil
+	}
+
+	// Use type switch to get the appropriate value
+	switch flag.(type) {
+	case *cli.StringFlag:
+		return p.ctx.String(name)
+	case *cli.StringSliceFlag:
+		return p.ctx.StringSlice(name)
+	case *cli.IntFlag:
+		return p.ctx.Int(name)
+	case *cli.Int64Flag:
+		return p.ctx.Int64(name)
+	case *cli.IntSliceFlag:
+		return p.ctx.IntSlice(name)
+	case *cli.Float64Flag:
+		return p.ctx.Float64(name)
+	case *cli.Float64SliceFlag:
+		return p.ctx.Float64Slice(name)
+	case *cli.BoolFlag:
+		return p.ctx.Bool(name)
+	case *cli.DurationFlag:
+		return p.ctx.Duration(name)
+	case *cli.TimestampFlag:
+		return p.ctx.Timestamp(name)
+	case *cli.PathFlag:
+		return p.ctx.Path(name)
+	default:
+		return p.ctx.Generic(name)
+	}
+}
+
+// findFlag looks up a flag by name in both global and command-specific flags
+func (p *CliFlag) findFlag(name string) cli.Flag {
+	// Check global flags
+	for _, f := range p.ctx.App.Flags {
+		for _, n := range f.Names() {
+			if n == name {
+				return f
+			}
 		}
 	}
+
+	// Check command-specific flags if we're in a command
+	if p.ctx.Command != nil {
+		for _, f := range p.ctx.Command.Flags {
+			for _, n := range f.Names() {
+				if n == name {
+					return f
+				}
+			}
+		}
+	}
+
 	return nil
 }
