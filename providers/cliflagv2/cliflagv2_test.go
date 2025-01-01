@@ -5,6 +5,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli/v2"
 )
@@ -19,6 +20,11 @@ func TestCliFlag(t *testing.T) {
 			require.NotEmpty(t, x)
 
 			fmt.Printf("x: %v\n", x)
+
+			k := koanf.New(".")
+			err = k.Load(p, nil)
+
+			fmt.Printf("k.All(): %v\n", k.All())
 
 			return nil
 		},
@@ -38,10 +44,18 @@ func TestCliFlag(t *testing.T) {
 				Name:        "x",
 				Description: "yeah yeah testing",
 				Action: func(ctx *cli.Context) error {
-					p := Provider(ctx, "")
+					p := Provider(ctx, ".")
 					x, err := p.Read()
 					require.NoError(t, err)
 					require.NotEmpty(t, x)
+					fmt.Printf("x: %s\n", x)
+
+					k := koanf.New(".")
+					err = k.Load(p, nil)
+
+					fmt.Printf("k.All(): %v\n", k.All())
+
+					require.Equal(t, k.String("testing.x.lol"), "dsf")
 					return nil
 				},
 				Flags: []cli.Flag{

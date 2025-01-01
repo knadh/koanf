@@ -672,6 +672,7 @@ Install with `go get -u github.com/knadh/koanf/providers/$provider`
 | etcd/v2     | `etcd.Provider(etcd.Config{})`                              | CNCF etcd provider                                                                                                                           |
 | consul/v2     | `consul.Provider(consul.Config{})`                              | Hashicorp Consul provider                                                                                                                           |
 | parameterstore/v2 | `parameterstore.Provider(parameterstore.Config{})` | AWS Systems Manager Parameter Store provider |
+| cliflagv2  |  `cliflagv2.Provider(ctx *cli.Context, delimiter string)` |  Reads commands and flags from urfave/cli/v2 context including global flags and nested command flags and provides a nested config map based on delim. |
 
 
 ### Bundled Parsers

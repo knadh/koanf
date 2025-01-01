@@ -3,6 +3,7 @@
 package cliflagv2
 
 import (
+	"errors"
 	"strings"
 
 	"github.com/knadh/koanf/maps"
@@ -25,6 +26,11 @@ func Provider(f *cli.Context, delim string) *CliFlag {
 		ctx:   f,
 		delim: delim,
 	}
+}
+
+// ReadBytes is not supported by the cliflagv2 provider.
+func (p *CliFlag) ReadBytes() ([]byte, error) {
+	return nil, errors.New("cliflagv2 provider does not support this method")
 }
 
 // Read reads the flag variables and returns a nested conf map.
