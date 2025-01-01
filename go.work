@@ -27,5 +27,6 @@ use (
 	./providers/s3
 	./providers/structs
 	./providers/vault
+	./providers/cliflagv2
 	./tests
 )
