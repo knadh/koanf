@@ -1,6 +1,6 @@
-module github.com/knadh/koanf/v2/providers/cliflagv2
+module github.com/knadh/koanf/providers/cliflagv2
 
-go 1.21.5
+go 1.18
 
 require (
 	github.com/knadh/koanf/maps v0.1.1
