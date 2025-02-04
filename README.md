@@ -55,6 +55,7 @@ go get -u github.com/knadh/koanf/parsers/toml
 - `koanf.Parser` is a generic interface that takes raw bytes, parses, and returns a nested `map[string]interface{}`. For example, JSON and YAML parsers.
 - Once loaded into koanf, configuration are values queried by a delimited key path syntax. eg: `app.server.port`. Any delimiter can be chosen.
 - Configuration from multiple sources can be loaded and merged into a koanf instance, for example, load from a file first and override certain values with flags from the command line.
+- The koanf instance ensures thread safety by acquiring a global `sync.RWMutex` in all public methods. This ensures that the instance can be continuously read from while allowing follow-up `Load()` operations.
 
 With these two interface implementations, koanf can obtain configuration in any format from any source, parse it, and make it available to an application.
 
