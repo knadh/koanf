@@ -12,9 +12,28 @@ import (
 
 // Env implements an environment variables provider.
 type Env struct {
-	prefix string
-	delim  string
-	cb     func(key string, value string) (string, interface{})
+	prefix    string
+	delim     string
+	transform func(key string, value string) (string, any)
+	environ   func() []string
+}
+
+// Opt represents optional configuration passed to the provider.
+type Opt struct {
+	// Prefix limits the provider to only capture env vars that begin
+	// with the prefix.
+	Prefix string
+
+	// TransformFunc is an optional callback that takes in the env
+	// var name and value and returns a transformed version. Common
+	// transformations for the name include stripping prefixes,
+	// replacing _ with ., and so on. The value can be transformed
+	// to other types, like a slice of strings instead of just a string.
+	TransformFunc func(k, v string) (string, any)
+
+	// EnvironFunc is the function that feeds environment variables
+	// to the provider.
+	EnvironFunc func() []string
 }
 
 // Provider returns an environment variables provider that returns
@@ -30,29 +49,29 @@ type Env struct {
 // everything, strip prefixes and replace _ with . etc.
 // If the callback returns an empty string, the variable will be
 // ignored.
-func Provider(prefix, delim string, cb func(s string) string) *Env {
+//
+// It takes an optional Opt argument containing a function to override
+// the default source for environment variables, which can be useful
+// for mocking and parallel unit tests.
+func Provider(delim string, opt ...Opt) *Env {
 	e := &Env{
-		prefix: prefix,
-		delim:  delim,
+		delim:   delim,
+		environ: os.Environ,
 	}
-	if cb != nil {
-		e.cb = func(key string, value string) (string, interface{}) {
-			return cb(key), value
-		}
-	}
-	return e
-}
 
-// ProviderWithValue works exactly the same as Provider except the callback
-// takes a (key, value) with the variable name and value and allows you
-// to modify both. This is useful for cases where you may want to return
-// other types like a string slice instead of just a string.
-func ProviderWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *Env {
-	return &Env{
-		prefix: prefix,
-		delim:  delim,
-		cb:     cb,
+	if len(opt) == 0 {
+		return e
 	}
+
+	o := opt[0]
+
+	if o.EnvironFunc != nil {
+		e.environ = o.EnvironFunc
+	}
+	e.transform = o.TransformFunc
+	e.prefix = o.Prefix
+
+	return e
 }
 
 // ReadBytes is not supported by the env provider.
@@ -62,10 +81,10 @@ func (e *Env) ReadBytes() ([]byte, error) {
 
 // Read reads all available environment variables into a key:value map
 // and returns it.
-func (e *Env) Read() (map[string]interface{}, error) {
+func (e *Env) Read() (map[string]any, error) {
 	// Collect the environment variable keys.
 	var keys []string
-	for _, k := range os.Environ() {
+	for _, k := range e.environ() {
 		if e.prefix != "" {
 			if strings.HasPrefix(k, e.prefix) {
 				keys = append(keys, k)
@@ -75,14 +94,14 @@ func (e *Env) Read() (map[string]interface{}, error) {
 		}
 	}
 
-	mp := make(map[string]interface{})
+	mp := make(map[string]any)
 	for _, k := range keys {
 		parts := strings.SplitN(k, "=", 2)
 
 		// If there's a transformation callback,
 		// run it through every key/value.
-		if e.cb != nil {
-			key, value := e.cb(parts[0], parts[1])
+		if e.transform != nil {
+			key, value := e.transform(parts[0], parts[1])
 			// If the callback blanked the key, it should be omitted
 			if key == "" {
 				continue
