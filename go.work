@@ -1,4 +1,4 @@
-go 1.18
+go 1.24
 
 use (
 	.
@@ -28,5 +28,6 @@ use (
 	./providers/structs
 	./providers/vault
 	./providers/cliflagv2
+	./providers/azkeyvault
 	./tests
 )
