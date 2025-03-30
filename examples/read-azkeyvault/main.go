@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
-	"github.com/knadh/koanf/providers/azkeyvault/v2"
+	"github.com/knadh/koanf/providers/azkeyvault"
 	"github.com/knadh/koanf/v2"
 	"log"
 	"os"

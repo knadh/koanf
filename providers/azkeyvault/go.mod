@@ -1,4 +1,4 @@
-module github.com/knadh/koanf/providers/azkeyvault/v2
+module github.com/knadh/koanf/providers/azkeyvault
 
 go 1.18
 
