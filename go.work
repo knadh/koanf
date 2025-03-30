@@ -28,5 +28,6 @@ use (
 	./providers/structs
 	./providers/vault
 	./providers/cliflagv2
+	./providers/azkeyvault
 	./tests
 )
