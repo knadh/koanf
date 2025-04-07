@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/go-viper/mapstructure/v2 v2.2.1
 	github.com/knadh/koanf/maps v0.1.2
-
 	github.com/mitchellh/copystructure v1.2.0
 )
 
