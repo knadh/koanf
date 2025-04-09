@@ -15,6 +15,18 @@ type Env struct {
 	prefix string
 	delim  string
 	cb     func(key string, value string) (string, interface{})
+	opt    *Opt
+}
+
+// Opt represents optional configuration passed to the provider.
+type Opt struct {
+	// EnvironFunc is the function that feeds environment variables
+	// to the provider.
+	EnvironFunc func() []string
+}
+
+var defaultOpt = &Opt{
+	EnvironFunc: os.Environ,
 }
 
 // Provider returns an environment variables provider that returns
@@ -30,16 +42,25 @@ type Env struct {
 // everything, strip prefixes and replace _ with . etc.
 // If the callback returns an empty string, the variable will be
 // ignored.
-func Provider(prefix, delim string, cb func(s string) string) *Env {
+//
+// It takes an optional Opt argument containing a function to override
+// the default source for environment variables, which can be useful
+// for mocking and parallel unit tests.
+func Provider(prefix, delim string, cb func(s string) string, opt ...*Opt) *Env {
 	e := &Env{
 		prefix: prefix,
 		delim:  delim,
+		opt:    defaultOpt,
 	}
 	if cb != nil {
 		e.cb = func(key string, value string) (string, interface{}) {
 			return cb(key), value
 		}
 	}
+	if len(opt) > 0 {
+		e.opt = opt[0]
+	}
+
 	return e
 }
 
@@ -47,12 +68,22 @@ func Provider(prefix, delim string, cb func(s string) string) *Env {
 // takes a (key, value) with the variable name and value and allows you
 // to modify both. This is useful for cases where you may want to return
 // other types like a string slice instead of just a string.
-func ProviderWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *Env {
-	return &Env{
+//
+// It takes an optional Opt argument containing a function to override
+// the default source for environment variables, which can be useful
+// for mocking and parallel unit tests.
+func ProviderWithValue(prefix, delim string, cb func(key string, value string) (string, interface{}), opt ...*Opt) *Env {
+	e := &Env{
 		prefix: prefix,
 		delim:  delim,
 		cb:     cb,
+		opt:    defaultOpt,
 	}
+	if len(opt) > 0 {
+		e.opt = opt[0]
+	}
+
+	return e
 }
 
 // ReadBytes is not supported by the env provider.
@@ -65,7 +96,7 @@ func (e *Env) ReadBytes() ([]byte, error) {
 func (e *Env) Read() (map[string]interface{}, error) {
 	// Collect the environment variable keys.
 	var keys []string
-	for _, k := range os.Environ() {
+	for _, k := range e.opt.EnvironFunc() {
 		if e.prefix != "" {
 			if strings.HasPrefix(k, e.prefix) {
 				keys = append(keys, k)
