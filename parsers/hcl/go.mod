@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/parsers/hcl
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/hashicorp/hcl v1.0.0
