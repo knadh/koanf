@@ -1,13 +1,13 @@
 module github.com/knadh/koanf/parsers/kdl
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/stretchr/testify v1.8.4
 )
 
-require github.com/sblinch/kdl-go v0.0.0-20240108033718-e453df3dbf65
+require github.com/sblinch/kdl-go v0.0.0-20240410000746-21754ba9ac55
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
