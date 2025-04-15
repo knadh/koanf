@@ -1,9 +1,9 @@
 module github.com/knadh/koanf/providers/env
 
-go 1.18
+go 1.23.0
 
 require (
-	github.com/knadh/koanf/maps v0.1.1
+	github.com/knadh/koanf/maps v0.1.2
 	github.com/stretchr/testify v1.8.4
 )
 
