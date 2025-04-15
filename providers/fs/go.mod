@@ -1,3 +1,3 @@
 module github.com/knadh/koanf/providers/fs
 
-go 1.18
+go 1.23.0
