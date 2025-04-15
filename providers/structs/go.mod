@@ -1,10 +1,10 @@
 module github.com/knadh/koanf/providers/structs
 
-go 1.18
+go 1.23.0
 
 require (
 	github.com/fatih/structs v1.1.0
-	github.com/knadh/koanf/maps v0.1.1
+	github.com/knadh/koanf/maps v0.1.2
 )
 
 require (
