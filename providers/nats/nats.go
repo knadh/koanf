@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/knadh/koanf/maps"
 	"github.com/nats-io/nats.go"
 )
 
@@ -24,6 +25,9 @@ type Config struct {
 
 	// Prefix (optional).
 	Prefix string
+
+	// If delim is true, keys will be split by the NATS KV "." delimiter ()
+	Split bool
 }
 
 // Nats implements the nats config provider.
@@ -74,6 +78,9 @@ func (n *Nats) Read() (map[string]interface{}, error) {
 			return nil, err
 		}
 		mp[res.Key()] = string(res.Value())
+	}
+	if n.cfg.Split {
+		return maps.Unflatten(mp, "."), nil
 	}
 
 	return mp, nil
