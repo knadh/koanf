@@ -26,10 +26,10 @@ type Config struct {
 	// Prefix (optional).
 	Prefix string
 
-	// If true, keys will be split by delimiter "." into a nested map
+	// If true, keys will be unflattened by delimiter "." into a nested map
 	// So, "a.b.c" results in {"a": {"b": {"c": "value" }}}
 	// Prefix will be included
-	Split bool
+	Unflatten bool
 }
 
 // Nats implements the nats config provider.
@@ -81,7 +81,7 @@ func (n *Nats) Read() (map[string]interface{}, error) {
 		}
 		mp[res.Key()] = string(res.Value())
 	}
-	if n.cfg.Split {
+	if n.cfg.Unflatten {
 		return maps.Unflatten(mp, "."), nil
 	}
 
