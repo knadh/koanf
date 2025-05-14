@@ -15,7 +15,11 @@ import (
 type CliFlag struct {
 	ctx    *cli.Context
 	delim  string
-	forced []string
+	config *Config
+}
+
+type Config struct {
+	Defaults []string
 }
 
 // Provider returns a commandline flags provider that returns
@@ -23,20 +27,25 @@ type CliFlag struct {
 // nesting hierarchy of keys are defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
-func Provider(f *cli.Context, delim string, forceInclude ...[]string) *CliFlag {
-
-	if len(forceInclude) > 0 {
-		return &CliFlag{
-			ctx:    f,
-			delim:  delim,
-			forced: forceInclude[0],
-		}
-	}
-
+func Provider(f *cli.Context, delim string) *CliFlag {
 	return &CliFlag{
 		ctx:   f,
 		delim: delim,
+		config: &Config{
+			Defaults: []string{},
+		},
 	}
+}
+
+// ProviderWithConfig returns a commandline flags provider with a
+// Configuration struct attached.
+func ProviderWithConfig(f *cli.Context, delim string, config *Config) *CliFlag {
+	return &CliFlag{
+		ctx:    f,
+		delim:  delim,
+		config: config,
+	}
+
 }
 
 // ReadBytes is not supported by the cliflagv2 provider.
@@ -74,7 +83,7 @@ func (p *CliFlag) Read() (map[string]interface{}, error) {
 func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]interface{}) {
 	for _, flag := range flags {
 		name := flag.Names()[0]
-		if p.ctx.IsSet(name) || slices.Contains(p.forced, name) {
+		if p.ctx.IsSet(name) || slices.Contains(p.config.Defaults, name) {
 			value := p.getFlagValue(name)
 			if value != nil {
 				// Build the full path for the flag
