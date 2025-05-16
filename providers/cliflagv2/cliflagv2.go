@@ -1,9 +1,10 @@
 // Package cliflagv2 implements a koanf.Provider that reads commandline
-// parameters as conf maps using ufafe/cli/v2 flag.
+// parameters as conf maps using urfave/cli/v2 flag.
 package cliflagv2
 
 import (
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/knadh/koanf/maps"
@@ -12,8 +13,13 @@ import (
 
 // CliFlag implements a cli.Flag command line provider.
 type CliFlag struct {
-	ctx   *cli.Context
-	delim string
+	ctx    *cli.Context
+	delim  string
+	config *Config
+}
+
+type Config struct {
+	Defaults []string
 }
 
 // Provider returns a commandline flags provider that returns
@@ -25,7 +31,21 @@ func Provider(f *cli.Context, delim string) *CliFlag {
 	return &CliFlag{
 		ctx:   f,
 		delim: delim,
+		config: &Config{
+			Defaults: []string{},
+		},
 	}
+}
+
+// ProviderWithConfig returns a commandline flags provider with a
+// Configuration struct attached.
+func ProviderWithConfig(f *cli.Context, delim string, config *Config) *CliFlag {
+	return &CliFlag{
+		ctx:    f,
+		delim:  delim,
+		config: config,
+	}
+
 }
 
 // ReadBytes is not supported by the cliflagv2 provider.
@@ -63,7 +83,7 @@ func (p *CliFlag) Read() (map[string]interface{}, error) {
 func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]interface{}) {
 	for _, flag := range flags {
 		name := flag.Names()[0]
-		if p.ctx.IsSet(name) {
+		if p.ctx.IsSet(name) || slices.Contains(p.config.Defaults, name) {
 			value := p.getFlagValue(name)
 			if value != nil {
 				// Build the full path for the flag
@@ -97,10 +117,6 @@ func (p *CliFlag) setNestedValue(path string, value interface{}, out map[string]
 
 // getFlagValue extracts the typed value from the flag.
 func (p *CliFlag) getFlagValue(name string) interface{} {
-	if !p.ctx.IsSet(name) {
-		return nil
-	}
-
 	// Find the flag definition
 	flag := p.findFlag(name)
 	if flag == nil {
