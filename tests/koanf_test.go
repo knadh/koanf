@@ -23,7 +23,7 @@ import (
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/basicflag"
 	"github.com/knadh/koanf/providers/confmap"
-	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/providers/posflag"
 	"github.com/knadh/koanf/providers/rawbytes"
@@ -689,24 +689,31 @@ func TestLoadMerge(t *testing.T) {
 	}
 
 	// Load env provider and override value.
-	os.Setenv("PREFIX_PARENT1.CHILD1.TYPE", "env")
-	err := k.Load(env.Provider("PREFIX_", ".", func(k string) string {
-		return strings.Replace(strings.ToLower(k), "prefix_", "", -1)
+	t.Setenv("PREFIX_PARENT1.CHILD1.TYPE", "env")
+
+	err := k.Load(env.Provider(".", env.Opt{
+		Prefix: "PREFIX_",
+		TransformFunc: func(k, v string) (string, any) {
+			return strings.ReplaceAll(strings.ToLower(k), "prefix_", ""), v
+		},
 	}), nil)
 
 	assert.Nil(err, "error loading env")
 	assert.Equal("env", k.String("parent1.child1.type"), "types don't match")
 
 	// Test the env provider than can mutate the value to upper case
-	err = k.Load(env.ProviderWithValue("PREFIX_", ".", func(k string, v string) (string, interface{}) {
-		return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
+	err = k.Load(env.Provider(".", env.Opt{
+		Prefix: "PREFIX_",
+		TransformFunc: func(k string, v string) (string, any) {
+			return strings.ReplaceAll(strings.ToLower(k), "prefix_", ""), strings.ToUpper(v)
+		},
 	}), nil)
 
 	assert.Nil(err, "error loading env with value")
 	assert.Equal("ENV", k.String("parent1.child1.type"), "types don't match")
 
 	// Override with the confmap provider.
-	k.Load(confmap.Provider(map[string]interface{}{
+	k.Load(confmap.Provider(map[string]any{
 		"parent1.child1.type": "confmap",
 		"type":                "confmap",
 	}, "."), nil)
@@ -997,9 +1004,7 @@ func TestRaw_JsonTypes(t *testing.T) {
 }
 
 func TestMergeStrictError(t *testing.T) {
-	var (
-		assert = assert.New(t)
-	)
+	assert := assert.New(t)
 
 	ks := koanf.NewWithConf(koanf.Conf{
 		Delim:       delim,
