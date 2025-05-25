@@ -254,9 +254,12 @@ func (ko *Koanf) UnmarshalWithConf(path string, o interface{}, c UnmarshalConf) 
 				mapstructure.StringToTimeDurationHookFunc(),
 				textUnmarshalerHookFunc()),
 			Metadata:         nil,
-			Result:           o,
 			WeaklyTypedInput: true,
 		}
+	}
+
+	if c.DecoderConfig.Result == nil {
+		c.DecoderConfig.Result = o
 	}
 
 	if c.Tag == "" {
