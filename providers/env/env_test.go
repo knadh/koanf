@@ -1,13 +1,24 @@
 package env
 
 import (
-	"github.com/stretchr/testify/assert"
 	"os"
+	"slices"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestProvider(t *testing.T) {
+	mockEnviron := func() []string {
+		return []string{"TEST_FOO=bar"}
+	}
+	xformSimple := func(k, v string) (string, any) {
+		return strings.ToLower(k), v
+	}
+	xformTwo := func(k, v string) (string, any) {
+		return strings.ReplaceAll(strings.ToUpper(k), "_", "."), v
+	}
 
 	testCases := []struct {
 		name     string
@@ -17,147 +28,121 @@ func TestProvider(t *testing.T) {
 		value    string
 		expKey   string
 		expValue string
-		cb       func(key string) string
+		opt      Opt
 		want     *Env
 	}{
 		{
-			name:   "Nil cb",
-			prefix: "TESTVAR_",
-			delim:  ".",
+			name:  "Nil TransformFunc",
+			delim: ".",
+			opt:   Opt{Prefix: "TESTVAR_"},
 			want: &Env{
-				prefix: "TESTVAR_",
-				delim:  ".",
+				prefix:  "TESTVAR_",
+				delim:   ".",
+				environ: os.Environ,
 			},
 		},
 		{
-			name:     "Simple cb",
-			prefix:   "TESTVAR_",
+			name:     "Simple TransformFunc",
 			delim:    ".",
 			key:      "TestKey",
 			value:    "TestVal",
 			expKey:   "testkey",
 			expValue: "TestVal",
-			cb: func(key string) string {
-				return strings.ToLower(key)
+			opt: Opt{
+				Prefix:        "TESTVAR_",
+				TransformFunc: xformSimple,
 			},
 			want: &Env{
-				prefix: "TESTVAR_",
-				delim:  ".",
+				prefix:  "TESTVAR_",
+				delim:   ".",
+				environ: os.Environ,
 			},
 		},
 		{
-			name:   "Empty string nil cb",
-			prefix: "",
-			delim:  ".",
+			name:  "Empty options",
+			delim: ".",
+			opt:   Opt{},
 			want: &Env{
-				prefix: "",
-				delim:  ".",
+				delim:   ".",
+				environ: os.Environ,
 			},
 		},
 		{
-			name:     "Cb is given",
-			prefix:   "",
+			name:     "TransformFunc is given, no Prefix",
 			delim:    ".",
 			key:      "test_key",
 			value:    "test_val",
 			expKey:   "TEST.KEY",
 			expValue: "test_val",
-			cb: func(key string) string {
-				return strings.Replace(strings.ToUpper(key), "_", ".", -1)
+			opt: Opt{
+				TransformFunc: xformTwo,
+			},
+			want: &Env{
+				delim:   ".",
+				environ: os.Environ,
+			},
+		},
+		{
+			name:     "Custom cb function",
+			delim:    ".",
+			key:      "TEST_KEY",
+			value:    "test_val",
+			expKey:   "key",
+			expValue: "prod_val",
+			opt: Opt{
+				Prefix: "TEST_",
+				TransformFunc: func(key string, value string) (string, any) {
+					key = strings.ReplaceAll(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".")
+					value = strings.ReplaceAll(value, "test", "prod")
+					return key, value
+				},
+			},
+			want: &Env{
+				prefix:  "TEST_",
+				delim:   ".",
+				environ: os.Environ,
+			},
+		},
+		{
+			name:  "Environ func is given",
+			delim: ".",
+			opt: Opt{
+				Prefix:      "TEST_",
+				EnvironFunc: mockEnviron,
+			},
+			want: &Env{
+				prefix:  "TEST_",
+				delim:   ".",
+				environ: mockEnviron,
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			gotProvider := Provider(tc.prefix, tc.delim, tc.cb)
-			if tc.cb == nil {
-				assert.Equal(t, tc.want, gotProvider)
-			}
-			if tc.cb != nil {
-				k, v := gotProvider.cb(tc.key, tc.value)
+			gotProvider := Provider(tc.delim, tc.opt)
+
+			// Member variables.
+			// Cannot use assert.Equal for the Env itself due to the presense
+			// of function member variables.
+			assert.Equal(t, tc.want.delim, gotProvider.delim)
+			assert.Equal(t, tc.want.prefix, gotProvider.prefix)
+
+			// TransformFunc
+			if tc.opt.TransformFunc != nil {
+				k, v := gotProvider.transform(tc.key, tc.value)
 				assert.Equal(t, tc.expKey, k)
 				assert.Equal(t, tc.expValue, v)
 			}
-		})
-	}
-}
 
-func TestProviderWithValue(t *testing.T) {
-	testCases := []struct {
-		name        string
-		prefix      string
-		delim       string
-		cb          func(key string, value string) (string, interface{})
-		nilCallback bool
-		want        *Env
-	}{
-		{
-			name:        "Nil cb",
-			prefix:      "TEST_",
-			delim:       ".",
-			nilCallback: true,
-			want: &Env{
-				prefix: "TEST_",
-				delim:  ".",
-			},
-		},
-		{
-			name:        "Empty string nil cb",
-			prefix:      "",
-			delim:       ".",
-			nilCallback: true,
-			want: &Env{
-				prefix: "",
-				delim:  ".",
-			},
-		},
-		{
-			name:   "Return the same key-value pair in cb",
-			prefix: "TEST_",
-			delim:  ".",
-			cb: func(key string, value string) (string, interface{}) {
-				return key, value
-			},
-			want: &Env{
-				prefix: "TEST_",
-				delim:  ".",
-				cb: func(key string, value string) (string, interface{}) {
-					return key, value
-				},
-			},
-		},
-		{
-			name:   "Custom cb function",
-			prefix: "TEST_",
-			delim:  ".",
-			cb: func(key string, value string) (string, interface{}) {
-				key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
-				return key, value
-			},
-			want: &Env{
-				prefix: "TEST_",
-				delim:  ".",
-				cb: func(key string, value string) (string, interface{}) {
-					key = strings.Replace(strings.TrimPrefix(strings.ToLower(key), "test_"), "_", ".", -1)
-					return key, value
-				},
-			},
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := ProviderWithValue(tc.prefix, tc.delim, tc.cb)
-			if tc.nilCallback {
-				assert.Equal(t, tc.want, got)
-			} else {
-				keyGot, valGot := got.cb("test_key_env_1", "test_val")
-				keyWant, valWant := tc.want.cb("test_key_env_1", "test_val")
-				assert.Equal(t, tc.prefix, got.prefix)
-				assert.Equal(t, tc.delim, got.delim)
-				assert.Equal(t, keyWant, keyGot)
-				assert.Equal(t, valWant, valGot)
+			// EnvironFunc
+			wantEnv := tc.want.environ()
+			gotEnv := gotProvider.environ()
+			slices.Sort(wantEnv)
+			slices.Sort(gotEnv)
+			if !slices.Equal(wantEnv, gotEnv) {
+				assert.Fail(t, "Env vars not equal (omitted from message for security)",
+					"Want len: %d\nGot len:%d", len(wantEnv), len(gotEnv))
 			}
 		})
 	}
@@ -179,7 +164,8 @@ func TestRead(t *testing.T) {
 			expKey:   "TEST_KEY",
 			expValue: "TEST_VAL",
 			env: &Env{
-				delim: ".",
+				delim:   ".",
+				environ: os.Environ,
 			},
 		},
 		{
@@ -190,9 +176,10 @@ func TestRead(t *testing.T) {
 			expValue: "TEST_VAL",
 			env: &Env{
 				delim: "_",
-				cb: func(key string, value string) (string, interface{}) {
-					return strings.Replace(strings.ToLower(key), "_", ".", -1), value
+				transform: func(key string, value string) (string, any) {
+					return strings.ReplaceAll(strings.ToLower(key), "_", "."), value
 				},
+				environ: os.Environ,
 			},
 		},
 		{
@@ -204,9 +191,10 @@ func TestRead(t *testing.T) {
 			env: &Env{
 				prefix: "TEST",
 				delim:  "/",
-				cb: func(key string, value string) (string, interface{}) {
-					return strings.Replace(strings.ToLower(key), "_", ".", -1), value
+				transform: func(key string, value string) (string, any) {
+					return strings.ReplaceAll(strings.ToLower(key), "_", "."), value
 				},
+				environ: os.Environ,
 			},
 		},
 		{
@@ -216,7 +204,8 @@ func TestRead(t *testing.T) {
 			expKey:   "TEST_DIR",
 			expValue: "/test/dir/file",
 			env: &Env{
-				delim: ".",
+				delim:   ".",
+				environ: os.Environ,
 			},
 		},
 		{
@@ -227,9 +216,10 @@ func TestRead(t *testing.T) {
 			expValue: "_test_dir_file",
 			env: &Env{
 				delim: ".",
-				cb: func(key string, value string) (string, interface{}) {
-					return key, strings.Replace(strings.ToLower(value), "/", "_", -1)
+				transform: func(key string, value string) (string, any) {
+					return key, strings.ReplaceAll(strings.ToLower(value), "/", "_")
 				},
+				environ: os.Environ,
 			},
 		},
 		{
@@ -239,16 +229,28 @@ func TestRead(t *testing.T) {
 			expKey:   "KEY",
 			expValue: "",
 			env: &Env{
+				delim:   ".",
+				environ: os.Environ,
+			},
+		},
+		{
+			name:     "Environ func provided",
+			key:      "TEST_KEY",
+			value:    "TEST_VAL",
+			expKey:   "TEST_OVERRIDE_KEY",
+			expValue: "TEST_OVERRIDE_VAL",
+			env: &Env{
 				delim: ".",
+				environ: func() []string {
+					return []string{"TEST_OVERRIDE_KEY=TEST_OVERRIDE_VAL"}
+				},
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := os.Setenv(tc.key, tc.value)
-			assert.Nil(t, err)
-			defer os.Unsetenv(tc.key)
+			t.Setenv(tc.key, tc.value)
 
 			envs, err := tc.env.Read()
 			assert.Nil(t, err)
