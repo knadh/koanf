@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/knadh/koanf/maps"
 	"github.com/nats-io/nats.go"
 )
 
@@ -24,6 +25,11 @@ type Config struct {
 
 	// Prefix (optional).
 	Prefix string
+
+	// If true, keys will be unflattened by delimiter "." into a nested map
+	// So, "a.b.c" results in {"a": {"b": {"c": "value" }}}
+	// Prefix will be included
+	Unflatten bool
 }
 
 // Nats implements the nats config provider.
@@ -74,6 +80,9 @@ func (n *Nats) Read() (map[string]interface{}, error) {
 			return nil, err
 		}
 		mp[res.Key()] = string(res.Value())
+	}
+	if n.cfg.Unflatten {
+		return maps.Unflatten(mp, "."), nil
 	}
 
 	return mp, nil
