@@ -153,29 +153,21 @@ func FlagVal(fs *pflag.FlagSet, f *pflag.Flag) interface{} {
 
 	switch f.Value.Type() {
 	case "int":
-		i, _ := fs.GetInt(key)
-		val = int64(i)
+		val, _ = fs.GetInt(key)
 	case "uint":
-		i, _ := fs.GetUint(key)
-		val = uint64(i)
+		val, _ = fs.GetUint(key)
 	case "int8":
-		i, _ := fs.GetInt8(key)
-		val = int64(i)
+		val, _ = fs.GetInt8(key)
 	case "uint8":
-		i, _ := fs.GetUint8(key)
-		val = uint64(i)
+		val, _ = fs.GetUint8(key)
 	case "int16":
-		i, _ := fs.GetInt16(key)
-		val = int64(i)
+		val, _ = fs.GetInt16(key)
 	case "uint16":
-		i, _ := fs.GetUint16(key)
-		val = uint64(i)
+		val, _ = fs.GetUint16(key)
 	case "int32":
-		i, _ := fs.GetInt32(key)
-		val = int64(i)
+		val, _ = fs.GetInt32(key)
 	case "uint32":
-		i, _ := fs.GetUint32(key)
-		val = uint64(i)
+		val, _ = fs.GetUint32(key)
 	case "int64":
 		val, _ = fs.GetInt64(key)
 	case "uint64":
