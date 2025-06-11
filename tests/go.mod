@@ -12,7 +12,7 @@ replace (
 	github.com/knadh/koanf/parsers/yaml => ../parsers/yaml
 	github.com/knadh/koanf/providers/basicflag => ../providers/basicflag
 	github.com/knadh/koanf/providers/confmap => ../providers/confmap
-	github.com/knadh/koanf/providers/env => ../providers/env
+	github.com/knadh/koanf/providers/env/v2 => ../providers/env
 	github.com/knadh/koanf/providers/file => ../providers/file
 	github.com/knadh/koanf/providers/fs => ../providers/fs
 	github.com/knadh/koanf/providers/posflag => ../providers/posflag
@@ -31,7 +31,7 @@ require (
 	github.com/knadh/koanf/parsers/yaml v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/basicflag v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/confmap v0.0.0-00010101000000-000000000000
-	github.com/knadh/koanf/providers/env v0.0.0-00010101000000-000000000000
+	github.com/knadh/koanf/providers/env/v2 v2.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/file v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/fs v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/providers/posflag v0.0.0-00010101000000-000000000000

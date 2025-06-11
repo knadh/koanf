@@ -17,7 +17,7 @@ All external dependencies in providers and parsers are detached from the core an
 go get -u github.com/knadh/koanf/v2
 
 # Install the necessary Provider(s).
-# Available: file, env, posflag, basicflag, confmap, rawbytes,
+# Available: file, env/v2, posflag, basicflag, confmap, rawbytes,
 #            structs, fs, s3, appconfig/v2, consul/v2, etcd/v2, vault/v2, parameterstore/v2
 # eg: go get -u github.com/knadh/koanf/providers/s3
 # eg: go get -u github.com/knadh/koanf/providers/consul/v2
@@ -229,7 +229,7 @@ import (
 
 	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/json"
-	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/providers/file"
 )
 
@@ -245,42 +245,44 @@ func main() {
 	// Load environment variables and merge into the loaded config.
 	// "MYVAR" is the prefix to filter the env vars by.
 	// "." is the delimiter used to represent the key hierarchy in env vars.
-	// The (optional, or can be nil) function can be used to transform
-	// the env var names, for instance, to lowercase them.
+	// The optional TransformFunc can be used to transform the env var names,
+	// for instance, to lowercase them. Values can also be modified into types
+	// other than strings, for example, to turn space separated env vars into
+	// slices.
 	//
-	// For example, env vars: MYVAR_TYPE and MYVAR_PARENT1_CHILD1_NAME
 	// will be merged into the "type" and the nested "parent1.child1.name"
-	// keys in the config file here as we lowercase the key, 
-	// replace `_` with `.` and strip the MYVAR_ prefix so that 
+	// For example, env vars: MYVAR_TYPE and MYVAR_PARENT1_CHILD1_NAME
+	// keys in the config file here as we lowercase the key,
+	// replace `_` with `.` and strip the MYVAR_ prefix so that
 	// only "parent1.child1.name" remains.
-	k.Load(env.Provider("MYVAR_", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, "MYVAR_")), "_", ".", -1)
+	//
+	// The optional EnvironFunc can be used to control what environment
+	// variables are read by Koanf. In this example, we ensure that the time
+	// variable cannot be overridden by env vars.
+	k.Load(env.Provider(".", env.Opt{
+		Prefix: "MYVAR_",
+		TransformFunc: func(k, v string) (string, any) {
+			k = strings.ReplaceAll(strings.ToLower(
+				strings.TrimPrefix(k, "MYVAR_")), "_", ".")
+
+			// If there is a space in the value, split the value into a slice by the space.
+			if strings.Contains(v, " ") {
+				return k, strings.Split(v, " ")
+			}
+			return k, v
+		},
+		EnvironFunc: func() []string {
+			return slices.DeleteFunc(os.Environ(), func(s string) bool {
+				return strings.HasPrefix(s, "MYVAR_TIME")
+			})
+		},
 	}), nil)
 
-	fmt.Println("name is = ", k.String("parent1.child1.name"))
-}
-```
+	fmt.Println("name is =", k.String("parent1.child1.name"))
+	fmt.Println("time is =", k.Time("time", time.DateOnly))
+	fmt.Println("ids are =", k.Strings("parent1.child1.grandchild1.ids"))
+}```
 
-You can also use the `env.ProviderWithValue` with a callback that supports mutating both the key and value
-to return types other than a string. For example, here, env values separated by spaces are
-returned as string slices or arrays. eg: `MYVAR_slice=a b c` becomes `slice: [a, b, c]`.
-
-```go
-	k.Load(env.ProviderWithValue("MYVAR_", ".", func(s string, v string) (string, interface{}) {
-		// Strip out the MYVAR_ prefix and lowercase and get the key while also replacing
-		// the _ character with . in the key (koanf delimiter).
-		key := strings.Replace(strings.ToLower(strings.TrimPrefix(s, "MYVAR_")), "_", ".", -1)
-
-		// If there is a space in the value, split the value into a slice by the space.
-		if strings.Contains(v, " ") {
-			return key, strings.Split(v, " ")
-		}
-
-		// Otherwise, return the plain string.
-		return key, v
-	}), nil)
-```
 
 ### Reading from an S3 bucket
 
@@ -662,7 +664,7 @@ Install with `go get -u github.com/knadh/koanf/providers/$provider`
 | fs      | `fs.Provider(f fs.FS, filepath string)`                              | (**Experimental**) Reads a file from fs.FS and returns the raw bytes to be parsed. The provider requires `go v1.16` or higher.                                            |
 | basicflag | `basicflag.Provider(f *flag.FlagSet, delim string)`           | Takes a stdlib `flag.FlagSet`                                                                                                                                                        |
 | posflag   | `posflag.Provider(f *pflag.FlagSet, delim string)`            | Takes an `spf13/pflag.FlagSet` (advanced POSIX compatible flags with multiple types) and provides a nested config map based on delim.                                                 |
-| env       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
+| env/v2       | `env.Provider(prefix, delim string, f func(s string) string)` | Takes an optional prefix to filter env variables by, an optional function that takes and returns a string to transform env variables, and returns a nested config map based on delim. |
 | confmap   | `confmap.Provider(mp map[string]interface{}, delim string)`   | Takes a premade `map[string]interface{}` conf map. If delim is provided, the keys are assumed to be flattened, thus unflattened using delim.                                          |
 | structs   | `structs.Provider(s interface{}, tag string)`                 | Takes a struct and struct tag.                                                                                                                                                        |
 | s3        | `s3.Provider(s3.S3Config{})`                                  | Takes a s3 config struct.                                                                                                                                                             |
