@@ -20,19 +20,21 @@ type Env struct {
 
 // Opt represents optional configuration passed to the provider.
 type Opt struct {
-	// Prefix limits the provider to only capture env vars that begin
-	// with the prefix.
+	// If specified (case-sensitive), only env vars beginning with
+	// the prefix are captured. eg: "APP_"
 	Prefix string
 
-	// TransformFunc is an optional callback that takes in the env
-	// var name and value and returns a transformed version. Common
-	// transformations for the name include stripping prefixes,
-	// replacing _ with ., and so on. The value can be transformed
-	// to other types, like a slice of strings instead of just a string.
+	// TransformFunc is an optional callback that takes an environment
+	// variable's string name and value, runs arbitrary transformations
+	// on them and returns a transformed string key and value of any type.
+	// Common usecase are stripping prefixes from keys, lowercasing variable names,
+	// replacing _ with . etc. Eg: APP_DB_HOST -> db.host
+	// If the returned variable name is an empty string (""), it is ignored altogether.
 	TransformFunc func(k, v string) (string, any)
 
-	// EnvironFunc is the function that feeds environment variables
-	// to the provider.
+	// EnvironFunc is the optional function that provides the environment
+	// variables to the provider. If it's not set, os.Environ is used.
+	// This can be used to inject environment variables in tests and mocks.
 	EnvironFunc func() []string
 }
 
@@ -42,34 +44,21 @@ type Opt struct {
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
 //
-// If prefix is specified (case-sensitive), only the env vars with
-// the prefix are captured. cb is an optional callback that takes
-// a string and returns a string (the env variable name) in case
-// transformations have to be applied, for instance, to lowercase
-// everything, strip prefixes and replace _ with . etc.
-// If the callback returns an empty string, the variable will be
-// ignored.
-//
 // It takes an optional Opt argument containing a function to override
 // the default source for environment variables, which can be useful
 // for mocking and parallel unit tests.
-func Provider(delim string, opt ...Opt) *Env {
+func Provider(delim string, o Opt) *Env {
 	e := &Env{
-		delim:   delim,
-		environ: os.Environ,
+		delim:     delim,
+		prefix:    o.Prefix,
+		environ:   o.EnvironFunc,
+		transform: o.TransformFunc,
 	}
 
-	if len(opt) == 0 {
-		return e
+	// No environ function provided, use the default os.Environ.
+	if e.environ == nil {
+		e.environ = os.Environ
 	}
-
-	o := opt[0]
-
-	if o.EnvironFunc != nil {
-		e.environ = o.EnvironFunc
-	}
-	e.transform = o.TransformFunc
-	e.prefix = o.Prefix
 
 	return e
 }
@@ -102,10 +91,11 @@ func (e *Env) Read() (map[string]any, error) {
 		// run it through every key/value.
 		if e.transform != nil {
 			key, value := e.transform(parts[0], parts[1])
-			// If the callback blanked the key, it should be omitted
+			// If the callback blanked the key, omit it.
 			if key == "" {
 				continue
 			}
+
 			mp[key] = value
 		} else {
 			mp[parts[0]] = parts[1]
