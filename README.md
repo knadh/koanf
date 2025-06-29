@@ -242,39 +242,27 @@ func main() {
 		log.Fatalf("error loading config: %v", err)
 	}
 
-	// Load environment variables and merge into the loaded config.
-	// "MYVAR" is the prefix to filter the env vars by.
-	// "." is the delimiter used to represent the key hierarchy in env vars.
-	// The optional TransformFunc can be used to transform the env var names,
-	// for instance, to lowercase them. Values can also be modified into types
-	// other than strings, for example, to turn space separated env vars into
-	// slices.
-	//
-	// will be merged into the "type" and the nested "parent1.child1.name"
-	// For example, env vars: MYVAR_TYPE and MYVAR_PARENT1_CHILD1_NAME
-	// keys in the config file here as we lowercase the key,
-	// replace `_` with `.` and strip the MYVAR_ prefix so that
-	// only "parent1.child1.name" remains.
-	//
-	// The optional EnvironFunc can be used to control what environment
-	// variables are read by Koanf. In this example, we ensure that the time
-	// variable cannot be overridden by env vars.
+	// Load only environment variables with prefix "MYVAR_" and merge into config.
+	// Transform var names by:
+	// 1. Converting to lowercase
+	// 2. Removing "MYVAR_" prefix  
+	// 3. Replacing "_" with "." to representing nesting using the . delimiter.
+	// Example: MYVAR_PARENT1_CHILD1_NAME becomes "parent1.child1.name"
 	k.Load(env.Provider(".", env.Opt{
 		Prefix: "MYVAR_",
 		TransformFunc: func(k, v string) (string, any) {
-			k = strings.ReplaceAll(strings.ToLower(
-				strings.TrimPrefix(k, "MYVAR_")), "_", ".")
+			// Transform the key.
+			k = strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(k, "MYVAR_")), "_", ".")
 
-			// If there is a space in the value, split the value into a slice by the space.
+			// Transform the value into slices, if they contain spaces.
+			// Eg: MYVAR_TAGS="foo bar baz" -> tags: ["foo", "bar", "baz"]
+			// This is to demonstrate that string values can be transformed to any type
+			// where necessary.
 			if strings.Contains(v, " ") {
 				return k, strings.Split(v, " ")
 			}
+
 			return k, v
-		},
-		EnvironFunc: func() []string {
-			return slices.DeleteFunc(os.Environ(), func(s string) bool {
-				return strings.HasPrefix(s, "MYVAR_TIME")
-			})
 		},
 	}), nil)
 
