@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/providers/structs"
 	"github.com/knadh/koanf/v2"
 	"github.com/stretchr/testify/assert"
@@ -38,8 +38,10 @@ func TestTextUnmarshalStringFixed(t *testing.T) {
 	k := koanf.New(".")
 	k.Load(structs.Provider(target, "koanf"), nil)
 
-	k.Load(env.Provider("", ".", func(s string) string {
-		return strings.Replace(strings.ToLower(s), "_", ".", -1)
+	k.Load(env.Provider(".", env.Opt{
+		TransformFunc: func(k string, v string) (string, any) {
+			return strings.ReplaceAll(strings.ToLower(k), "_", "."), v
+		},
 	}), nil)
 
 	// default values
@@ -67,7 +69,7 @@ func (c *LogFormatValue) UnmarshalText(data []byte) error {
 
 // value receiver
 func (c LogFormatValue) MarshalText() ([]byte, error) {
-	//overcomplicated custom internal string representation
+	// overcomplicated custom internal string representation
 	switch c {
 	case "", "json_custom":
 		return []byte("json"), nil
@@ -96,7 +98,7 @@ func (c *LogFormatPointer) UnmarshalText(data []byte) error {
 
 // also pointer receiver
 func (c *LogFormatPointer) MarshalText() ([]byte, error) {
-	//overcomplicated custom internal string representation
+	// overcomplicated custom internal string representation
 	switch *c {
 	case "", "json_custom":
 		return []byte("json"), nil

@@ -1,4 +1,4 @@
-module github.com/knadh/koanf/providers/env
+module github.com/knadh/koanf/providers/env/v2
 
 go 1.23.0
 
