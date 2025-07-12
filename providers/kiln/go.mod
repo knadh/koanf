@@ -2,7 +2,7 @@ module github.com/knadh/koanf/providers/kiln
 
 go 1.23.0
 
-require github.com/thunderbottom/kiln v1.0.2
+require github.com/thunderbottom/kiln v1.0.3
 
 require (
 	filippo.io/age v1.2.1 // indirect
@@ -10,7 +10,7 @@ require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/alecthomas/kong v1.12.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
+	golang.org/x/crypto v0.40.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/term v0.33.0 // indirect
 )
