@@ -10,7 +10,7 @@ require (
 	github.com/BurntSushi/toml v1.5.0 // indirect
 	github.com/alecthomas/kong v1.12.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
+	golang.org/x/crypto v0.35.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
 )
