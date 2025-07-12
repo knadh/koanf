@@ -16,7 +16,7 @@ var k = koanf.New(".")
 // Run this example:
 //
 //	kiln init key
-//	kiln init config --path="./examples/read-kiln/kiln.toml"
+//	kiln init config --path="./examples/read-kiln/kiln.toml" --recipients $(whoami)=$(cat ~/.kiln/kiln.key.pub)
 //	export KILN_CONFIG_FILE=./examples/read-kiln/kiln.toml
 //	kiln set API_KEY super-secret-dev-key
 //	kiln set API_HOST example.com
