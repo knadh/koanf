@@ -664,6 +664,7 @@ Install with `go get -u github.com/knadh/koanf/providers/$provider`
 | parameterstore/v2 | `parameterstore.Provider(parameterstore.Config{})` | AWS Systems Manager Parameter Store provider |
 | cliflagv2  |  `cliflagv2.Provider(ctx *cli.Context, delimiter string)` |  Reads commands and flags from urfave/cli/v2 context including global flags and nested command flags and provides a nested config map based on delim. |
 | cliflagv3  |  `cliflagv3.Provider(ctx *cli.Context, delimiter string)` |  Reads commands and flags from urfave/cli/v3 and provides a nested config map based on delim. |
+| kiln   |  `kiln.Provider(configPath, keyPath, file string)` | Takes an optional prefix to filter environment variables keys by, an optional function that takes and returns a string to transform environment variables, and returns a nested config map. |
 
 
 ### Bundled Parsers
