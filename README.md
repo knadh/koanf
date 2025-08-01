@@ -41,6 +41,7 @@ go get -u github.com/knadh/koanf/parsers/toml
 - [Watching file for changes](#watching-file-for-changes)
 - [Reading from command line](#reading-from-command-line)
 - [Reading environment variables](#reading-environment-variables)
+- [Reading from an S3 bucket](#reading-from-an-s3-bucket)
 - [Reading raw bytes](#reading-raw-bytes)
 - [Reading from maps and structs](#reading-from-nested-maps)
 - [Unmarshalling and marshalling](#unmarshalling-and-marshalling)
@@ -269,8 +270,8 @@ func main() {
 	fmt.Println("name is =", k.String("parent1.child1.name"))
 	fmt.Println("time is =", k.Time("time", time.DateOnly))
 	fmt.Println("ids are =", k.Strings("parent1.child1.grandchild1.ids"))
-}```
-
+}
+```
 
 ### Reading from an S3 bucket
 
