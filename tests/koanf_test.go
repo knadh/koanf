@@ -637,9 +637,9 @@ func TestUnwatchFile(t *testing.T) {
 	k.Load(f, json.Parser())
 
 	// Watch.
-	reloaded := false
+	var reloaded int32
 	f.Watch(func(event interface{}, err error) {
-		reloaded = true
+		atomic.StoreInt32(&reloaded, 1)
 		assert.NoError(err)
 	})
 
@@ -647,25 +647,25 @@ func TestUnwatchFile(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600)
 	time.Sleep(100 * time.Millisecond)
-	assert.True(reloaded, "watched file didn't reload")
+	assert.True(atomic.LoadInt32(&reloaded) == 1, "watched file didn't reload")
 
 	// Unwatch the file and verify that the watch didn't trigger.
 	assert.NoError(f.Unwatch())
-	reloaded = false
+	atomic.StoreInt32(&reloaded, 0)
 	time.Sleep(100 * time.Millisecond)
 	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name3"}}`), 0600)
 	time.Sleep(100 * time.Millisecond)
-	assert.False(reloaded, "unwatched file reloaded")
+	assert.False(atomic.LoadInt32(&reloaded) == 1, "unwatched file reloaded")
 
 	// Re-watch and check again.
-	reloaded = false
+	atomic.StoreInt32(&reloaded, 0)
 	f.Watch(func(event interface{}, err error) {
-		reloaded = true
+		atomic.StoreInt32(&reloaded, 1)
 		assert.NoError(err)
 	})
 	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name4"}}`), 0600)
 	time.Sleep(100 * time.Millisecond)
-	assert.True(reloaded, "watched file didn't reload")
+	assert.True(atomic.LoadInt32(&reloaded) == 1, "watched file didn't reload")
 
 	f.Unwatch()
 }

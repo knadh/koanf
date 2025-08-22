@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -18,6 +19,9 @@ import (
 type File struct {
 	path string
 	w    *fsnotify.Watcher
+
+	// Mutex to protect concurrent access to watcher state
+	mu sync.Mutex
 
 	// Using Go 1.18 atomic functions for backwards compatibility.
 	isWatching  uint32
@@ -42,6 +46,9 @@ func (f *File) Read() (map[string]interface{}, error) {
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	// If a watcher already exists, return an error.
 	if atomic.LoadUint32(&f.isWatching) == 1 {
 		return errors.New("file is already being watched")
@@ -140,9 +147,14 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 			}
 		}
 
+		f.mu.Lock()
 		atomic.StoreUint32(&f.isWatching, 0)
 		atomic.StoreUint32(&f.isUnwatched, 0)
-		f.w.Close()
+		if f.w != nil {
+			f.w.Close()
+			f.w = nil
+		}
+		f.mu.Unlock()
 	}()
 
 	// Watch the directory for changes.
@@ -151,6 +163,12 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 
 // Unwatch stops watching the files and closes fsnotify watcher.
 func (f *File) Unwatch() error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
 	atomic.StoreUint32(&f.isUnwatched, 1)
-	return f.w.Close()
+	if f.w != nil {
+		return f.w.Close()
+	}
+	return nil
 }
