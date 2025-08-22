@@ -1,0 +1,38 @@
+# HUML configuration example
+# This demonstrates various HUML syntax features
+
+# Basic key-value pairs
+app_name: "koanf-huml-test"
+version: "1.0.0"
+debug: true
+port: 8080
+timeout: 30.5
+
+# Arrays
+tags:: "web", "api", "go"
+ports:: 80, 443, 8080
+
+# Nested objects
+database::
+  host: "localhost"
+  port: 5432
+  name: "testdb"
+  ssl: false
+# More complex nesting
+server::
+  http::
+    port: 8080
+    timeout: 30
+  https::
+    port: 8443
+    cert: "/path/to/cert.pem"
+    key: "/path/to/key.pem"
+
+# Environment-specific settings
+environments::
+  development::
+    debug: true
+    log_level: "debug"
+  production::
+    debug: false
+    log_level: "info"
