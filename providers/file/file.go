@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -21,11 +20,8 @@ type File struct {
 	w    *fsnotify.Watcher
 
 	// Mutex to protect concurrent access to watcher state
-	mu sync.Mutex
-
-	// Using Go 1.18 atomic functions for backwards compatibility.
-	isWatching  uint32
-	isUnwatched uint32
+	mu         sync.Mutex
+	isWatching bool
 }
 
 // Provider returns a file provider.
@@ -47,10 +43,10 @@ func (f *File) Read() (map[string]interface{}, error) {
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
 	f.mu.Lock()
-	defer f.mu.Unlock()
-
+	
 	// If a watcher already exists, return an error.
-	if atomic.LoadUint32(&f.isWatching) == 1 {
+	if f.isWatching {
+		f.mu.Unlock()
 		return errors.New("file is already being watched")
 	}
 
@@ -68,10 +64,24 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 
 	f.w, err = fsnotify.NewWatcher()
 	if err != nil {
+		f.mu.Unlock()
 		return err
 	}
 
-	atomic.StoreUint32(&f.isWatching, 1)
+	f.isWatching = true
+	
+	// Set up the directory watch before releasing the lock
+	err = f.w.Add(fDir)
+	if err != nil {
+		f.w.Close()
+		f.w = nil
+		f.isWatching = false
+		f.mu.Unlock()
+		return err
+	}
+	
+	// Release the lock before spawning goroutine
+	f.mu.Unlock()
 
 	var (
 		lastEvent     string
@@ -84,8 +94,12 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 			select {
 			case event, ok := <-f.w.Events:
 				if !ok {
-					// Only throw an error if it was not an explicit unwatch.
-					if atomic.LoadUint32(&f.isUnwatched) == 0 {
+					// Only throw an error if we were still supposed to be watching.
+					f.mu.Lock()
+					stillWatching := f.isWatching
+					f.mu.Unlock()
+					
+					if stillWatching {
 						cb(nil, errors.New("fsnotify watch channel closed"))
 					}
 
@@ -133,8 +147,12 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 			// There's an error.
 			case err, ok := <-f.w.Errors:
 				if !ok {
-					// Only throw an error if it was not an explicit unwatch.
-					if atomic.LoadUint32(&f.isUnwatched) == 0 {
+					// Only throw an error if we were still supposed to be watching.
+					f.mu.Lock()
+					stillWatching := f.isWatching
+					f.mu.Unlock()
+					
+					if stillWatching {
 						cb(nil, errors.New("fsnotify err channel closed"))
 					}
 
@@ -148,8 +166,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 		}
 
 		f.mu.Lock()
-		atomic.StoreUint32(&f.isWatching, 0)
-		atomic.StoreUint32(&f.isUnwatched, 0)
+		f.isWatching = false
 		if f.w != nil {
 			f.w.Close()
 			f.w = nil
@@ -157,8 +174,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 		f.mu.Unlock()
 	}()
 
-	// Watch the directory for changes.
-	return f.w.Add(fDir)
+	return nil
 }
 
 // Unwatch stops watching the files and closes fsnotify watcher.
@@ -166,9 +182,16 @@ func (f *File) Unwatch() error {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 
-	atomic.StoreUint32(&f.isUnwatched, 1)
+	if !f.isWatching {
+		return nil // Already unwatched
+	}
+	
+	f.isWatching = false
 	if f.w != nil {
+		// Close the watcher to signal the goroutine to stop
+		// The goroutine will handle setting f.w = nil
 		return f.w.Close()
 	}
-	return nil
+	// This state should ideally never be reached - it indicates a bug in the synchronization logic
+	return errors.New("file watcher is in an inconsistent state: isWatching is true but watcher is nil")
 }

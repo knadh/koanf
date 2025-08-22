@@ -1942,3 +1942,104 @@ func TestNoDeadlock(t *testing.T) {
 		t.Fatal("DEADLOCK DETECTED: Goroutines did not complete within timeout")
 	}
 }
+
+// TestFileProviderConcurrency specifically tests the file provider's synchronization
+// under heavy concurrent load to catch any races in Watch/Unwatch
+func TestFileProviderConcurrency(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping file provider concurrency test in short mode")
+	}
+
+	// Create temp config file
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "config.json")
+	initialData := []byte(`{"test": "value"}`)
+	err := os.WriteFile(tmpFile, initialData, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+	done := make(chan struct{})
+
+	// Stress test: multiple goroutines rapidly watch/unwatch the same file
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			
+			for {
+				select {
+				case <-done:
+					return
+				default:
+					// Create new file provider for each iteration
+					f := file.Provider(tmpFile)
+					
+					// Try to watch
+					var watchErr error
+					watchErr = f.Watch(func(event interface{}, err error) {
+						// Simple callback that doesn't do much
+						_ = event
+						_ = err
+					})
+					
+					// Sometimes watch will fail if another goroutine is already watching
+					if watchErr == nil {
+						// If watch succeeded, unwatch after a short delay
+						time.Sleep(time.Millisecond)
+						unwatchErr := f.Unwatch()
+						if unwatchErr != nil {
+							// Log but don't fail - this can happen during cleanup
+							t.Logf("Unwatch error (normal during stress test): %v", unwatchErr)
+						}
+					} else if watchErr.Error() != "file is already being watched" {
+						// Unexpected error
+						t.Errorf("Unexpected watch error: %v", watchErr)
+					}
+					
+					// Small delay to prevent tight loop
+					time.Sleep(time.Microsecond)
+				}
+			}
+		}(i)
+	}
+
+	// Also test concurrent file modifications while watching
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		counter := 0
+		
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				// Write new data to trigger file events
+				newData := fmt.Sprintf(`{"test": "value", "counter": %d}`, counter)
+				os.WriteFile(tmpFile, []byte(newData), 0600)
+				counter++
+				time.Sleep(5 * time.Millisecond)
+			}
+		}
+	}()
+
+	// Let the stress test run for 200ms
+	time.Sleep(200 * time.Millisecond)
+	close(done)
+
+	// Wait with timeout to detect deadlocks
+	waitChan := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitChan)
+	}()
+
+	select {
+	case <-waitChan:
+		t.Log("File provider concurrency test completed successfully")
+	case <-time.After(5 * time.Second):
+		t.Fatal("FILE PROVIDER DEADLOCK: Goroutines did not complete within timeout")
+	}
+}
