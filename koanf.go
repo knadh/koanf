@@ -126,12 +126,11 @@ func (ko *Koanf) Load(p Provider, pa Parser, opts ...Option) error {
 // sorted alphabetically.
 func (ko *Koanf) Keys() []string {
 	ko.mu.RLock()
-	defer ko.mu.RUnlock()
-
 	out := make([]string, 0, len(ko.confMapFlat))
 	for k := range ko.confMapFlat {
 		out = append(out, k)
 	}
+	ko.mu.RUnlock()
 	sort.Strings(out)
 	return out
 }
@@ -140,13 +139,12 @@ func (ko *Koanf) Keys() []string {
 // key as slices. eg: "parent.child.key" => ["parent", "child", "key"].
 func (ko *Koanf) KeyMap() KeyMap {
 	ko.mu.RLock()
-	defer ko.mu.RUnlock()
-
 	out := make(KeyMap, len(ko.keyMap))
 	for key, parts := range ko.keyMap {
 		out[key] = make([]string, len(parts))
 		copy(out[key], parts)
 	}
+	ko.mu.RUnlock()
 	return out
 }
 
@@ -156,7 +154,6 @@ func (ko *Koanf) KeyMap() KeyMap {
 func (ko *Koanf) All() map[string]interface{} {
 	ko.mu.RLock()
 	defer ko.mu.RUnlock()
-
 	return maps.Copy(ko.confMapFlat)
 }
 
@@ -166,28 +163,18 @@ func (ko *Koanf) All() map[string]interface{} {
 func (ko *Koanf) Raw() map[string]interface{} {
 	ko.mu.RLock()
 	defer ko.mu.RUnlock()
-
 	return maps.Copy(ko.confMap)
 }
 
 // Sprint returns a key -> value string representation
 // of the config map with keys sorted alphabetically.
 func (ko *Koanf) Sprint() string {
-	ko.mu.RLock()
-	defer ko.mu.RUnlock()
-
-	// Note: We can't call ko.Keys() here as it would cause a deadlock
-	// (both Sprint and Keys need RLock). Instead, we duplicate the key
-	// extraction and sorting logic inline.
 	b := bytes.Buffer{}
-	keys := make([]string, 0, len(ko.confMapFlat))
-	for k := range ko.confMapFlat {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	
-	for _, k := range keys {
-		b.WriteString(fmt.Sprintf("%s -> %v\n", k, ko.confMapFlat[k]))
+	for _, k := range ko.Keys() {
+		ko.mu.RLock()
+		v := ko.confMapFlat[k]
+		ko.mu.RUnlock()
+		b.WriteString(fmt.Sprintf("%s -> %v\n", k, v))
 	}
 	return b.String()
 }
@@ -339,22 +326,20 @@ func (ko *Koanf) Delete(path string) {
 // Get returns the raw, uncast interface{} value of a given key path
 // in the config map. If the key path does not exist, nil is returned.
 func (ko *Koanf) Get(path string) interface{} {
-	ko.mu.RLock()
-	defer ko.mu.RUnlock()
-
 	// No path. Return the whole conf map.
-	// Note: We can't call ko.Raw() here as it would cause a deadlock
-	// (both Get and Raw need RLock). Instead, we duplicate the logic inline.
 	if path == "" {
-		return maps.Copy(ko.confMap)
+		return ko.Raw()
 	}
 
 	// Does the path exist?
+	ko.mu.RLock()
 	p, ok := ko.keyMap[path]
 	if !ok {
+		ko.mu.RUnlock()
 		return nil
 	}
 	res := maps.Search(ko.confMap, p)
+	ko.mu.RUnlock()
 
 	// Non-reference types are okay to return directly.
 	// Other types are "copied" with maps.Copy or json.Marshal
@@ -405,9 +390,8 @@ func (ko *Koanf) Slices(path string) []*Koanf {
 // Exists returns true if the given key path exists in the conf map.
 func (ko *Koanf) Exists(path string) bool {
 	ko.mu.RLock()
-	defer ko.mu.RUnlock()
-
 	_, ok := ko.keyMap[path]
+	ko.mu.RUnlock()
 	return ok
 }
 
