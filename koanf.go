@@ -170,12 +170,13 @@ func (ko *Koanf) Raw() map[string]interface{} {
 // of the config map with keys sorted alphabetically.
 func (ko *Koanf) Sprint() string {
 	b := bytes.Buffer{}
-	for _, k := range ko.Keys() {
-		ko.mu.RLock()
+	keys := ko.Keys()
+	ko.mu.RLock()
+	for _, k := range keys {
 		v := ko.confMapFlat[k]
-		ko.mu.RUnlock()
 		b.WriteString(fmt.Sprintf("%s -> %v\n", k, v))
 	}
+	ko.mu.RUnlock()
 	return b.String()
 }
 
