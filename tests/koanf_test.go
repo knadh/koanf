@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -636,9 +637,9 @@ func TestUnwatchFile(t *testing.T) {
 	k.Load(f, json.Parser())
 
 	// Watch.
-	reloaded := false
+	var reloaded int32
 	f.Watch(func(event interface{}, err error) {
-		reloaded = true
+		atomic.StoreInt32(&reloaded, 1)
 		assert.NoError(err)
 	})
 
@@ -646,25 +647,25 @@ func TestUnwatchFile(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600)
 	time.Sleep(100 * time.Millisecond)
-	assert.True(reloaded, "watched file didn't reload")
+	assert.True(atomic.LoadInt32(&reloaded) == 1, "watched file didn't reload")
 
 	// Unwatch the file and verify that the watch didn't trigger.
 	assert.NoError(f.Unwatch())
-	reloaded = false
+	atomic.StoreInt32(&reloaded, 0)
 	time.Sleep(100 * time.Millisecond)
 	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name3"}}`), 0600)
 	time.Sleep(100 * time.Millisecond)
-	assert.False(reloaded, "unwatched file reloaded")
+	assert.False(atomic.LoadInt32(&reloaded) == 1, "unwatched file reloaded")
 
 	// Re-watch and check again.
-	reloaded = false
+	atomic.StoreInt32(&reloaded, 0)
 	f.Watch(func(event interface{}, err error) {
-		reloaded = true
+		atomic.StoreInt32(&reloaded, 1)
 		assert.NoError(err)
 	})
 	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name4"}}`), 0600)
 	time.Sleep(100 * time.Millisecond)
-	assert.True(reloaded, "watched file didn't reload")
+	assert.True(atomic.LoadInt32(&reloaded) == 1, "watched file didn't reload")
 
 	f.Unwatch()
 }
@@ -1508,5 +1509,537 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 		return false // completed normally
 	case <-time.After(timeout):
 		return true // timed out
+	}
+}
+
+// TestFileWatcherRaceCondition reproduces Issue #305
+// File watcher reloading config while reader goroutine accesses values
+// This test verifies our thread safety fix prevents empty string reads
+func TestFileWatcherRaceCondition(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping race condition test in short mode")
+	}
+
+	// Create temp config file
+	tmpDir, err := os.MkdirTemp("", "koanf_race_*")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	tmpFile := filepath.Join(tmpDir, "config.yaml")
+	writeConfig := func(value string) {
+		content := fmt.Sprintf("rpc: %q\n", value)
+		os.WriteFile(tmpFile, []byte(content), 0600)
+	}
+
+	// Initial config
+	writeConfig("initial")
+
+	k := koanf.New(".")
+	provider := file.Provider(tmpFile)
+	err = k.Load(provider, yaml.Parser())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Setup file watcher that reloads the SAME koanf instance
+	// This tests our internal thread safety, not user pattern issues
+	var reloadCount int64
+	provider.Watch(func(event interface{}, err error) {
+		if err != nil {
+			t.Logf("watch error: %v", err)
+			return
+		}
+		
+		// Reload into the same koanf instance - this tests our thread safety
+		err = k.Load(provider, yaml.Parser())
+		if err != nil {
+			t.Logf("reload error: %v", err)
+		}
+		// Use atomic to avoid race in test counters
+		atomic.AddInt64(&reloadCount, 1)
+	})
+
+	// Start reader goroutine that continuously reads the config
+	done := make(chan struct{})
+	var emptyCount, totalReads int64
+	
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				value := k.String("rpc")
+				reads := atomic.AddInt64(&totalReads, 1)
+				if value == "" {
+					atomic.AddInt64(&emptyCount, 1)
+					// With proper thread safety, this should never happen
+					t.Errorf("Got empty string on read #%d", reads)
+				}
+				time.Sleep(time.Microsecond) // Small delay to allow interleaving
+			}
+		}
+	}()
+
+	// Trigger multiple file changes to increase chance of race
+	for i := 0; i < 5; i++ {
+		time.Sleep(20 * time.Millisecond)
+		writeConfig(fmt.Sprintf("value-%d", i))
+	}
+
+	// Wait for file watching to settle
+	time.Sleep(100 * time.Millisecond)
+	close(done)
+	
+	finalReads := atomic.LoadInt64(&totalReads)
+	finalEmpties := atomic.LoadInt64(&emptyCount)
+	finalReloads := atomic.LoadInt64(&reloadCount)
+	
+	t.Logf("Total reads: %d, Empty reads: %d, Reloads: %d", finalReads, finalEmpties, finalReloads)
+	if finalEmpties > 0 {
+		t.Errorf("Thread safety issue: got %d empty reads out of %d total reads", finalEmpties, finalReads)
+	}
+}
+
+// TestConcurrentLoadRaceCondition reproduces Issue #335
+// Multiple goroutines calling k.Load() simultaneously
+// This test should fail with "concurrent map writes" panic
+func TestConcurrentLoadRaceCondition(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping race condition test in short mode")
+	}
+
+	k := koanf.New(".")
+
+	// Number of concurrent goroutines
+	numGoroutines := 10
+	numLoadsPerGoroutine := 10
+
+	var wg sync.WaitGroup
+	
+	// Channel to collect any panics
+	panics := make(chan interface{}, numGoroutines)
+
+	for i := 0; i < numGoroutines; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			defer func() {
+				if r := recover(); r != nil {
+					panics <- r
+				}
+			}()
+
+			for j := 0; j < numLoadsPerGoroutine; j++ {
+				// Create different configs to load
+				config := map[string]interface{}{
+					fmt.Sprintf("key_%d_%d", id, j): fmt.Sprintf("value_%d_%d", id, j),
+					"common": fmt.Sprintf("common_%d_%d", id, j),
+				}
+				
+				// This should trigger concurrent map writes
+				err := k.Load(confmap.Provider(config, "."), nil)
+				if err != nil {
+					t.Errorf("Load failed: %v", err)
+				}
+				
+				// Small delay to increase chance of race
+				time.Sleep(time.Microsecond)
+			}
+		}(i)
+	}
+
+	wg.Wait()
+	close(panics)
+
+	// Check if we got any panics (which indicates the race condition)
+	panicCount := 0
+	for p := range panics {
+		panicCount++
+		t.Logf("Concurrent Load panic: %v", p)
+	}
+
+	if panicCount > 0 {
+		t.Errorf("Race condition detected: got %d panics from concurrent Load operations", panicCount)
+	}
+}
+
+// TestConcurrentReadWriteMix tests mixed concurrent reads and writes
+// This should expose various race conditions with inconsistent reads
+func TestConcurrentReadWriteMix(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping race condition test in short mode")
+	}
+
+	k := koanf.New(".")
+	
+	// Initialize with some data
+	k.Load(confmap.Provider(map[string]interface{}{
+		"test.key": "initial",
+		"counter": 0,
+	}, "."), nil)
+
+	done := make(chan struct{})
+	var wg sync.WaitGroup
+
+	// Start multiple reader goroutines
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(readerID int) {
+			defer wg.Done()
+			readCount := 0
+			for {
+				select {
+				case <-done:
+					t.Logf("Reader %d: performed %d reads", readerID, readCount)
+					return
+				default:
+					// Mix different types of reads
+					_ = k.String("test.key")
+					_ = k.Int("counter") 
+					_ = k.Keys()
+					_ = k.All()
+					readCount++
+					time.Sleep(time.Microsecond)
+				}
+			}
+		}(i)
+	}
+
+	// Start multiple writer goroutines
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func(writerID int) {
+			defer wg.Done()
+			writeCount := 0
+			for {
+				select {
+				case <-done:
+					t.Logf("Writer %d: performed %d writes", writerID, writeCount)
+					return
+				default:
+					// Mix different types of writes
+					config := map[string]interface{}{
+						"test.key": fmt.Sprintf("writer-%d-count-%d", writerID, writeCount),
+						"counter": writeCount,
+						fmt.Sprintf("dynamic.key.%d", writeCount): writerID,
+					}
+					k.Load(confmap.Provider(config, "."), nil)
+					writeCount++
+					time.Sleep(time.Microsecond)
+				}
+			}
+		}(i)
+	}
+
+	// Let the race run for a short time
+	time.Sleep(50 * time.Millisecond)
+	close(done)
+	wg.Wait()
+
+	t.Log("Concurrent read/write test completed - check for race detector warnings")
+}
+
+// TestConcurrentEdgeCases tests concurrent access to edge case methods
+func TestConcurrentEdgeCases(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping race condition test in short mode")
+	}
+
+	k := koanf.New(".")
+	k.Load(confmap.Provider(map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": "value",
+		},
+		"list": []interface{}{"a", "b", "c"},
+	}, "."), nil)
+
+	done := make(chan struct{})
+	var wg sync.WaitGroup
+
+	// Test concurrent Cut operations
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				_ = k.Cut("parent")
+				time.Sleep(time.Microsecond)
+			}
+		}
+	}()
+
+	// Test concurrent Copy operations  
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				_ = k.Copy()
+				time.Sleep(time.Microsecond)
+			}
+		}
+	}()
+
+	// Test concurrent MapKeys access
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				_ = k.MapKeys("parent")
+				time.Sleep(time.Microsecond)
+			}
+		}
+	}()
+
+	// Test concurrent modifications
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count := 0
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				k.Set(fmt.Sprintf("dynamic.%d", count), count)
+				count++
+				time.Sleep(time.Microsecond)
+			}
+		}
+	}()
+
+	time.Sleep(30 * time.Millisecond)
+	close(done)
+	wg.Wait()
+
+	t.Log("Concurrent edge cases test completed - check for race detector warnings")
+}
+
+// TestNoDeadlock verifies that our locking patterns don't cause deadlocks
+// Tests concurrent reads and writes with various method combinations
+func TestNoDeadlock(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping deadlock test in short mode")
+	}
+
+	k := koanf.New(".")
+	k.Load(confmap.Provider(map[string]interface{}{
+		"parent": map[string]interface{}{
+			"child": "value",
+			"count": 42,
+		},
+		"list": []interface{}{"a", "b", "c"},
+	}, "."), nil)
+
+	// Test duration
+	testDuration := 500 * time.Millisecond
+	
+	var wg sync.WaitGroup
+	done := make(chan struct{})
+	
+	// Start multiple reader goroutines with different read patterns
+	for i := 0; i < 3; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			readCount := 0
+			for {
+				select {
+				case <-done:
+					t.Logf("Reader %d completed %d operations", id, readCount)
+					return
+				default:
+					// Mix different read operations
+					_ = k.Get("parent.child")
+					_ = k.Keys()
+					_ = k.All()
+					_ = k.Raw()
+					_ = k.Exists("parent")
+					_ = k.Sprint()  // This internally uses RLock and avoids calling Keys()
+					_ = k.KeyMap()
+					_ = k.MapKeys("parent")
+					
+					// Test methods that call other locked methods
+					_ = k.Cut("parent")  // Calls Get()
+					_ = k.Copy()         // Calls Cut() → Get()
+					
+					readCount++
+					if readCount%100 == 0 {
+						time.Sleep(time.Microsecond)
+					}
+				}
+			}
+		}(i)
+	}
+
+	// Start writer goroutines with different write patterns  
+	for i := 0; i < 2; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			writeCount := 0
+			for {
+				select {
+				case <-done:
+					t.Logf("Writer %d completed %d operations", id, writeCount)
+					return
+				default:
+					// Mix different write operations
+					k.Set(fmt.Sprintf("writer_%d.key", id), writeCount)
+					k.Delete("nonexistent") // Should be safe
+					
+					// Load new data
+					newData := map[string]interface{}{
+						fmt.Sprintf("load_%d", writeCount): id,
+						"nested": map[string]interface{}{
+							"value": writeCount,
+						},
+					}
+					k.Load(confmap.Provider(newData, "."), nil)
+					
+					// Merge operations
+					other := koanf.New(".")
+					other.Set("merge_key", writeCount)
+					k.Merge(other)
+					
+					writeCount++
+					if writeCount%50 == 0 {
+						time.Sleep(time.Microsecond)
+					}
+				}
+			}
+		}(i)
+	}
+
+	// Run the test for specified duration
+	time.Sleep(testDuration)
+	close(done)
+	
+	// Use a timeout to detect deadlocks
+	waitChan := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitChan)
+	}()
+	
+	select {
+	case <-waitChan:
+		t.Log("Deadlock test completed successfully - no deadlocks detected")
+	case <-time.After(5 * time.Second):
+		t.Fatal("DEADLOCK DETECTED: Goroutines did not complete within timeout")
+	}
+}
+
+// TestFileProviderConcurrency specifically tests the file provider's synchronization
+// under heavy concurrent load to catch any races in Watch/Unwatch
+func TestFileProviderConcurrency(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping file provider concurrency test in short mode")
+	}
+
+	// Create temp config file
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "config.json")
+	initialData := []byte(`{"test": "value"}`)
+	err := os.WriteFile(tmpFile, initialData, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var wg sync.WaitGroup
+	done := make(chan struct{})
+
+	// Stress test: multiple goroutines rapidly watch/unwatch the same file
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			
+			for {
+				select {
+				case <-done:
+					return
+				default:
+					// Create new file provider for each iteration
+					f := file.Provider(tmpFile)
+					
+					// Try to watch
+					var watchErr error
+					watchErr = f.Watch(func(event interface{}, err error) {
+						// Simple callback that doesn't do much
+						_ = event
+						_ = err
+					})
+					
+					// Sometimes watch will fail if another goroutine is already watching
+					if watchErr == nil {
+						// If watch succeeded, unwatch after a short delay
+						time.Sleep(time.Millisecond)
+						unwatchErr := f.Unwatch()
+						if unwatchErr != nil {
+							// Log but don't fail - this can happen during cleanup
+							t.Logf("Unwatch error (normal during stress test): %v", unwatchErr)
+						}
+					} else if watchErr.Error() != "file is already being watched" {
+						// Unexpected error
+						t.Errorf("Unexpected watch error: %v", watchErr)
+					}
+					
+					// Small delay to prevent tight loop
+					time.Sleep(time.Microsecond)
+				}
+			}
+		}(i)
+	}
+
+	// Also test concurrent file modifications while watching
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		counter := 0
+		
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				// Write new data to trigger file events
+				newData := fmt.Sprintf(`{"test": "value", "counter": %d}`, counter)
+				os.WriteFile(tmpFile, []byte(newData), 0600)
+				counter++
+				time.Sleep(5 * time.Millisecond)
+			}
+		}
+	}()
+
+	// Let the stress test run for 200ms
+	time.Sleep(200 * time.Millisecond)
+	close(done)
+
+	// Wait with timeout to detect deadlocks
+	waitChan := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(waitChan)
+	}()
+
+	select {
+	case <-waitChan:
+		t.Log("File provider concurrency test completed successfully")
+	case <-time.After(5 * time.Second):
+		t.Fatal("FILE PROVIDER DEADLOCK: Goroutines did not complete within timeout")
 	}
 }
