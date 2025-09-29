@@ -79,7 +79,7 @@ func (p *CliFlag) Read() (map[string]interface{}, error) {
 func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]interface{}) {
 	for _, flag := range flags {
 		name := flag.Names()[0]
-		if p.cmd.IsSet(name) || slices.Contains(p.config.Defaults, name) {
+		if p.cmd.IsSet(name) || slices.Contains(p.config.Defaults, name) || p.cmd.Value(name) != nil {
 			value := p.getFlagValue(name)
 			if value != nil {
 				// Build the full path for the flag

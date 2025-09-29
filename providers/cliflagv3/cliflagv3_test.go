@@ -45,7 +45,7 @@ func TestCliFlag(t *testing.T) {
 				Name:        "x",
 				Description: "yeah yeah testing",
 				Action: func(ctx context.Context, cmd *cli.Command) error {
-					p := Provider(cmd, ".")
+					p := ProviderWithConfig(cmd, ".", &Config{Defaults: []string{"other"}})
 					x, err := p.Read()
 					require.NoError(t, err)
 					require.NotEmpty(t, x)
@@ -57,6 +57,8 @@ func TestCliFlag(t *testing.T) {
 					fmt.Printf("k.All(): %v\n", k.All())
 
 					require.Equal(t, k.String("testing.x.lol"), "dsf")
+					require.Equal(t, k.String("testing.x.default"), "test")
+					require.Equal(t, k.String("testing.x.other"), "")
 					return nil
 				},
 				Flags: []cli.Flag{
@@ -69,12 +71,27 @@ func TestCliFlag(t *testing.T) {
 						Required: true,
 						Sources:  cli.EnvVars("TEST_FLAG"),
 					},
+					&cli.StringFlag{
+						Name:  "default",
+						Usage: "default test flag",
+						Value: "test",
+					},
+					&cli.StringFlag{
+						Name:  "other",
+						Usage: "other test flag",
+					},
 				},
 			},
 		},
 	}
 
-	x := []string{"testing", "--test", "gf", "x", "--lol", "dsf"}
+	// The Action of the testing only runs if no subcommand is specified
+	x := []string{"testing", "--test", "gf"}
 	err := cliApp.Run(context.Background(), append(x, os.Environ()...))
+	require.NoError(t, err)
+
+	// This runs the Action of the x
+	x = []string{"testing", "x", "--lol", "dsf"}
+	err = cliApp.Run(context.Background(), append(x, os.Environ()...))
 	require.NoError(t, err)
 }
