@@ -46,9 +46,9 @@ func (kv *AzureKeyVault) ReadBytes() ([]byte, error) {
 	return nil, errors.New("azure key vault provider does not support this method")
 }
 
-func (kv *AzureKeyVault) Read() (map[string]interface{}, error) {
+func (kv *AzureKeyVault) Read() (map[string]any, error) {
 	ctx := context.Background()
-	secrets := make(map[string]interface{})
+	secrets := make(map[string]any)
 
 	// Get all the secrets from the KV
 	pager := kv.kvclient.NewListSecretPropertiesPager(nil)

@@ -13,7 +13,7 @@ func TestKDL_Unmarshal(t *testing.T) {
 		name   string
 		input  []byte
 		keys   []string
-		values []interface{}
+		values []any
 		isErr  bool
 	}{
 		{
@@ -24,7 +24,7 @@ func TestKDL_Unmarshal(t *testing.T) {
 			name:   "Valid KDL",
 			input:  []byte(`key "val" ; name "test" ; number 2.0`),
 			keys:   []string{"key", "name", "number"},
-			values: []interface{}{"val", "test", 2.0},
+			values: []any{"val", "test", 2.0},
 		},
 		{
 			name:  "Invalid KDL - syntax error",
@@ -43,12 +43,12 @@ func TestKDL_Unmarshal(t *testing.T) {
 				string "Hello World"
 			`),
 			keys: []string{"array", "boolean", "color", "null", "number", "object", "string"},
-			values: []interface{}{[]interface{}{1.0, 2.0, 3.0},
+			values: []any{[]any{1.0, 2.0, 3.0},
 				true,
 				"gold",
 				nil,
 				int64(123),
-				map[string]interface{}{"a": "b", "c": "d", "e": 2.7, "f": true},
+				map[string]any{"a": "b", "c": "d", "e": 2.7, "f": true},
 				"Hello World"},
 		},
 		{
@@ -71,34 +71,34 @@ func TestKDL_Unmarshal(t *testing.T) {
 					}
 				`),
 			keys: []string{"key", "1", "map", "nested_map"},
-			values: []interface{}{
+			values: []any{
 				"value",
 				"skipped",
-				map[string]interface{}{
+				map[string]any{
 					"key": "value",
 				},
-				map[string]interface{}{
-					"map": map[string]interface{}{
+				map[string]any{
+					"map": map[string]any{
 						"0":   int64(17),
 						"key": "value",
-						"list": []interface{}{
+						"list": []any{
 							"item1",
 							"item2",
 							"item3",
 						},
-						"mixup": map[string]interface{}{
+						"mixup": map[string]any{
 							"y": int64(1),
 							"0": int64(2),
 							"1": int64(3),
 							"2": int64(4),
 						},
-						"first": map[string]interface{}{
+						"first": map[string]any{
 							"first": int64(1),
 							"0":     int64(2),
 							"1":     int64(3),
 							"2":     int64(4),
 						},
-						"child": map[string]interface{}{
+						"child": map[string]any{
 							"test": int64(1),
 							"0":    int64(2),
 							"1":    int64(3),
@@ -133,18 +133,18 @@ func TestKDL_Unmarshal(t *testing.T) {
 func TestKDL_Marshal(t *testing.T) {
 	testCases := []struct {
 		name              string
-		input             map[string]interface{}
+		input             map[string]any
 		stringifiedOutput string
 		isErr             bool
 	}{
 		{
 			name:              "Empty KDL",
-			input:             map[string]interface{}{},
+			input:             map[string]any{},
 			stringifiedOutput: ``,
 		},
 		{
 			name: "Valid KDL",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"key":    "val",
 				"name":   "test",
 				"number": 2.0,
@@ -156,14 +156,14 @@ number 2.0
 		},
 		{
 			name: "Complex KDL - Different types",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"null":    nil,
 				"boolean": true,
 				"color":   "gold",
 				"number":  int64(123),
 				"string":  "Hello World",
-				// "array":   []interface{}{1, 2, 3, 4, 5}, // https://github.com/sblinch/kdl-go/issues/3
-				"object": map[string]interface{}{"a": "b", "c": "d"},
+				// "array":   []any{1, 2, 3, 4, 5}, // https://github.com/sblinch/kdl-go/issues/3
+				"object": map[string]any{"a": "b", "c": "d"},
 			},
 			stringifiedOutput: `boolean true
 color "gold"

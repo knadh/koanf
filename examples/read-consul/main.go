@@ -286,7 +286,7 @@ func main() {
 
 	changedC := make(chan string, 1)
 
-	provider.Watch(func(event interface{}, err error) {
+	provider.Watch(func(event any, err error) {
 		if err != nil {
 			fmt.Printf("Unexpected error: %v", err)
 			return

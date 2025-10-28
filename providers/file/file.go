@@ -35,15 +35,15 @@ func (f *File) ReadBytes() ([]byte, error) {
 }
 
 // Read is not supported by the file provider.
-func (f *File) Read() (map[string]interface{}, error) {
+func (f *File) Read() (map[string]any, error) {
 	return nil, errors.New("file provider does not support this method")
 }
 
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
-func (f *File) Watch(cb func(event interface{}, err error)) error {
+func (f *File) Watch(cb func(event any, err error)) error {
 	f.mu.Lock()
-	
+
 	// If a watcher already exists, return an error.
 	if f.isWatching {
 		f.mu.Unlock()
@@ -69,7 +69,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	}
 
 	f.isWatching = true
-	
+
 	// Set up the directory watch before releasing the lock
 	err = f.w.Add(fDir)
 	if err != nil {
@@ -79,7 +79,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 		f.mu.Unlock()
 		return err
 	}
-	
+
 	// Release the lock before spawning goroutine
 	f.mu.Unlock()
 
@@ -98,7 +98,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					f.mu.Lock()
 					stillWatching := f.isWatching
 					f.mu.Unlock()
-					
+
 					if stillWatching {
 						cb(nil, errors.New("fsnotify watch channel closed"))
 					}
@@ -151,7 +151,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					f.mu.Lock()
 					stillWatching := f.isWatching
 					f.mu.Unlock()
-					
+
 					if stillWatching {
 						cb(nil, errors.New("fsnotify err channel closed"))
 					}
@@ -185,7 +185,7 @@ func (f *File) Unwatch() error {
 	if !f.isWatching {
 		return nil // Already unwatched
 	}
-	
+
 	f.isWatching = false
 	if f.w != nil {
 		// Close the watcher to signal the goroutine to stop

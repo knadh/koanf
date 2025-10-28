@@ -79,7 +79,7 @@ func (r *Vault) ReadBytes() ([]byte, error) {
 }
 
 // Read fetches the configuration from the source and returns a nested config map.
-func (r *Vault) Read() (map[string]interface{}, error) {
+func (r *Vault) Read() (map[string]any, error) {
 	secret, err := r.client.Logical().Read(r.cfg.Path)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func (r *Vault) Read() (map[string]interface{}, error) {
 
 	s := secret.Data
 	if r.cfg.ExcludeMeta {
-		s = secret.Data["data"].(map[string]interface{})
+		s = secret.Data["data"].(map[string]any)
 	}
 
 	// Unflatten only when a delimiter is specified

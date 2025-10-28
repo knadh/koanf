@@ -40,7 +40,7 @@ func TestFSProvider(t *testing.T) {
 		require.Equal(t, c.typeName, c.koanf.Get("type"))
 
 		assert.Equal(nil, c.koanf.Get("xxx"))
-		assert.Equal(make(map[string]interface{}), c.koanf.Get("empty"))
+		assert.Equal(make(map[string]any), c.koanf.Get("empty"))
 
 		// Int.
 		assert.Equal(int64(0), c.koanf.Int64("xxxx"))

@@ -14,7 +14,7 @@ func TestHCL_Unmarshal(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    []byte
-		output   map[string]interface{}
+		output   map[string]any
 		isErr    bool
 		function HCL
 	}{
@@ -22,13 +22,13 @@ func TestHCL_Unmarshal(t *testing.T) {
 			name:     "Empty HCL - With flatten",
 			input:    []byte(`{}`),
 			function: *hclParserWithFlatten,
-			output:   map[string]interface{}{},
+			output:   map[string]any{},
 		},
 		{
 			name:     "Empty HCL - Without flatten",
 			input:    []byte(`{}`),
 			function: *hclParserWithoutFlatten,
-			output:   map[string]interface{}{},
+			output:   map[string]any{},
 		},
 		{
 			name: "Valid HCL - With flatten",
@@ -41,14 +41,14 @@ func TestHCL_Unmarshal(t *testing.T) {
 				}
 			  }`),
 			function: *hclParserWithFlatten,
-			output: map[string]interface{}{
-				"resource": map[string]interface{}{
-					"aws_instance": map[string]interface{}{
-						"example": map[string]interface{}{
+			output: map[string]any{
+				"resource": map[string]any{
+					"aws_instance": map[string]any{
+						"example": map[string]any{
 							"ami":           "abc123",
 							"count":         2,
 							"instance_type": "t2.micro",
-							"lifecycle": map[string]interface{}{
+							"lifecycle": map[string]any{
 								"create_before_destroy": true,
 							},
 						},
@@ -67,14 +67,14 @@ func TestHCL_Unmarshal(t *testing.T) {
 				}
 			  }`),
 			function: *hclParserWithoutFlatten,
-			output: map[string]interface{}{
-				"resource": []map[string]interface{}{{
-					"aws_instance": []map[string]interface{}{{
-						"example": []map[string]interface{}{{
+			output: map[string]any{
+				"resource": []map[string]any{{
+					"aws_instance": []map[string]any{{
+						"example": []map[string]any{{
 							"ami":           "abc123",
 							"count":         2,
 							"instance_type": "t2.micro",
-							"lifecycle": []map[string]interface{}{{
+							"lifecycle": []map[string]any{{
 								"create_before_destroy": true},
 							},
 						}},
@@ -111,26 +111,26 @@ func TestHCL_Marshal(t *testing.T) {
 
 	testCases := []struct {
 		name     string
-		input    map[string]interface{}
+		input    map[string]any
 		isErr    bool
 		function HCL
 	}{
 		{
 			name:     "Empty HCL",
-			input:    map[string]interface{}{},
+			input:    map[string]any{},
 			isErr:    true,
 			function: *hclParserWithFlatten,
 		},
 		{
 			name: "Complex HCL",
-			input: map[string]interface{}{
-				"resource": []map[string]interface{}{{
-					"aws_instance": []map[string]interface{}{{
-						"example": []map[string]interface{}{{
+			input: map[string]any{
+				"resource": []map[string]any{{
+					"aws_instance": []map[string]any{{
+						"example": []map[string]any{{
 							"ami":           "abc123",
 							"count":         2,
 							"instance_type": "t2.micro",
-							"lifecycle": []map[string]interface{}{{
+							"lifecycle": []map[string]any{{
 								"create_before_destroy": true},
 							},
 						}},

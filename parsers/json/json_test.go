@@ -10,7 +10,7 @@ func TestJSON_Unmarshal(t *testing.T) {
 		name   string
 		input  []byte
 		keys   []string
-		values []interface{}
+		values []any
 		isErr  bool
 	}{
 		{
@@ -25,7 +25,7 @@ func TestJSON_Unmarshal(t *testing.T) {
 						"number": 2
 					}`),
 			keys:   []string{"key", "name", "number"},
-			values: []interface{}{"val", "test", 2.0},
+			values: []any{"val", "test", 2.0},
 		},
 		{
 			name: "Invalid JSON - missing curly brace",
@@ -52,12 +52,12 @@ func TestJSON_Unmarshal(t *testing.T) {
 						  "string": "Hello World"
 						}`),
 			keys: []string{"array", "boolean", "color", "null", "number", "object", "string"},
-			values: []interface{}{[]interface{}{1.0, 2.0, 3.0},
+			values: []any{[]any{1.0, 2.0, 3.0},
 				true,
 				"gold",
 				nil,
 				123.0,
-				map[string]interface{}{"a": "b", "c": "d"},
+				map[string]any{"a": "b", "c": "d"},
 				"Hello World"},
 		},
 		{
@@ -97,18 +97,18 @@ func TestJSON_Unmarshal(t *testing.T) {
 func TestJSON_Marshal(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  map[string]interface{}
+		input  map[string]any
 		output []byte
 		isErr  bool
 	}{
 		{
 			name:   "Empty JSON",
-			input:  map[string]interface{}{},
+			input:  map[string]any{},
 			output: []byte(`{}`),
 		},
 		{
 			name: "Valid JSON",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"key":    "val",
 				"name":   "test",
 				"number": 2.0,
@@ -117,13 +117,13 @@ func TestJSON_Marshal(t *testing.T) {
 		},
 		{
 			name: "Complex JSON - All types",
-			input: map[string]interface{}{
-				"array":   []interface{}{1, 2, 3, 4, 5},
+			input: map[string]any{
+				"array":   []any{1, 2, 3, 4, 5},
 				"boolean": true,
 				"color":   "gold",
 				"null":    nil,
 				"number":  123,
-				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"object":  map[string]any{"a": "b", "c": "d"},
 				"string":  "Hello World",
 			},
 			output: []byte(`{"array":[1,2,3,4,5],"boolean":true,"color":"gold","null":null,"number":123,"object":{"a":"b","c":"d"},"string":"Hello World"}`),

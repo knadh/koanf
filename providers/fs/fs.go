@@ -36,6 +36,6 @@ func (f *FS) ReadBytes() ([]byte, error) {
 }
 
 // Read is not supported by the fs.FS provider.
-func (f *FS) Read() (map[string]interface{}, error) {
+func (f *FS) Read() (map[string]any, error) {
 	return nil, errors.New("fs.FS provider does not support this method")
 }
