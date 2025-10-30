@@ -25,14 +25,19 @@ func Parser() *DotEnv {
 
 // ParserEnv allows to make the DOTENV Parser behave like the env.Provider.
 func ParserEnv(prefix, delim string, cb func(s string) string) *DotEnv {
-	return &DotEnv{
-		delim:  delim,
-		prefix: prefix,
-		cb: func(key, value string) (string, any) {
-			return cb(key), value
-		},
+	res := &DotEnv{
+		delim:     delim,
+		prefix:    prefix,
 		reverseCB: make(map[string]string),
 	}
+
+	if cb != nil {
+		res.cb = func(key string, value string) (string, interface{}) {
+			return cb(key), value
+		}
+	}
+
+	return res
 }
 
 // ParserEnvWithValue allows to make the DOTENV Parser behave like the env.ProviderWithValue.
