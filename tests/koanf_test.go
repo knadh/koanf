@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
@@ -461,6 +462,8 @@ func TestWatchFile(t *testing.T) {
 			}, "received unexpected error. err: %s", err)
 			return
 		}
+		require.NotNil(t, event, "event is nil")
+		assert.True(event.(fsnotify.Event).Has(fsnotify.Write))
 		// Reload the config.
 		k.Load(f, json.Parser())
 		changedC <- k.String("parent.name")
@@ -1551,7 +1554,7 @@ func TestFileWatcherRaceCondition(t *testing.T) {
 			t.Logf("watch error: %v", err)
 			return
 		}
-		
+
 		// Reload into the same koanf instance - this tests our thread safety
 		err = k.Load(provider, yaml.Parser())
 		if err != nil {
@@ -1564,7 +1567,7 @@ func TestFileWatcherRaceCondition(t *testing.T) {
 	// Start reader goroutine that continuously reads the config
 	done := make(chan struct{})
 	var emptyCount, totalReads int64
-	
+
 	go func() {
 		for {
 			select {
@@ -1592,11 +1595,11 @@ func TestFileWatcherRaceCondition(t *testing.T) {
 	// Wait for file watching to settle
 	time.Sleep(100 * time.Millisecond)
 	close(done)
-	
+
 	finalReads := atomic.LoadInt64(&totalReads)
 	finalEmpties := atomic.LoadInt64(&emptyCount)
 	finalReloads := atomic.LoadInt64(&reloadCount)
-	
+
 	t.Logf("Total reads: %d, Empty reads: %d, Reloads: %d", finalReads, finalEmpties, finalReloads)
 	if finalEmpties > 0 {
 		t.Errorf("Thread safety issue: got %d empty reads out of %d total reads", finalEmpties, finalReads)
@@ -1618,7 +1621,7 @@ func TestConcurrentLoadRaceCondition(t *testing.T) {
 	numLoadsPerGoroutine := 10
 
 	var wg sync.WaitGroup
-	
+
 	// Channel to collect any panics
 	panics := make(chan interface{}, numGoroutines)
 
@@ -1636,15 +1639,15 @@ func TestConcurrentLoadRaceCondition(t *testing.T) {
 				// Create different configs to load
 				config := map[string]interface{}{
 					fmt.Sprintf("key_%d_%d", id, j): fmt.Sprintf("value_%d_%d", id, j),
-					"common": fmt.Sprintf("common_%d_%d", id, j),
+					"common":                        fmt.Sprintf("common_%d_%d", id, j),
 				}
-				
+
 				// This should trigger concurrent map writes
 				err := k.Load(confmap.Provider(config, "."), nil)
 				if err != nil {
 					t.Errorf("Load failed: %v", err)
 				}
-				
+
 				// Small delay to increase chance of race
 				time.Sleep(time.Microsecond)
 			}
@@ -1674,11 +1677,11 @@ func TestConcurrentReadWriteMix(t *testing.T) {
 	}
 
 	k := koanf.New(".")
-	
+
 	// Initialize with some data
 	k.Load(confmap.Provider(map[string]interface{}{
 		"test.key": "initial",
-		"counter": 0,
+		"counter":  0,
 	}, "."), nil)
 
 	done := make(chan struct{})
@@ -1698,7 +1701,7 @@ func TestConcurrentReadWriteMix(t *testing.T) {
 				default:
 					// Mix different types of reads
 					_ = k.String("test.key")
-					_ = k.Int("counter") 
+					_ = k.Int("counter")
 					_ = k.Keys()
 					_ = k.All()
 					readCount++
@@ -1723,7 +1726,7 @@ func TestConcurrentReadWriteMix(t *testing.T) {
 					// Mix different types of writes
 					config := map[string]interface{}{
 						"test.key": fmt.Sprintf("writer-%d-count-%d", writerID, writeCount),
-						"counter": writeCount,
+						"counter":  writeCount,
 						fmt.Sprintf("dynamic.key.%d", writeCount): writerID,
 					}
 					k.Load(confmap.Provider(config, "."), nil)
@@ -1774,7 +1777,7 @@ func TestConcurrentEdgeCases(t *testing.T) {
 		}
 	}()
 
-	// Test concurrent Copy operations  
+	// Test concurrent Copy operations
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -1846,10 +1849,10 @@ func TestNoDeadlock(t *testing.T) {
 
 	// Test duration
 	testDuration := 500 * time.Millisecond
-	
+
 	var wg sync.WaitGroup
 	done := make(chan struct{})
-	
+
 	// Start multiple reader goroutines with different read patterns
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
@@ -1868,14 +1871,14 @@ func TestNoDeadlock(t *testing.T) {
 					_ = k.All()
 					_ = k.Raw()
 					_ = k.Exists("parent")
-					_ = k.Sprint()  // This internally uses RLock and avoids calling Keys()
+					_ = k.Sprint() // This internally uses RLock and avoids calling Keys()
 					_ = k.KeyMap()
 					_ = k.MapKeys("parent")
-					
+
 					// Test methods that call other locked methods
-					_ = k.Cut("parent")  // Calls Get()
-					_ = k.Copy()         // Calls Cut() → Get()
-					
+					_ = k.Cut("parent") // Calls Get()
+					_ = k.Copy()        // Calls Cut() → Get()
+
 					readCount++
 					if readCount%100 == 0 {
 						time.Sleep(time.Microsecond)
@@ -1885,7 +1888,7 @@ func TestNoDeadlock(t *testing.T) {
 		}(i)
 	}
 
-	// Start writer goroutines with different write patterns  
+	// Start writer goroutines with different write patterns
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
 		go func(id int) {
@@ -1900,7 +1903,7 @@ func TestNoDeadlock(t *testing.T) {
 					// Mix different write operations
 					k.Set(fmt.Sprintf("writer_%d.key", id), writeCount)
 					k.Delete("nonexistent") // Should be safe
-					
+
 					// Load new data
 					newData := map[string]interface{}{
 						fmt.Sprintf("load_%d", writeCount): id,
@@ -1909,12 +1912,12 @@ func TestNoDeadlock(t *testing.T) {
 						},
 					}
 					k.Load(confmap.Provider(newData, "."), nil)
-					
+
 					// Merge operations
 					other := koanf.New(".")
 					other.Set("merge_key", writeCount)
 					k.Merge(other)
-					
+
 					writeCount++
 					if writeCount%50 == 0 {
 						time.Sleep(time.Microsecond)
@@ -1927,14 +1930,14 @@ func TestNoDeadlock(t *testing.T) {
 	// Run the test for specified duration
 	time.Sleep(testDuration)
 	close(done)
-	
+
 	// Use a timeout to detect deadlocks
 	waitChan := make(chan struct{})
 	go func() {
 		wg.Wait()
 		close(waitChan)
 	}()
-	
+
 	select {
 	case <-waitChan:
 		t.Log("Deadlock test completed successfully - no deadlocks detected")
@@ -1967,7 +1970,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			
+
 			for {
 				select {
 				case <-done:
@@ -1975,7 +1978,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 				default:
 					// Create new file provider for each iteration
 					f := file.Provider(tmpFile)
-					
+
 					// Try to watch
 					var watchErr error
 					watchErr = f.Watch(func(event interface{}, err error) {
@@ -1983,7 +1986,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 						_ = event
 						_ = err
 					})
-					
+
 					// Sometimes watch will fail if another goroutine is already watching
 					if watchErr == nil {
 						// If watch succeeded, unwatch after a short delay
@@ -1997,7 +2000,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 						// Unexpected error
 						t.Errorf("Unexpected watch error: %v", watchErr)
 					}
-					
+
 					// Small delay to prevent tight loop
 					time.Sleep(time.Microsecond)
 				}
@@ -2010,7 +2013,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		counter := 0
-		
+
 		for {
 			select {
 			case <-done:

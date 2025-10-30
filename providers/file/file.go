@@ -43,7 +43,7 @@ func (f *File) Read() (map[string]interface{}, error) {
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
 	f.mu.Lock()
-	
+
 	// If a watcher already exists, return an error.
 	if f.isWatching {
 		f.mu.Unlock()
@@ -69,7 +69,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	}
 
 	f.isWatching = true
-	
+
 	// Set up the directory watch before releasing the lock
 	err = f.w.Add(fDir)
 	if err != nil {
@@ -79,7 +79,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 		f.mu.Unlock()
 		return err
 	}
-	
+
 	// Release the lock before spawning goroutine
 	f.mu.Unlock()
 
@@ -98,7 +98,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					f.mu.Lock()
 					stillWatching := f.isWatching
 					f.mu.Unlock()
-					
+
 					if stillWatching {
 						cb(nil, errors.New("fsnotify watch channel closed"))
 					}
@@ -138,7 +138,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					realPath = curPath
 
 					// Trigger event.
-					cb(nil, nil)
+					cb(event, nil)
 				} else if onWatchedFile && event.Has(fsnotify.Remove) {
 					cb(nil, fmt.Errorf("file %s was removed", event.Name))
 					break loop
@@ -151,7 +151,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					f.mu.Lock()
 					stillWatching := f.isWatching
 					f.mu.Unlock()
-					
+
 					if stillWatching {
 						cb(nil, errors.New("fsnotify err channel closed"))
 					}
@@ -185,7 +185,7 @@ func (f *File) Unwatch() error {
 	if !f.isWatching {
 		return nil // Already unwatched
 	}
-	
+
 	f.isWatching = false
 	if f.w != nil {
 		// Close the watcher to signal the goroutine to stop
