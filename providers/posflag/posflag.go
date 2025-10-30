@@ -22,12 +22,12 @@ type Posflag struct {
 	delim   string
 	flagset *pflag.FlagSet
 	ko      KoanfIntf
-	cb      func(key string, value string) (string, interface{})
-	flagCB  func(f *pflag.Flag) (string, interface{})
+	cb      func(key string, value string) (string, any)
+	flagCB  func(f *pflag.Flag) (string, any)
 }
 
 // Provider returns a commandline flags provider that returns
-// a nested map[string]interface{} of environment variable where the
+// a nested map[string]any of environment variable where the
 // nesting hierarchy of keys are defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
@@ -50,7 +50,7 @@ func Provider(f *pflag.FlagSet, delim string, ko KoanfIntf) *Posflag {
 // This is useful for cases where complex types like slices separated by
 // custom separators.
 // Returning "" for the key causes the particular flag to be disregarded.
-func ProviderWithValue(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(key string, value string) (string, interface{})) *Posflag {
+func ProviderWithValue(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(key string, value string) (string, any)) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
@@ -68,7 +68,7 @@ func ProviderWithValue(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(key
 //
 // Example:
 //
-//	p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, interface{}) {
+//	p := posflag.ProviderWithFlag(flagset, ".", ko, func(f *pflag.Flag) (string, any) {
 //	   // Transform the key in whatever manner.
 //	   key := f.Name
 //
@@ -78,7 +78,7 @@ func ProviderWithValue(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(key
 //
 //	   return key, val
 //	})
-func ProviderWithFlag(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(f *pflag.Flag) (string, interface{})) *Posflag {
+func ProviderWithFlag(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(f *pflag.Flag) (string, any)) *Posflag {
 	return &Posflag{
 		flagset: f,
 		delim:   delim,
@@ -88,12 +88,12 @@ func ProviderWithFlag(f *pflag.FlagSet, delim string, ko KoanfIntf, cb func(f *p
 }
 
 // Read reads the flag variables and returns a nested conf map.
-func (p *Posflag) Read() (map[string]interface{}, error) {
-	mp := make(map[string]interface{})
+func (p *Posflag) Read() (map[string]any, error) {
+	mp := make(map[string]any)
 	p.flagset.VisitAll(func(f *pflag.Flag) {
 		var (
 			key = f.Name
-			val interface{}
+			val any
 		)
 
 		// If there is a (key, value) callback set, pass the key and string
@@ -138,17 +138,17 @@ func (p *Posflag) ReadBytes() ([]byte, error) {
 }
 
 // Watch is not supported.
-func (p *Posflag) Watch(cb func(event interface{}, err error)) error {
+func (p *Posflag) Watch(cb func(event any, err error)) error {
 	return errors.New("posflag provider does not support this method")
 }
 
-// FlagVal examines a pflag.Flag and returns a typed value as an interface{}
+// FlagVal examines a pflag.Flag and returns a typed value as an any
 // from the types that pflag supports. If it is of a type that isn't known
 // for any reason, the value is returned as a string.
-func FlagVal(fs *pflag.FlagSet, f *pflag.Flag) interface{} {
+func FlagVal(fs *pflag.FlagSet, f *pflag.Flag) any {
 	var (
 		key = f.Name
-		val interface{}
+		val any
 	)
 
 	switch f.Value.Type() {

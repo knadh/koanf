@@ -49,7 +49,7 @@ func TestNats(t *testing.T) {
 	assert.Equal(t, k.Keys(), []string{"some.test.color"})
 	assert.Equal(t, k.Get("some.test.color"), "blue")
 
-	err = provider.Watch(func(event interface{}, err error) {
+	err = provider.Watch(func(event any, err error) {
 		if err != nil {
 			t.Fatal(err)
 		}

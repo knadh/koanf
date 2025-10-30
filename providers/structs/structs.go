@@ -12,20 +12,20 @@ import (
 
 // Structs implements a structs provider.
 type Structs struct {
-	s     interface{}
+	s     any
 	tag   string
 	delim string
 }
 
 // Provider returns a provider that takes a struct and a struct tag
 // and uses structs to parse and provide it to koanf.
-func Provider(s interface{}, tag string) *Structs {
+func Provider(s any, tag string) *Structs {
 	return &Structs{s: s, tag: tag}
 }
 
 // ProviderWithDelim returns a provider that takes a struct and a struct tag
 // along with a delim and uses structs to parse and provide it to koanf.
-func ProviderWithDelim(s interface{}, tag, delim string) *Structs {
+func ProviderWithDelim(s any, tag, delim string) *Structs {
 	return &Structs{s: s, tag: tag, delim: delim}
 }
 
@@ -35,7 +35,7 @@ func (s *Structs) ReadBytes() ([]byte, error) {
 }
 
 // Read reads the struct and returns a nested config map.
-func (s *Structs) Read() (map[string]interface{}, error) {
+func (s *Structs) Read() (map[string]any, error) {
 	ns := structs.New(s.s)
 	ns.TagName = s.tag
 

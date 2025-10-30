@@ -15,8 +15,8 @@ func Parser() *HJSON {
 }
 
 // Unmarshal parses the given HJSON bytes.
-func (p *HJSON) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var out map[string]interface{}
+func (p *HJSON) Unmarshal(b []byte) (map[string]any, error) {
+	var out map[string]any
 	if err := hjson.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
@@ -24,6 +24,6 @@ func (p *HJSON) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to HJSON bytes.
-func (p *HJSON) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *HJSON) Marshal(o map[string]any) ([]byte, error) {
 	return hjson.Marshal(o)
 }

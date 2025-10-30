@@ -26,8 +26,8 @@ func TestTextUnmarshalStringFixed(t *testing.T) {
 	before := *target
 
 	var (
-		bptr interface{} = &(target.LogFormatPointer)
-		cptr interface{} = target.LogFormatValue
+		bptr any = &(target.LogFormatPointer)
+		cptr any = target.LogFormatValue
 	)
 	_, ok := (bptr).(encoding.TextMarshaler)
 	assert.True(t, ok)

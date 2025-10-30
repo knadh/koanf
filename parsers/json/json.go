@@ -14,8 +14,8 @@ func Parser() *JSON {
 }
 
 // Unmarshal parses the given JSON bytes.
-func (p *JSON) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var out map[string]interface{}
+func (p *JSON) Unmarshal(b []byte) (map[string]any, error) {
+	var out map[string]any
 	if err := json.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
@@ -23,6 +23,6 @@ func (p *JSON) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to JSON bytes.
-func (p *JSON) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *JSON) Marshal(o map[string]any) ([]byte, error) {
 	return json.Marshal(o)
 }

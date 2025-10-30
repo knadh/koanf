@@ -14,13 +14,13 @@ func Parser() *KDL {
 }
 
 // Unmarshal parses the given KDL bytes.
-func (p *KDL) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var o map[string]interface{}
+func (p *KDL) Unmarshal(b []byte) (map[string]any, error) {
+	var o map[string]any
 	err := kdl.Unmarshal(b, &o)
 	return o, err
 }
 
 // Marshal marshals the given config map to KDL bytes.
-func (p *KDL) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *KDL) Marshal(o map[string]any) ([]byte, error) {
 	return kdl.Marshal(o)
 }

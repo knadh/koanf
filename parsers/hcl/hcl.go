@@ -20,13 +20,13 @@ func Parser(flattenSlices bool) *HCL {
 }
 
 // Unmarshal parses the given HCL bytes.
-func (p *HCL) Unmarshal(b []byte) (map[string]interface{}, error) {
+func (p *HCL) Unmarshal(b []byte) (map[string]any, error) {
 	o, err := hcl.Parse(string(b))
 	if err != nil {
 		return nil, err
 	}
 
-	var out map[string]interface{}
+	var out map[string]any
 	if err := hcl.DecodeObject(&out, o); err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (p *HCL) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to HCL bytes.
-func (p *HCL) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *HCL) Marshal(o map[string]any) ([]byte, error) {
 	return nil, errors.New("HCL marshalling is not supported")
 	// TODO: Although this is the only way to do it, it's producing empty bytes.
 	// Needs investigation.
@@ -63,16 +63,16 @@ func (p *HCL) Marshal(o map[string]interface{}) ([]byte, error) {
 
 // flattenHCL flattens an unmarshalled HCL structure where maps
 // turn into slices -- https://github.com/hashicorp/hcl/issues/162.
-func flattenHCL(mp map[string]interface{}) {
+func flattenHCL(mp map[string]any) {
 	for k, val := range mp {
-		if v, ok := val.([]map[string]interface{}); ok {
+		if v, ok := val.([]map[string]any); ok {
 			if len(v) == 1 {
 				mp[k] = v[0]
 			}
 		}
 	}
 	for _, val := range mp {
-		if v, ok := val.(map[string]interface{}); ok {
+		if v, ok := val.(map[string]any); ok {
 			flattenHCL(v)
 		}
 	}

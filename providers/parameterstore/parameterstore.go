@@ -32,7 +32,7 @@ type Config[T Input] struct {
 	// Callback is an optional callback that takes a (key, value)
 	// with the variable name and value and allows you to modify both.
 	// If the callback returns an empty key, the variable will be ignored.
-	Callback func(key, value string) (string, interface{})
+	Callback func(key, value string) (string, any)
 }
 
 // ParameterStore implements an AWS Systems Manager Parameter Store provider.
@@ -71,11 +71,11 @@ func (ps *ParameterStore[T]) ReadBytes() ([]byte, error) {
 }
 
 // Read returns a nested config map.
-func (ps *ParameterStore[T]) Read() (map[string]interface{}, error) {
+func (ps *ParameterStore[T]) Read() (map[string]any, error) {
 	var (
-		mp = make(map[string]interface{})
+		mp = make(map[string]any)
 	)
-	switch input := interface{}(ps.config.Input).(type) {
+	switch input := any(ps.config.Input).(type) {
 	case ssm.GetParameterInput:
 		output, err := ps.client.GetParameter(context.TODO(), &input, ps.config.OptFns...)
 		if err != nil {

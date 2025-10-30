@@ -29,7 +29,7 @@ func main() {
 	// Watch the file and get a callback on change. The callback can do whatever,
 	// like re-load the configuration.
 	// File provider always returns a nil `event`.
-	f.Watch(func(event interface{}, err error) {
+	f.Watch(func(event any, err error) {
 		if err != nil {
 			log.Printf("watch error: %v", err)
 			return
