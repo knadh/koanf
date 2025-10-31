@@ -94,20 +94,42 @@ func (e *Etcd) Read() (map[string]interface{}, error) {
 }
 
 func (e *Etcd) Watch(cb func(event interface{}, err error)) error {
+	return e.WatchWithCtx(context.Background(), cb)
+}
+
+func (e *Etcd) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
 	var w clientv3.WatchChan
 
+	if e.cfg.Prefix {
+		w = e.client.Watch(ctx, e.cfg.Key, clientv3.WithPrefix())
+	} else {
+		w = e.client.Watch(ctx, e.cfg.Key)
+	}
+
 	go func() {
-		if e.cfg.Prefix {
-			w = e.client.Watch(context.Background(), e.cfg.Key, clientv3.WithPrefix())
-		} else {
-			w = e.client.Watch(context.Background(), e.cfg.Key)
-		}
+		var err error
 
 		for wresp := range w {
+
+			if err = wresp.Err(); err != nil {
+				cb(nil, err)
+				return
+			}
+
 			for _, ev := range wresp.Events {
 				cb(ev, nil)
 			}
 		}
+
+		// no need to check for ctx.Done().
+		// reference: If the context "ctx" is canceled or timed out, returned "WatchChan" is closed,
+		// and "WatchResponse" from this closed channel has zero events and nil "Err()"
+		if err = ctx.Err(); err != nil {
+			cb(nil, err)
+			return
+		}
+
+		cb(nil, errors.New("etcd watcher channel closed"))
 	}()
 
 	return nil

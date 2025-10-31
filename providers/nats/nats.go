@@ -1,6 +1,7 @@
 package nats
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -89,17 +90,33 @@ func (n *Nats) Read() (map[string]interface{}, error) {
 }
 
 func (n *Nats) Watch(cb func(event interface{}, err error)) error {
-	w, err := n.kv.Watch(fmt.Sprintf("%s.*", n.cfg.Prefix))
+	return n.WatchWithCtx(context.Background(), cb)
+}
+
+func (n *Nats) WatchWithCtx(ctx context.Context, cb func(event any, err error)) error {
+	w, err := n.kv.Watch(fmt.Sprintf("%s.*", n.cfg.Prefix), nats.Context(ctx))
 	if err != nil {
 		return err
 	}
 
 	start := time.Now()
 	go func(watcher nats.KeyWatcher) {
-		for update := range watcher.Updates() {
-			// ignore nil events and only callback when the event is new (nats always sends one "old" event)
-			if update != nil && update.Created().After(start) {
-				cb(update, nil)
+		defer watcher.Stop()
+
+		for {
+			select {
+			case <-ctx.Done():
+				cb(nil, ctx.Err())
+				return
+			case update, ok := <-watcher.Updates():
+				if !ok {
+					cb(nil, errors.New("nats watcher channel closed"))
+					return
+				}
+				// ignore nil events and only callback when the event is new (nats always sends one "old" event)
+				if update != nil && update.Created().After(start) {
+					cb(update, nil)
+				}
 			}
 		}
 	}(w)

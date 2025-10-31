@@ -4,6 +4,7 @@
 package file
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -42,8 +43,14 @@ func (f *File) Read() (map[string]interface{}, error) {
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
+	return f.WatchWithCtx(context.Background(), cb)
+}
+
+// WatchWithCtx watches the file and triggers a callback when it changes. It is a
+// blocking function that internally spawns a goroutine to watch for changes.
+func (f *File) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
 	f.mu.Lock()
-	
+
 	// If a watcher already exists, return an error.
 	if f.isWatching {
 		f.mu.Unlock()
@@ -54,9 +61,9 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	// can be detected.
 	realPath, err := filepath.EvalSymlinks(f.path)
 	if err != nil {
+		f.mu.Unlock()
 		return err
 	}
-	realPath = filepath.Clean(realPath)
 
 	// Although only a single file is being watched, fsnotify has to watch
 	// the whole parent directory to pick up all events such as symlink changes.
@@ -69,7 +76,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	}
 
 	f.isWatching = true
-	
+
 	// Set up the directory watch before releasing the lock
 	err = f.w.Add(fDir)
 	if err != nil {
@@ -79,7 +86,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 		f.mu.Unlock()
 		return err
 	}
-	
+
 	// Release the lock before spawning goroutine
 	f.mu.Unlock()
 
@@ -92,13 +99,17 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 	loop:
 		for {
 			select {
+			case <-ctx.Done():
+				cb(nil, ctx.Err())
+				break loop
+
 			case event, ok := <-f.w.Events:
 				if !ok {
 					// Only throw an error if we were still supposed to be watching.
 					f.mu.Lock()
 					stillWatching := f.isWatching
 					f.mu.Unlock()
-					
+
 					if stillWatching {
 						cb(nil, errors.New("fsnotify watch channel closed"))
 					}
@@ -123,7 +134,6 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					cb(nil, err)
 					break loop
 				}
-				curPath = filepath.Clean(curPath)
 
 				onWatchedFile := evFile == realPath || evFile == f.path
 
@@ -151,7 +161,7 @@ func (f *File) Watch(cb func(event interface{}, err error)) error {
 					f.mu.Lock()
 					stillWatching := f.isWatching
 					f.mu.Unlock()
-					
+
 					if stillWatching {
 						cb(nil, errors.New("fsnotify err channel closed"))
 					}
@@ -185,7 +195,7 @@ func (f *File) Unwatch() error {
 	if !f.isWatching {
 		return nil // Already unwatched
 	}
-	
+
 	f.isWatching = false
 	if f.w != nil {
 		// Close the watcher to signal the goroutine to stop

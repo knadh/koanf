@@ -89,23 +89,27 @@ func Provider(cfg Config) (*AppConfig, error) {
 	}
 	client := appconfig.NewFromConfig(c)
 
-	return &AppConfig{client: client, config: cfg}, nil
+	return &AppConfig{client: client, config: cfg, input: inputFromConfig(cfg)}, nil
 }
 
 // ProviderWithClient returns an AWS AppConfig provider
 // using an existing AWS appconfig client.
 func ProviderWithClient(cfg Config, client *appconfig.Client) *AppConfig {
-	return &AppConfig{client: client, config: cfg}
+	return &AppConfig{client: client, config: cfg, input: inputFromConfig(cfg)}
+}
+
+func inputFromConfig(cfg Config) appconfig.GetConfigurationInput {
+	// better to load initially, than later, what if `Watch()` is called first and then `ReadBytes()`?
+	return appconfig.GetConfigurationInput{
+		Application:   &cfg.Application,
+		ClientId:      &cfg.ClientID,
+		Configuration: &cfg.Configuration,
+		Environment:   &cfg.Environment,
+	}
 }
 
 // ReadBytes returns the raw bytes for parsing.
 func (ac *AppConfig) ReadBytes() ([]byte, error) {
-	ac.input = appconfig.GetConfigurationInput{
-		Application:   &ac.config.Application,
-		ClientId:      &ac.config.ClientID,
-		Configuration: &ac.config.Configuration,
-		Environment:   &ac.config.Environment,
-	}
 	if ac.config.ClientConfigurationVersion != "" {
 		ac.input.ClientConfigurationVersion = &ac.config.ClientConfigurationVersion
 	}
@@ -129,30 +133,56 @@ func (ac *AppConfig) Read() (map[string]interface{}, error) {
 
 // Watch polls AWS AppConfig for configuration updates.
 func (ac *AppConfig) Watch(cb func(event interface{}, err error)) error {
+	return ac.WatchWithCtx(context.Background(), cb)
+}
+
+// WatchWitchCtx polls AWS AppConfig for configuration updates.
+func (ac *AppConfig) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
 	if ac.config.WatchInterval == 0 {
 		// Set default watch interval to 60 seconds.
 		ac.config.WatchInterval = 60 * time.Second
 	}
 
 	go func() {
-	loop:
+
+		input := ac.input
+		currentVersion := input.ClientConfigurationVersion
+
+		conf, err := ac.client.GetConfiguration(ctx, &input)
+		if err != nil {
+			cb(nil, err)
+			return
+		}
+
+		if currentVersion != conf.ConfigurationVersion {
+			cb(conf.Content, nil)
+			currentVersion = conf.ConfigurationVersion
+		}
+
+		ticker := time.NewTicker(ac.config.WatchInterval)
+		defer ticker.Stop()
+
 		for {
-			conf, err := ac.client.GetConfiguration(context.TODO(), &ac.input)
-			if err != nil {
-				cb(nil, err)
-				break loop
+			select {
+			case <-ticker.C:
+
+				input.ClientConfigurationVersion = currentVersion
+				conf, err := ac.client.GetConfiguration(ctx, &input)
+				if err != nil {
+					cb(nil, err)
+					return
+				}
+
+				if conf != nil {
+					cb(conf.Content, nil)
+					currentVersion = conf.ConfigurationVersion
+				}
+
+			case <-ctx.Done():
+				cb(nil, ctx.Err())
+				return
 			}
 
-			// Check if the configuration has been updated.
-			if len(conf.Content) == 0 {
-				// Configuration is not updated and we have the latest version.
-				// Sleep for WatchInterval and retry watcher.
-				time.Sleep(ac.config.WatchInterval)
-				continue
-			}
-
-			// Trigger event.
-			cb(nil, nil)
 		}
 	}()
 

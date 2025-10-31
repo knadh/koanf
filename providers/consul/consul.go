@@ -1,8 +1,10 @@
 package consul
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/hashicorp/consul/api"
 	"github.com/hashicorp/consul/api/watch"
@@ -129,6 +131,11 @@ func (c *Consul) Read() (map[string]interface{}, error) {
 
 // Watch watches for changes in the Consul API and triggers a callback.
 func (c *Consul) Watch(cb func(event interface{}, err error)) error {
+	return c.WatchWithCtx(context.Background(), cb)
+}
+
+// WatchWithCtx watches for changes in the Consul API and triggers a callback.
+func (c *Consul) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
 	p := make(map[string]interface{})
 
 	if c.cfg.Recurse {
@@ -148,8 +155,29 @@ func (c *Consul) Watch(cb func(event interface{}, err error)) error {
 		cb(val, nil)
 	}
 
+	var once sync.Once
+
+	// Create a new context that we can cancel internally. To link the
+	// lifecycle of our two goroutines.
+	watchCtx, cancelFunc := context.WithCancel(ctx)
+
 	go func() {
-		plan.Run(c.cfg.Cfg.Address)
+		defer cancelFunc()
+		err := plan.Run(c.cfg.Cfg.Address)
+		if err != nil {
+			once.Do(func() {
+				cb(nil, err)
+			})
+		}
+	}()
+
+	go func() {
+		<-watchCtx.Done()
+		plan.Stop()
+
+		once.Do(func() {
+			cb(nil, ctx.Err())
+		})
 	}()
 
 	return nil
