@@ -94,10 +94,10 @@ func (e *Etcd) Read() (map[string]interface{}, error) {
 }
 
 func (e *Etcd) Watch(cb func(event interface{}, err error)) error {
-	return e.WatchWithCtx(context.Background(), cb)
+	return e.WatchWithContext(context.Background(), cb)
 }
 
-func (e *Etcd) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
+func (e *Etcd) WatchWithContext(ctx context.Context, cb func(event interface{}, err error)) error {
 	var w clientv3.WatchChan
 
 	if e.cfg.Prefix {

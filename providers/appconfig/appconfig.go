@@ -133,11 +133,11 @@ func (ac *AppConfig) Read() (map[string]interface{}, error) {
 
 // Watch polls AWS AppConfig for configuration updates.
 func (ac *AppConfig) Watch(cb func(event interface{}, err error)) error {
-	return ac.WatchWithCtx(context.Background(), cb)
+	return ac.WatchWithContext(context.Background(), cb)
 }
 
 // WatchWitchCtx polls AWS AppConfig for configuration updates.
-func (ac *AppConfig) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
+func (ac *AppConfig) WatchWithContext(ctx context.Context, cb func(event interface{}, err error)) error {
 	if ac.config.WatchInterval == 0 {
 		// Set default watch interval to 60 seconds.
 		ac.config.WatchInterval = 60 * time.Second

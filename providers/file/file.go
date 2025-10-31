@@ -43,12 +43,12 @@ func (f *File) Read() (map[string]interface{}, error) {
 // Watch watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
 func (f *File) Watch(cb func(event interface{}, err error)) error {
-	return f.WatchWithCtx(context.Background(), cb)
+	return f.WatchWithContext(context.Background(), cb)
 }
 
-// WatchWithCtx watches the file and triggers a callback when it changes. It is a
+// WatchWithContext watches the file and triggers a callback when it changes. It is a
 // blocking function that internally spawns a goroutine to watch for changes.
-func (f *File) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
+func (f *File) WatchWithContext(ctx context.Context, cb func(event interface{}, err error)) error {
 	f.mu.Lock()
 
 	// If a watcher already exists, return an error.

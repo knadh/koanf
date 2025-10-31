@@ -131,11 +131,11 @@ func (c *Consul) Read() (map[string]interface{}, error) {
 
 // Watch watches for changes in the Consul API and triggers a callback.
 func (c *Consul) Watch(cb func(event interface{}, err error)) error {
-	return c.WatchWithCtx(context.Background(), cb)
+	return c.WatchWithContext(context.Background(), cb)
 }
 
-// WatchWithCtx watches for changes in the Consul API and triggers a callback.
-func (c *Consul) WatchWithCtx(ctx context.Context, cb func(event interface{}, err error)) error {
+// WatchWithContext watches for changes in the Consul API and triggers a callback.
+func (c *Consul) WatchWithContext(ctx context.Context, cb func(event interface{}, err error)) error {
 	p := make(map[string]interface{})
 
 	if c.cfg.Recurse {

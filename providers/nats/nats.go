@@ -90,10 +90,10 @@ func (n *Nats) Read() (map[string]interface{}, error) {
 }
 
 func (n *Nats) Watch(cb func(event interface{}, err error)) error {
-	return n.WatchWithCtx(context.Background(), cb)
+	return n.WatchWithContext(context.Background(), cb)
 }
 
-func (n *Nats) WatchWithCtx(ctx context.Context, cb func(event any, err error)) error {
+func (n *Nats) WatchWithContext(ctx context.Context, cb func(event any, err error)) error {
 	w, err := n.kv.Watch(fmt.Sprintf("%s.*", n.cfg.Prefix), nats.Context(ctx))
 	if err != nil {
 		return err
