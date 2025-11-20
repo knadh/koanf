@@ -14,8 +14,8 @@ func Parser() *TOML {
 }
 
 // Unmarshal parses the given TOML bytes.
-func (p *TOML) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var outMap map[string]interface{}
+func (p *TOML) Unmarshal(b []byte) (map[string]any, error) {
+	var outMap map[string]any
 
 	if err := toml.Unmarshal(b, &outMap); err != nil {
 		return nil, err
@@ -25,7 +25,7 @@ func (p *TOML) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to TOML bytes.
-func (p *TOML) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *TOML) Marshal(o map[string]any) ([]byte, error) {
 	out, err := toml.Marshal(&o)
 	if err != nil {
 		return nil, err

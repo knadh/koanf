@@ -33,7 +33,7 @@ type Opt struct {
 	TransformFunc func(k, v string) (string, any)
 }
 
-// Provider returns a kiln provider that returns a nested map[string]interface{}
+// Provider returns a kiln provider that returns a nested map[string]any
 // of decrypted environment variables from the specified kiln environment file.
 //
 // configPath is the path to the kiln.toml configuration file.

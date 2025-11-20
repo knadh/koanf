@@ -64,13 +64,13 @@ func (n *Nats) ReadBytes() ([]byte, error) {
 }
 
 // Read returns a nested config map.
-func (n *Nats) Read() (map[string]interface{}, error) {
+func (n *Nats) Read() (map[string]any, error) {
 	keys, err := n.kv.Keys()
 	if err != nil {
 		return nil, err
 	}
 
-	mp := make(map[string]interface{})
+	mp := make(map[string]any)
 	for _, key := range keys {
 		if !strings.HasPrefix(key, n.cfg.Prefix) {
 			continue
@@ -88,7 +88,7 @@ func (n *Nats) Read() (map[string]interface{}, error) {
 	return mp, nil
 }
 
-func (n *Nats) Watch(cb func(event interface{}, err error)) error {
+func (n *Nats) Watch(cb func(event any, err error)) error {
 	w, err := n.kv.Watch(fmt.Sprintf("%s.*", n.cfg.Prefix))
 	if err != nil {
 		return err

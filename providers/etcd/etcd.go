@@ -55,7 +55,7 @@ func (e *Etcd) ReadBytes() ([]byte, error) {
 }
 
 // Read returns a nested config map.
-func (e *Etcd) Read() (map[string]interface{}, error) {
+func (e *Etcd) Read() (map[string]any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), e.cfg.DialTimeout)
 	defer cancel()
 
@@ -85,7 +85,7 @@ func (e *Etcd) Read() (map[string]interface{}, error) {
 		resp = r
 	}
 
-	mp := make(map[string]interface{}, len(resp.Kvs))
+	mp := make(map[string]any, len(resp.Kvs))
 	for _, r := range resp.Kvs {
 		mp[string(r.Key)] = string(r.Value)
 	}
@@ -93,7 +93,7 @@ func (e *Etcd) Read() (map[string]interface{}, error) {
 	return mp, nil
 }
 
-func (e *Etcd) Watch(cb func(event interface{}, err error)) error {
+func (e *Etcd) Watch(cb func(event any, err error)) error {
 	var w clientv3.WatchChan
 
 	go func() {

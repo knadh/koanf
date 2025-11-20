@@ -10,13 +10,13 @@ func TestTOML_Unmarshal(t *testing.T) {
 	testCases := []struct {
 		name   string
 		input  []byte
-		output map[string]interface{}
+		output map[string]any
 		isErr  bool
 	}{
 		{
 			name:   "Empty TOML",
 			input:  []byte(``),
-			output: map[string]interface{}(nil),
+			output: map[string]any(nil),
 		},
 		{
 			name: "Valid TOML",
@@ -24,7 +24,7 @@ func TestTOML_Unmarshal(t *testing.T) {
 			name = "test"
 			number = 2
 			`),
-			output: map[string]interface{}{
+			output: map[string]any{
 				"key":    "val",
 				"name":   "test",
 				"number": int64(2),
@@ -45,12 +45,12 @@ func TestTOML_Unmarshal(t *testing.T) {
 					[object]
 					a = "b"
 					c = "d"`),
-			output: map[string]interface{}{
-				"array":   []interface{}{int64(1), int64(2), int64(3)},
+			output: map[string]any{
+				"array":   []any{int64(1), int64(2), int64(3)},
 				"boolean": true,
 				"color":   "gold",
 				"number":  int64(123),
-				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"object":  map[string]any{"a": "b", "c": "d"},
 				"string":  "Hello World",
 			},
 		},
@@ -79,18 +79,18 @@ func TestTOML_Unmarshal(t *testing.T) {
 func TestTOML_Marshal(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  map[string]interface{}
+		input  map[string]any
 		output []byte
 		isErr  bool
 	}{
 		{
 			name:   "Empty TOML",
-			input:  map[string]interface{}{},
+			input:  map[string]any{},
 			output: []byte(nil),
 		},
 		{
 			name: "Valid TOML",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"key":    "val",
 				"name":   "test",
 				"number": 2.0,
@@ -102,12 +102,12 @@ number = 2.0
 		},
 		{
 			name: "Complex TOML - All types",
-			input: map[string]interface{}{
-				"array":   []interface{}{1, 2, 3, 4, 5},
+			input: map[string]any{
+				"array":   []any{1, 2, 3, 4, 5},
 				"boolean": true,
 				"color":   "gold",
 				"number":  123,
-				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"object":  map[string]any{"a": "b", "c": "d"},
 				"string":  "Hello World",
 			},
 			output: []byte(`array = [1, 2, 3, 4, 5]

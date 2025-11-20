@@ -13,25 +13,25 @@ func TestDotEnv_Marshal(t *testing.T) {
 	de := DotEnv{}
 	testCases := []struct {
 		name   string
-		cfg    map[string]interface{}
+		cfg    map[string]any
 		expOut []byte
 		err    error
 	}{
 		{
 			name:   "Empty config",
-			cfg:    map[string]interface{}{},
+			cfg:    map[string]any{},
 			expOut: []byte{},
 		},
 		{
 			name: "Simple key-value pair",
-			cfg: map[string]interface{}{
+			cfg: map[string]any{
 				"key": "value",
 			},
 			expOut: []byte("key=\"value\""),
 		},
 		{
 			name: "Multiple key-values",
-			cfg: map[string]interface{}{
+			cfg: map[string]any{
 				"key_1": "value_1",
 				"key_2": "value_2",
 				"key_3": "value_3",
@@ -40,7 +40,7 @@ func TestDotEnv_Marshal(t *testing.T) {
 		},
 		{
 			name: "Mixed data types",
-			cfg: map[string]interface{}{
+			cfg: map[string]any{
 				"int_key":   12,
 				"bool_key":  true,
 				"arr_key":   []int{1, 2, 3, 4},
@@ -50,11 +50,11 @@ func TestDotEnv_Marshal(t *testing.T) {
 		},
 		{
 			name: "Nested config",
-			cfg: map[string]interface{}{
-				"map_key": map[string]interface{}{
+			cfg: map[string]any{
+				"map_key": map[string]any{
 					"arr_key":  []float64{1.2, 4.3, 5, 6},
 					"bool_key": false,
-					"inner_map_key": map[interface{}]interface{}{
+					"inner_map_key": map[any]any{
 						0: "zero",
 						1: 1.0,
 					},
@@ -79,24 +79,24 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 	testCases := []struct {
 		name   string
 		cfg    []byte
-		expOut map[string]interface{}
+		expOut map[string]any
 		err    bool
 	}{
 		{
 			name:   "Empty config",
-			expOut: map[string]interface{}{},
+			expOut: map[string]any{},
 		},
 		{
 			name: "Simple key_value",
 			cfg:  []byte(`key="value"`),
-			expOut: map[string]interface{}{
+			expOut: map[string]any{
 				"key": "value",
 			},
 		},
 		{
 			name: "Multiple key_values",
 			cfg:  []byte("key_1=\"value_1\"\nkey_2=\"value_2\""),
-			expOut: map[string]interface{}{
+			expOut: map[string]any{
 				"key_1": "value_1",
 				"key_2": "value_2",
 			},
@@ -104,7 +104,7 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 		{
 			name: "Mixed data types",
 			cfg:  []byte("arr=\"[1 2 3 4]\"\nbool=\"true\"\nfloat=\"12.5\"\nint=\"32\"\n"),
-			expOut: map[string]interface{}{
+			expOut: map[string]any{
 				"arr":   "[1 2 3 4]",
 				"bool":  "true",
 				"float": "12.5",
@@ -114,7 +114,7 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 		{
 			name: "Nested config",
 			cfg:  []byte(`map_key="map[arr_key:[1 4 5 6] bool_key:false inner_map_key:map[0:zero 1:1] int_key:12]"`),
-			expOut: map[string]interface{}{
+			expOut: map[string]any{
 				"map_key": "map[arr_key:[1 4 5 6] bool_key:false inner_map_key:map[0:zero 1:1] int_key:12]",
 			},
 		},
@@ -126,7 +126,7 @@ func TestDotEnv_Unmarshal(t *testing.T) {
 		{
 			name: "Missing value",
 			cfg:  []byte(`key=`),
-			expOut: map[string]interface{}{
+			expOut: map[string]any{
 				"key": "",
 			},
 		},
@@ -229,8 +229,8 @@ func TestParserEnvWithValue(t *testing.T) {
 		key      string
 		value    string
 		expKey   string
-		expValue interface{}
-		cb       func(key, value string) (string, interface{})
+		expValue any
+		cb       func(key, value string) (string, any)
 	}{
 		{
 			name:   "Nil cb",
@@ -245,7 +245,7 @@ func TestParserEnvWithValue(t *testing.T) {
 			value:    "TestVal",
 			expKey:   "testkey",
 			expValue: "TestVal",
-			cb: func(key, value string) (string, interface{}) {
+			cb: func(key, value string) (string, any) {
 				return strings.ToLower(key), value
 			},
 		},
@@ -262,7 +262,7 @@ func TestParserEnvWithValue(t *testing.T) {
 			value:    "test_val",
 			expKey:   "TEST.KEY",
 			expValue: "test_val",
-			cb: func(key, value string) (string, interface{}) {
+			cb: func(key, value string) (string, any) {
 				return strings.Replace(strings.ToUpper(key), "_", ".", -1), value
 			},
 		},
@@ -273,13 +273,13 @@ func TestParserEnvWithValue(t *testing.T) {
 			key:    "test_key",
 			value:  `{"foo": "bar"}`,
 			expKey: "TEST.KEY",
-			expValue: map[string]interface{}{
+			expValue: map[string]any{
 				"foo": "bar",
 			},
-			cb: func(key, value string) (string, interface{}) {
+			cb: func(key, value string) (string, any) {
 				key = strings.Replace(strings.ToUpper(key), "_", ".", -1)
 
-				var v map[string]interface{}
+				var v map[string]any
 				err := json.Unmarshal([]byte(value), &v)
 				if err == nil {
 					return key, v
