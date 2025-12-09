@@ -34,14 +34,14 @@ type testStructWithDelim struct {
 
 func TestStructs_Read(t *testing.T) {
 	type fields struct {
-		s     interface{}
+		s     any
 		tag   string
 		delim string
 	}
 	tests := []struct {
 		name    string
 		fields  fields
-		want    map[string]interface{}
+		want    map[string]any
 		wantErr bool
 	}{
 		{
@@ -66,15 +66,15 @@ func TestStructs_Read(t *testing.T) {
 				},
 				tag: "koanf",
 			},
-			want: map[string]interface{}{
+			want: map[string]any{
 				"type":  "json",
 				"empty": map[string]string{},
-				"parent1": map[string]interface{}{
-					"child1": map[string]interface{}{
+				"parent1": map[string]any{
+					"child1": map[string]any{
 						"empty": map[string]string{},
 						"type":  "json",
 						"name":  "child1",
-						"grandchild1": map[string]interface{}{
+						"grandchild1": map[string]any{
 							"on":  true,
 							"ids": []int{1, 2, 3},
 						},
@@ -96,8 +96,8 @@ func TestStructs_Read(t *testing.T) {
 				tag:   "koanf",
 				delim: ".",
 			},
-			want: map[string]interface{}{
-				"conf_creds": map[string]interface{}{
+			want: map[string]any{
+				"conf_creds": map[string]any{
 					"password": "test_password",
 					"username": "test_username",
 				},

@@ -14,8 +14,8 @@ func Parser() *YAML {
 }
 
 // Unmarshal parses the given YAML bytes.
-func (p *YAML) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var out map[string]interface{}
+func (p *YAML) Unmarshal(b []byte) (map[string]any, error) {
+	var out map[string]any
 	if err := yaml.Unmarshal(b, &out); err != nil {
 		return nil, err
 	}
@@ -24,6 +24,6 @@ func (p *YAML) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to YAML bytes.
-func (p *YAML) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *YAML) Marshal(o map[string]any) ([]byte, error) {
 	return yaml.Marshal(o)
 }

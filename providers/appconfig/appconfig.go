@@ -123,12 +123,12 @@ func (ac *AppConfig) ReadBytes() ([]byte, error) {
 }
 
 // Read is not supported by the appconfig provider.
-func (ac *AppConfig) Read() (map[string]interface{}, error) {
+func (ac *AppConfig) Read() (map[string]any, error) {
 	return nil, errors.New("appconfig provider does not support this method")
 }
 
 // Watch polls AWS AppConfig for configuration updates.
-func (ac *AppConfig) Watch(cb func(event interface{}, err error)) error {
+func (ac *AppConfig) Watch(cb func(event any, err error)) error {
 	if ac.config.WatchInterval == 0 {
 		// Set default watch interval to 60 seconds.
 		ac.config.WatchInterval = 60 * time.Second

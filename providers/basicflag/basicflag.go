@@ -24,12 +24,12 @@ type KoanfIntf interface {
 type Pflag struct {
 	delim   string
 	flagset *flag.FlagSet
-	cb      func(key string, value string) (string, interface{})
+	cb      func(key string, value string) (string, any)
 	opt     *Opt
 }
 
 // Provider returns a commandline flags provider that returns
-// a nested map[string]interface{} of environment variable where the
+// a nested map[string]any of environment variable where the
 // nesting hierarchy of keys are defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
@@ -65,7 +65,7 @@ func Provider(f *flag.FlagSet, delim string, opt ...*Opt) *Pflag {
 // It is a variadic function as a hack to ensure backwards compatibility with the
 // function definition.
 // See https://github.com/knadh/koanf/issues/255
-func ProviderWithValue(f *flag.FlagSet, delim string, cb func(key string, value string) (string, interface{}), ko ...KoanfIntf) *Pflag {
+func ProviderWithValue(f *flag.FlagSet, delim string, cb func(key string, value string) (string, any), ko ...KoanfIntf) *Pflag {
 	pf := &Pflag{
 		flagset: f,
 		delim:   delim,
@@ -81,7 +81,7 @@ func ProviderWithValue(f *flag.FlagSet, delim string, cb func(key string, value 
 }
 
 // Read reads the flag variables and returns a nested conf map.
-func (p *Pflag) Read() (map[string]interface{}, error) {
+func (p *Pflag) Read() (map[string]any, error) {
 	var changed map[string]struct{}
 
 	// Prepare a map of flags that have been explicitly set by the user as aa KeyMap instance of Koanf
@@ -102,11 +102,11 @@ func (p *Pflag) Read() (map[string]interface{}, error) {
 		})
 	}
 
-	mp := make(map[string]interface{})
+	mp := make(map[string]any)
 	p.flagset.VisitAll(func(f *flag.Flag) {
 		var (
-			key             = f.Name
-			val interface{} = f.Value.String()
+			key     = f.Name
+			val any = f.Value.String()
 		)
 		if p.cb != nil {
 			k, v := p.cb(f.Name, f.Value.String())

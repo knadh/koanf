@@ -31,7 +31,7 @@ func main() {
 	k.Print()
 
 	// Watch for all configuration updates.
-	provider.Watch(func(event interface{}, err error) {
+	provider.Watch(func(event any, err error) {
 		if err != nil {
 			log.Printf("watch error: %v", err)
 			return

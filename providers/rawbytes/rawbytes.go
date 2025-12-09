@@ -26,6 +26,6 @@ func (r *RawBytes) ReadBytes() ([]byte, error) {
 }
 
 // Read is not supported by rawbytes provider.
-func (r *RawBytes) Read() (map[string]interface{}, error) {
+func (r *RawBytes) Read() (map[string]any, error) {
 	return nil, errors.New("rawbytes provider does not support this method")
 }

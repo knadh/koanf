@@ -109,15 +109,15 @@ func TestParameterStore(t *testing.T) {
 
 	tests := map[string]struct {
 		provider koanf.Provider
-		want     map[string]interface{}
+		want     map[string]any
 	}{
 		"get a parameter": {
 			provider: ProviderWithClient(Config[ssm.GetParameterInput]{
 				Delim:    ".",
 				Input:    ssm.GetParameterInput{Name: aws.String("parent1")},
-				Callback: func(key, value string) (string, interface{}) { return strings.TrimPrefix(key, "prefix."), value },
+				Callback: func(key, value string) (string, any) { return strings.TrimPrefix(key, "prefix."), value },
 			}, client),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"parent1": "alice",
 			},
 		},
@@ -125,11 +125,11 @@ func TestParameterStore(t *testing.T) {
 			provider: ProviderWithClient(Config[ssm.GetParametersInput]{
 				Delim:    ".",
 				Input:    ssm.GetParametersInput{Names: []string{"parent1", "parent2.child1"}},
-				Callback: func(key, value string) (string, interface{}) { return strings.TrimPrefix(key, "prefix."), value },
+				Callback: func(key, value string) (string, any) { return strings.TrimPrefix(key, "prefix."), value },
 			}, client),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"parent1": "alice",
-				"parent2": map[string]interface{}{
+				"parent2": map[string]any{
 					"child1": "bob",
 				},
 			},
@@ -138,13 +138,13 @@ func TestParameterStore(t *testing.T) {
 			provider: ProviderWithClient(Config[ssm.GetParametersByPathInput]{
 				Delim:    ".",
 				Input:    ssm.GetParametersByPathInput{Path: aws.String("/")},
-				Callback: func(key, value string) (string, interface{}) { return strings.TrimPrefix(key, "prefix."), value },
+				Callback: func(key, value string) (string, any) { return strings.TrimPrefix(key, "prefix."), value },
 			}, client),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"parent1": "alice",
-				"parent2": map[string]interface{}{
+				"parent2": map[string]any{
 					"child1": "bob",
-					"child2": map[string]interface{}{
+					"child2": map[string]any{
 						"grandchild1": "carol",
 					},
 				},
@@ -154,11 +154,11 @@ func TestParameterStore(t *testing.T) {
 			provider: ProviderWithClient(Config[ssm.GetParameterInput]{
 				Delim: ".",
 				Input: ssm.GetParameterInput{Name: aws.String("parent1")},
-				Callback: func(key, value string) (string, interface{}) {
+				Callback: func(key, value string) (string, any) {
 					return strings.TrimPrefix(strings.TrimPrefix(key, "prefix."), "parent1"), value
 				},
 			}, client),
-			want: map[string]interface{}{
+			want: map[string]any{
 				// Ignored.
 				// "parent1": "alice",
 			},
@@ -167,14 +167,14 @@ func TestParameterStore(t *testing.T) {
 			provider: ProviderWithClient(Config[ssm.GetParametersInput]{
 				Delim: ".",
 				Input: ssm.GetParametersInput{Names: []string{"parent1", "parent2.child1"}},
-				Callback: func(key, value string) (string, interface{}) {
+				Callback: func(key, value string) (string, any) {
 					return strings.TrimPrefix(strings.TrimPrefix(key, "prefix."), "parent2.child1"), value
 				},
 			}, client),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"parent1": "alice",
 				// Ignored.
-				// "parent2": map[string]interface{}{
+				// "parent2": map[string]any{
 				// 	"child1": "bob",
 				// },
 			},
@@ -183,16 +183,16 @@ func TestParameterStore(t *testing.T) {
 			provider: ProviderWithClient(Config[ssm.GetParametersByPathInput]{
 				Delim: ".",
 				Input: ssm.GetParametersByPathInput{Path: aws.String("/")},
-				Callback: func(key, value string) (string, interface{}) {
+				Callback: func(key, value string) (string, any) {
 					return strings.TrimPrefix(strings.TrimPrefix(key, "prefix."), "parent2.child2.grandchild1"), value
 				},
 			}, client),
-			want: map[string]interface{}{
+			want: map[string]any{
 				"parent1": "alice",
-				"parent2": map[string]interface{}{
+				"parent2": map[string]any{
 					"child1": "bob",
 					// Ignored.
-					// "child2": map[string]interface{}{
+					// "child2": map[string]any{
 					// 	"grandchild1": "carol",
 					// },
 				},

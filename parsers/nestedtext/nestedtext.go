@@ -21,16 +21,16 @@ func Parser() *NT {
 //
 // If the NT content does not reflect a dict (NT allows for top-level lists or strings as well),
 // the content will be wrapped into a dict with a single key named "nestedtext".
-func (p *NT) Unmarshal(b []byte) (map[string]interface{}, error) {
+func (p *NT) Unmarshal(b []byte) (map[string]any, error) {
 	r := bytes.NewReader(b)
 	result, err := nestext.Parse(r, nestext.TopLevel("dict"))
 	if err != nil {
 		return nil, err
 	}
 	// Given option-parameter TopLevel, nestext.Parse is guaranteed to wrap the return value
-	// in an appropriate type (dict = map[string]interface{} in this case), if necessary.
+	// in an appropriate type (dict = map[string]any in this case), if necessary.
 	// However, guard against type conversion failure anyway.
-	rmap, ok := result.(map[string]interface{})
+	rmap, ok := result.(map[string]any)
 	if !ok {
 		return nil, errors.New("NestedText configuration expected to be a dict at top-level")
 	}
@@ -38,7 +38,7 @@ func (p *NT) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to NestedText bytes.
-func (p *NT) Marshal(m map[string]interface{}) ([]byte, error) {
+func (p *NT) Marshal(m map[string]any) ([]byte, error) {
 	var buf bytes.Buffer
 	_, err := ntenc.Encode(m, &buf)
 	if err != nil {

@@ -23,7 +23,7 @@ type Config struct {
 }
 
 // Provider returns a commandline flags provider that returns
-// a nested map[string]interface{} of environment variable where the
+// a nested map[string]any of environment variable where the
 // nesting hierarchy of keys are defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.
@@ -54,8 +54,8 @@ func (p *CliFlag) ReadBytes() ([]byte, error) {
 }
 
 // Read reads the flag variables and returns a nested conf map.
-func (p *CliFlag) Read() (map[string]interface{}, error) {
-	out := make(map[string]interface{})
+func (p *CliFlag) Read() (map[string]any, error) {
+	out := make(map[string]any)
 
 	// Get command lineage (from root to current command)
 	lineage := p.ctx.Lineage()
@@ -80,7 +80,7 @@ func (p *CliFlag) Read() (map[string]interface{}, error) {
 	return maps.Unflatten(out, p.delim), nil
 }
 
-func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]interface{}) {
+func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]any) {
 	for _, flag := range flags {
 		name := flag.Names()[0]
 		if p.ctx.IsSet(name) || slices.Contains(p.config.Defaults, name) {
@@ -99,16 +99,16 @@ func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]i
 }
 
 // setNestedValue sets a value in the nested configuration structure
-func (p *CliFlag) setNestedValue(path string, value interface{}, out map[string]interface{}) {
+func (p *CliFlag) setNestedValue(path string, value any, out map[string]any) {
 	parts := strings.Split(path, p.delim)
 	current := out
 
 	// Navigate/create the nested structure
 	for i := 0; i < len(parts)-1; i++ {
 		if _, exists := current[parts[i]]; !exists {
-			current[parts[i]] = make(map[string]interface{})
+			current[parts[i]] = make(map[string]any)
 		}
-		current = current[parts[i]].(map[string]interface{})
+		current = current[parts[i]].(map[string]any)
 	}
 
 	// Set the final value
@@ -116,7 +116,7 @@ func (p *CliFlag) setNestedValue(path string, value interface{}, out map[string]
 }
 
 // getFlagValue extracts the typed value from the flag.
-func (p *CliFlag) getFlagValue(name string) interface{} {
+func (p *CliFlag) getFlagValue(name string) any {
 	// Find the flag definition
 	flag := p.findFlag(name)
 	if flag == nil {

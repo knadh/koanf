@@ -14,8 +14,8 @@ func Parser() *HUML {
 }
 
 // Unmarshal parses the given HUML bytes.
-func (p *HUML) Unmarshal(b []byte) (map[string]interface{}, error) {
-	var result map[string]interface{}
+func (p *HUML) Unmarshal(b []byte) (map[string]any, error) {
+	var result map[string]any
 	err := huml.Unmarshal(b, &result)
 	if err != nil {
 		return nil, err
@@ -24,7 +24,6 @@ func (p *HUML) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to HUML bytes.
-func (p *HUML) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *HUML) Marshal(o map[string]any) ([]byte, error) {
 	return huml.Marshal(o)
 }
-
