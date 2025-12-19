@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
@@ -461,6 +462,8 @@ func TestWatchFile(t *testing.T) {
 			}, "received unexpected error. err: %s", err)
 			return
 		}
+		require.NotNil(t, event, "event is nil")
+		assert.True(event.(fsnotify.Event).Has(fsnotify.Write))
 		// Reload the config.
 		k.Load(f, json.Parser())
 		changedC <- k.String("parent.name")

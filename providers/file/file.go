@@ -138,7 +138,7 @@ func (f *File) Watch(cb func(event any, err error)) error {
 					realPath = curPath
 
 					// Trigger event.
-					cb(nil, nil)
+					cb(event, nil)
 				} else if onWatchedFile && event.Has(fsnotify.Remove) {
 					cb(nil, fmt.Errorf("file %s was removed", event.Name))
 					break loop
