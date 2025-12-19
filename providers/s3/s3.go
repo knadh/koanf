@@ -65,6 +65,6 @@ func (r *S3) ReadBytes() ([]byte, error) {
 }
 
 // Read is not supported for s3 provider.
-func (r *S3) Read() (map[string]interface{}, error) {
+func (r *S3) Read() (map[string]any, error) {
 	return nil, errors.New("s3 provider does not support this method")
 }

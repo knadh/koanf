@@ -52,9 +52,9 @@ func (c *Consul) ReadBytes() ([]byte, error) {
 }
 
 // Read reads configuration from the Consul provider.
-func (c *Consul) Read() (map[string]interface{}, error) {
+func (c *Consul) Read() (map[string]any, error) {
 	var (
-		mp = make(map[string]interface{})
+		mp = make(map[string]any)
 		kv = c.client.KV()
 	)
 
@@ -74,7 +74,7 @@ func (c *Consul) Read() (map[string]interface{}, error) {
 		// "parent1.Value"
 		if c.cfg.Detailed {
 			for _, pair := range pairs {
-				m := make(map[string]interface{})
+				m := make(map[string]any)
 				m["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
 				m["Flags"] = fmt.Sprintf("%d", pair.Flags)
 				m["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
@@ -105,7 +105,7 @@ func (c *Consul) Read() (map[string]interface{}, error) {
 	}
 
 	if c.cfg.Detailed {
-		m := make(map[string]interface{})
+		m := make(map[string]any)
 		m["CreateIndex"] = fmt.Sprintf("%d", pair.CreateIndex)
 		m["Flags"] = fmt.Sprintf("%d", pair.Flags)
 		m["LockIndex"] = fmt.Sprintf("%d", pair.LockIndex)
@@ -128,8 +128,8 @@ func (c *Consul) Read() (map[string]interface{}, error) {
 }
 
 // Watch watches for changes in the Consul API and triggers a callback.
-func (c *Consul) Watch(cb func(event interface{}, err error)) error {
-	p := make(map[string]interface{})
+func (c *Consul) Watch(cb func(event any, err error)) error {
+	p := make(map[string]any)
 
 	if c.cfg.Recurse {
 		p["type"] = "keyprefix"
@@ -144,7 +144,7 @@ func (c *Consul) Watch(cb func(event interface{}, err error)) error {
 		return err
 	}
 
-	plan.Handler = func(_ uint64, val interface{}) {
+	plan.Handler = func(_ uint64, val any) {
 		cb(val, nil)
 	}
 

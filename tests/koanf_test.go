@@ -451,7 +451,7 @@ func TestWatchFile(t *testing.T) {
 	changedC := make(chan string, 1)
 	var wg sync.WaitGroup
 	wg.Add(1) // our assurance that cb is called max once
-	f.Watch(func(event interface{}, err error) {
+	f.Watch(func(event any, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
 		if err != nil {
@@ -508,7 +508,7 @@ func TestWatchFileSymlink(t *testing.T) {
 	changedC := make(chan string, 1)
 	var wg sync.WaitGroup
 	wg.Add(1) // our assurance that cb is called max once
-	f.Watch(func(event interface{}, err error) {
+	f.Watch(func(event any, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
 		if err != nil {
@@ -590,7 +590,7 @@ func TestWatchFileDirectorySymlink(t *testing.T) {
 	changedC := make(chan string, 1)
 	var wg sync.WaitGroup
 	wg.Add(1) // our assurance that cb is called max once
-	f.Watch(func(event interface{}, err error) {
+	f.Watch(func(event any, err error) {
 		// The File watcher always returns a nil `event`, which can
 		// be ignored.
 		if err != nil {
@@ -638,7 +638,7 @@ func TestUnwatchFile(t *testing.T) {
 
 	// Watch.
 	var reloaded int32
-	f.Watch(func(event interface{}, err error) {
+	f.Watch(func(event any, err error) {
 		atomic.StoreInt32(&reloaded, 1)
 		assert.NoError(err)
 	})
@@ -659,7 +659,7 @@ func TestUnwatchFile(t *testing.T) {
 
 	// Re-watch and check again.
 	atomic.StoreInt32(&reloaded, 0)
-	f.Watch(func(event interface{}, err error) {
+	f.Watch(func(event any, err error) {
 		atomic.StoreInt32(&reloaded, 1)
 		assert.NoError(err)
 	})
@@ -765,7 +765,7 @@ func TestFlags(t *testing.T) {
 	// Test the posflag provider can mutate the value to upper case
 	{
 		k := def.Copy()
-		assert.Nil(k.Load(posflag.ProviderWithValue(f, ".", nil, func(k string, v string) (string, interface{}) {
+		assert.Nil(k.Load(posflag.ProviderWithValue(f, ".", nil, func(k string, v string) (string, any) {
 			return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
 		}), nil), "error loading posflag")
 		assert.Equal("FLAG", k.String("parent1.child1.type"), "types don't match")
@@ -844,7 +844,7 @@ func TestFlags(t *testing.T) {
 		bf := flag.NewFlagSet("test", flag.ContinueOnError)
 		bf.String("parent1.child1.type", "flag", "")
 		bf.Set("parent1.child1.type", "basicflag")
-		assert.Nil(k.Load(basicflag.ProviderWithValue(bf, ".", func(k string, v string) (string, interface{}) {
+		assert.Nil(k.Load(basicflag.ProviderWithValue(bf, ".", func(k string, v string) (string, any) {
 			return strings.Replace(strings.ToLower(k), "prefix_", "", -1), strings.ToUpper(v)
 		}), nil), "error loading basicflag")
 		assert.Equal("BASICFLAG", k.String("parent1.child1.type"), "types don't match")
@@ -919,17 +919,17 @@ func TestWithMergeFunc(t *testing.T) {
 	)
 
 	assert.NoError(k.Load(rawbytes.Provider([]byte(`{"foo":"bar"}`)), json.Parser()))
-	assert.NoError(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]interface{}) error {
+	assert.NoError(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]any) error {
 		// No merge
 		return nil
 	})))
 
-	assert.Equal(map[string]interface{}{
+	assert.Equal(map[string]any{
 		"foo": "bar",
 	}, k.All(), "expects the result of the first load only")
 
 	err := errors.New("stub")
-	assert.ErrorIs(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]interface{}) error {
+	assert.ErrorIs(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]any) error {
 		return err
 	})), err, "expects the error thrown by WithMergeFunc")
 }
@@ -971,7 +971,7 @@ func TestRaw_YamlTypes(t *testing.T) {
 	i, ok := raw["intbools"]
 	assert.True(ok, "ints key does not exist in the map")
 
-	arr, ok := i.([]interface{})
+	arr, ok := i.([]any)
 	assert.True(ok, "arr slice is not array of integers")
 
 	for _, integer := range arr {
@@ -994,7 +994,7 @@ func TestRaw_JsonTypes(t *testing.T) {
 	i, ok := raw["intbools"]
 	assert.True(ok, "ints key does not exist in the map")
 
-	arr, ok := i.([]interface{})
+	arr, ok := i.([]any)
 	assert.True(ok, "arr slice is not array of integers")
 
 	for _, integer := range arr {
@@ -1012,10 +1012,10 @@ func TestMergeStrictError(t *testing.T) {
 		StrictMerge: true,
 	})
 
-	assert.Nil(ks.Load(confmap.Provider(map[string]interface{}{
-		"parent2": map[string]interface{}{
-			"child2": map[string]interface{}{
-				"grandchild2": map[string]interface{}{
+	assert.Nil(ks.Load(confmap.Provider(map[string]any{
+		"parent2": map[string]any{
+			"child2": map[string]any{
+				"grandchild2": map[string]any{
 					"ids": 123,
 				},
 			},
@@ -1038,7 +1038,7 @@ func TestMergeAt(t *testing.T) {
 	// Get expected koanf, and root data
 	var (
 		expected = k.Cut("parent2")
-		rootData = map[string]interface{}{
+		rootData = map[string]any{
 			"name": k.String("parent2.name"),
 			"id":   k.Int("parent2.id"),
 		}
@@ -1046,7 +1046,7 @@ func TestMergeAt(t *testing.T) {
 
 	// Get nested test data to merge at path
 	child2 := koanf.New(delim)
-	assert.Nil(child2.Load(confmap.Provider(map[string]interface{}{
+	assert.Nil(child2.Load(confmap.Provider(map[string]any{
 		"name":  k.String("parent2.child2.name"),
 		"empty": k.Get("parent2.child2.empty"),
 	}, delim), nil))
@@ -1092,8 +1092,8 @@ func TestSet(t *testing.T) {
 	assert.Equal(k.Int("parent1.child1.grandchild1"), 123)
 	assert.Equal(k.Int("parent1.child1.grandchild1.ids"), 0)
 
-	assert.Nil(k.Set("parent1.child1.grandchild1", map[string]interface{}{"name": "new"}))
-	assert.Equal(k.Get("parent1.child1.grandchild1"), map[string]interface{}{"name": "new"})
+	assert.Nil(k.Set("parent1.child1.grandchild1", map[string]any{"name": "new"}))
+	assert.Equal(k.Get("parent1.child1.grandchild1"), map[string]any{"name": "new"})
 }
 
 func TestUnmarshal(t *testing.T) {
@@ -1255,7 +1255,7 @@ func TestSlices(t *testing.T) {
 	assert := assert.New(t)
 
 	// Load a slice of confmaps [{}, {}].
-	var mp map[string]interface{}
+	var mp map[string]any
 	err := encjson.Unmarshal([]byte(`{
 		"parent": [
 			{"value": 1, "sub": {"value": "1"}},
@@ -1285,7 +1285,7 @@ func TestGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
 		assert.Equal(nil, c.koanf.Get("xxx"))
-		assert.Equal(make(map[string]interface{}), c.koanf.Get("empty"))
+		assert.Equal(make(map[string]any), c.koanf.Get("empty"))
 
 		// Int.
 		assert.Equal(int64(0), c.koanf.Int64("xxxx"))
@@ -1468,23 +1468,23 @@ func TestGetStringsMap(t *testing.T) {
 
 	k := koanf.New(delim)
 
-	k.Load(confmap.Provider(map[string]interface{}{
+	k.Load(confmap.Provider(map[string]any{
 		"str": map[string]string{
 			"k1": "value",
 		},
 		"strs": map[string][]string{
 			"k1": {"value"},
 		},
-		"iface": map[string]interface{}{
+		"iface": map[string]any{
 			"k2": "value",
 		},
-		"ifaces": map[string][]interface{}{
+		"ifaces": map[string][]any{
 			"k2": {"value"},
 		},
-		"ifaces2": map[string]interface{}{
-			"k2": []interface{}{"value"},
+		"ifaces2": map[string]any{
+			"k2": []any{"value"},
 		},
-		"ifaces3": map[string]interface{}{
+		"ifaces3": map[string]any{
 			"k2": []string{"value"},
 		},
 	}, "."), nil)
@@ -1546,12 +1546,12 @@ func TestFileWatcherRaceCondition(t *testing.T) {
 	// Setup file watcher that reloads the SAME koanf instance
 	// This tests our internal thread safety, not user pattern issues
 	var reloadCount int64
-	provider.Watch(func(event interface{}, err error) {
+	provider.Watch(func(event any, err error) {
 		if err != nil {
 			t.Logf("watch error: %v", err)
 			return
 		}
-		
+
 		// Reload into the same koanf instance - this tests our thread safety
 		err = k.Load(provider, yaml.Parser())
 		if err != nil {
@@ -1564,7 +1564,7 @@ func TestFileWatcherRaceCondition(t *testing.T) {
 	// Start reader goroutine that continuously reads the config
 	done := make(chan struct{})
 	var emptyCount, totalReads int64
-	
+
 	go func() {
 		for {
 			select {
@@ -1592,11 +1592,11 @@ func TestFileWatcherRaceCondition(t *testing.T) {
 	// Wait for file watching to settle
 	time.Sleep(100 * time.Millisecond)
 	close(done)
-	
+
 	finalReads := atomic.LoadInt64(&totalReads)
 	finalEmpties := atomic.LoadInt64(&emptyCount)
 	finalReloads := atomic.LoadInt64(&reloadCount)
-	
+
 	t.Logf("Total reads: %d, Empty reads: %d, Reloads: %d", finalReads, finalEmpties, finalReloads)
 	if finalEmpties > 0 {
 		t.Errorf("Thread safety issue: got %d empty reads out of %d total reads", finalEmpties, finalReads)
@@ -1618,9 +1618,9 @@ func TestConcurrentLoadRaceCondition(t *testing.T) {
 	numLoadsPerGoroutine := 10
 
 	var wg sync.WaitGroup
-	
+
 	// Channel to collect any panics
-	panics := make(chan interface{}, numGoroutines)
+	panics := make(chan any, numGoroutines)
 
 	for i := 0; i < numGoroutines; i++ {
 		wg.Add(1)
@@ -1634,17 +1634,17 @@ func TestConcurrentLoadRaceCondition(t *testing.T) {
 
 			for j := 0; j < numLoadsPerGoroutine; j++ {
 				// Create different configs to load
-				config := map[string]interface{}{
+				config := map[string]any{
 					fmt.Sprintf("key_%d_%d", id, j): fmt.Sprintf("value_%d_%d", id, j),
-					"common": fmt.Sprintf("common_%d_%d", id, j),
+					"common":                        fmt.Sprintf("common_%d_%d", id, j),
 				}
-				
+
 				// This should trigger concurrent map writes
 				err := k.Load(confmap.Provider(config, "."), nil)
 				if err != nil {
 					t.Errorf("Load failed: %v", err)
 				}
-				
+
 				// Small delay to increase chance of race
 				time.Sleep(time.Microsecond)
 			}
@@ -1674,11 +1674,11 @@ func TestConcurrentReadWriteMix(t *testing.T) {
 	}
 
 	k := koanf.New(".")
-	
+
 	// Initialize with some data
-	k.Load(confmap.Provider(map[string]interface{}{
+	k.Load(confmap.Provider(map[string]any{
 		"test.key": "initial",
-		"counter": 0,
+		"counter":  0,
 	}, "."), nil)
 
 	done := make(chan struct{})
@@ -1698,7 +1698,7 @@ func TestConcurrentReadWriteMix(t *testing.T) {
 				default:
 					// Mix different types of reads
 					_ = k.String("test.key")
-					_ = k.Int("counter") 
+					_ = k.Int("counter")
 					_ = k.Keys()
 					_ = k.All()
 					readCount++
@@ -1721,9 +1721,9 @@ func TestConcurrentReadWriteMix(t *testing.T) {
 					return
 				default:
 					// Mix different types of writes
-					config := map[string]interface{}{
+					config := map[string]any{
 						"test.key": fmt.Sprintf("writer-%d-count-%d", writerID, writeCount),
-						"counter": writeCount,
+						"counter":  writeCount,
 						fmt.Sprintf("dynamic.key.%d", writeCount): writerID,
 					}
 					k.Load(confmap.Provider(config, "."), nil)
@@ -1749,11 +1749,11 @@ func TestConcurrentEdgeCases(t *testing.T) {
 	}
 
 	k := koanf.New(".")
-	k.Load(confmap.Provider(map[string]interface{}{
-		"parent": map[string]interface{}{
+	k.Load(confmap.Provider(map[string]any{
+		"parent": map[string]any{
 			"child": "value",
 		},
-		"list": []interface{}{"a", "b", "c"},
+		"list": []any{"a", "b", "c"},
 	}, "."), nil)
 
 	done := make(chan struct{})
@@ -1774,7 +1774,7 @@ func TestConcurrentEdgeCases(t *testing.T) {
 		}
 	}()
 
-	// Test concurrent Copy operations  
+	// Test concurrent Copy operations
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
@@ -1836,20 +1836,20 @@ func TestNoDeadlock(t *testing.T) {
 	}
 
 	k := koanf.New(".")
-	k.Load(confmap.Provider(map[string]interface{}{
-		"parent": map[string]interface{}{
+	k.Load(confmap.Provider(map[string]any{
+		"parent": map[string]any{
 			"child": "value",
 			"count": 42,
 		},
-		"list": []interface{}{"a", "b", "c"},
+		"list": []any{"a", "b", "c"},
 	}, "."), nil)
 
 	// Test duration
 	testDuration := 500 * time.Millisecond
-	
+
 	var wg sync.WaitGroup
 	done := make(chan struct{})
-	
+
 	// Start multiple reader goroutines with different read patterns
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
@@ -1868,14 +1868,14 @@ func TestNoDeadlock(t *testing.T) {
 					_ = k.All()
 					_ = k.Raw()
 					_ = k.Exists("parent")
-					_ = k.Sprint()  // This internally uses RLock and avoids calling Keys()
+					_ = k.Sprint() // This internally uses RLock and avoids calling Keys()
 					_ = k.KeyMap()
 					_ = k.MapKeys("parent")
-					
+
 					// Test methods that call other locked methods
-					_ = k.Cut("parent")  // Calls Get()
-					_ = k.Copy()         // Calls Cut() → Get()
-					
+					_ = k.Cut("parent") // Calls Get()
+					_ = k.Copy()        // Calls Cut() → Get()
+
 					readCount++
 					if readCount%100 == 0 {
 						time.Sleep(time.Microsecond)
@@ -1885,7 +1885,7 @@ func TestNoDeadlock(t *testing.T) {
 		}(i)
 	}
 
-	// Start writer goroutines with different write patterns  
+	// Start writer goroutines with different write patterns
 	for i := 0; i < 2; i++ {
 		wg.Add(1)
 		go func(id int) {
@@ -1900,21 +1900,21 @@ func TestNoDeadlock(t *testing.T) {
 					// Mix different write operations
 					k.Set(fmt.Sprintf("writer_%d.key", id), writeCount)
 					k.Delete("nonexistent") // Should be safe
-					
+
 					// Load new data
-					newData := map[string]interface{}{
+					newData := map[string]any{
 						fmt.Sprintf("load_%d", writeCount): id,
-						"nested": map[string]interface{}{
+						"nested": map[string]any{
 							"value": writeCount,
 						},
 					}
 					k.Load(confmap.Provider(newData, "."), nil)
-					
+
 					// Merge operations
 					other := koanf.New(".")
 					other.Set("merge_key", writeCount)
 					k.Merge(other)
-					
+
 					writeCount++
 					if writeCount%50 == 0 {
 						time.Sleep(time.Microsecond)
@@ -1927,14 +1927,14 @@ func TestNoDeadlock(t *testing.T) {
 	// Run the test for specified duration
 	time.Sleep(testDuration)
 	close(done)
-	
+
 	// Use a timeout to detect deadlocks
 	waitChan := make(chan struct{})
 	go func() {
 		wg.Wait()
 		close(waitChan)
 	}()
-	
+
 	select {
 	case <-waitChan:
 		t.Log("Deadlock test completed successfully - no deadlocks detected")
@@ -1967,7 +1967,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			
+
 			for {
 				select {
 				case <-done:
@@ -1975,15 +1975,15 @@ func TestFileProviderConcurrency(t *testing.T) {
 				default:
 					// Create new file provider for each iteration
 					f := file.Provider(tmpFile)
-					
+
 					// Try to watch
 					var watchErr error
-					watchErr = f.Watch(func(event interface{}, err error) {
+					watchErr = f.Watch(func(event any, err error) {
 						// Simple callback that doesn't do much
 						_ = event
 						_ = err
 					})
-					
+
 					// Sometimes watch will fail if another goroutine is already watching
 					if watchErr == nil {
 						// If watch succeeded, unwatch after a short delay
@@ -1997,7 +1997,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 						// Unexpected error
 						t.Errorf("Unexpected watch error: %v", watchErr)
 					}
-					
+
 					// Small delay to prevent tight loop
 					time.Sleep(time.Microsecond)
 				}
@@ -2010,7 +2010,7 @@ func TestFileProviderConcurrency(t *testing.T) {
 	go func() {
 		defer wg.Done()
 		counter := 0
-		
+
 		for {
 			select {
 			case <-done:

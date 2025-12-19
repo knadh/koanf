@@ -7,54 +7,54 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var testMap = map[string]interface{}{
-	"parent": map[string]interface{}{
-		"child": map[string]interface{}{
+var testMap = map[string]any{
+	"parent": map[string]any{
+		"child": map[string]any{
 			"key":          123,
 			"key.with.dot": 456,
 		},
 	},
 	"top":   789,
-	"empty": map[string]interface{}{},
+	"empty": map[string]any{},
 }
-var testMap2 = map[string]interface{}{
-	"list": []interface{}{
-		map[string]interface{}{
-			"child": map[string]interface{}{
+var testMap2 = map[string]any{
+	"list": []any{
+		map[string]any{
+			"child": map[string]any{
 				"key": 123,
 			},
 		},
-		map[string]interface{}{
-			"child": map[string]interface{}{
+		map[string]any{
+			"child": map[string]any{
 				"key": 123,
 			},
 		},
 	},
-	"parent": map[string]interface{}{
-		"child": map[string]interface{}{
+	"parent": map[string]any{
+		"child": map[string]any{
 			"key": 123,
 		},
 	},
 	"top":   789,
-	"empty": map[string]interface{}{},
+	"empty": map[string]any{},
 }
 
-var testMap3 = map[string]interface{}{
-	"list": []interface{}{
-		map[string]interface{}{
-			"child": map[string]interface{}{
+var testMap3 = map[string]any{
+	"list": []any{
+		map[string]any{
+			"child": map[string]any{
 				"key": 123,
-				"child": map[string]interface{}{
+				"child": map[string]any{
 					"key": 123,
-					"child": map[string]interface{}{
+					"child": map[string]any{
 						"key": 123,
-						"child": map[string]interface{}{
+						"child": map[string]any{
 							"key": 123,
-							"child": map[string]interface{}{
+							"child": map[string]any{
 								"key": 123,
-								"child": map[string]interface{}{
+								"child": map[string]any{
 									"key": 123,
-									"child": map[string]interface{}{
+									"child": map[string]any{
 										"key": 123,
 									},
 								},
@@ -64,25 +64,25 @@ var testMap3 = map[string]interface{}{
 				},
 			},
 		},
-		map[string]interface{}{
-			"child": map[string]interface{}{
+		map[string]any{
+			"child": map[string]any{
 				"key": 123,
-				"child": map[string]interface{}{
+				"child": map[string]any{
 					"key": 123,
 				},
 			},
 		},
 	},
-	"parent": map[string]interface{}{
-		"child": map[string]interface{}{
+	"parent": map[string]any{
+		"child": map[string]any{
 			"key": 123,
-			"child": map[string]interface{}{
+			"child": map[string]any{
 				"key": 123,
-				"child": map[string]interface{}{
+				"child": map[string]any{
 					"key": 123,
-					"child": map[string]interface{}{
+					"child": map[string]any{
 						"key": 123,
-						"child": map[string]interface{}{
+						"child": map[string]any{
 							"key": 123,
 						},
 					},
@@ -91,22 +91,22 @@ var testMap3 = map[string]interface{}{
 		},
 	},
 	"top": 789,
-	"child": map[string]interface{}{
+	"child": map[string]any{
 		"key": 123,
-		"child": map[string]interface{}{
+		"child": map[string]any{
 			"key": 123,
 		},
 	},
-	"empty": map[string]interface{}{},
+	"empty": map[string]any{},
 }
 
 func TestFlatten(t *testing.T) {
 	f, k := maps.Flatten(testMap, nil, delim)
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"parent.child.key":          123,
 		"parent.child.key.with.dot": 456,
 		"top":                       789,
-		"empty":                     map[string]interface{}{},
+		"empty":                     map[string]any{},
 	}, f)
 	assert.Equal(t, map[string][]string{
 		"parent.child.key":          {"parent", "child", "key"},
@@ -133,53 +133,53 @@ func TestUnflatten(t *testing.T) {
 }
 
 func TestIntfaceKeysToStrings(t *testing.T) {
-	m := map[string]interface{}{
-		"list": []interface{}{
-			map[interface{}]interface{}{
-				"child": map[interface{}]interface{}{
+	m := map[string]any{
+		"list": []any{
+			map[any]any{
+				"child": map[any]any{
 					"key": 123,
 				},
 			},
-			map[interface{}]interface{}{
-				"child": map[interface{}]interface{}{
+			map[any]any{
+				"child": map[any]any{
 					"key": 123,
 				},
 			},
 		},
-		"parent": map[interface{}]interface{}{
-			"child": map[interface{}]interface{}{
+		"parent": map[any]any{
+			"child": map[any]any{
 				"key": 123,
 			},
 		},
 		"top":   789,
-		"empty": map[interface{}]interface{}{},
+		"empty": map[any]any{},
 	}
 	maps.IntfaceKeysToStrings(m)
 	assert.Equal(t, testMap2, m)
 }
 
 func TestMapMerge(t *testing.T) {
-	m1 := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	m1 := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": 123,
 			},
-			"child2": map[string]interface{}{
+			"child2": map[string]any{
 				"key": 123,
 			},
 		},
 		"top":   789,
-		"empty": map[string]interface{}{},
+		"empty": map[string]any{},
 		"key":   1,
 	}
-	m2 := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	m2 := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": 456,
 				"val": 789,
 			},
 		},
-		"child": map[string]interface{}{
+		"child": map[string]any{
 			"key": 456,
 		},
 		"newtop": 999,
@@ -188,17 +188,17 @@ func TestMapMerge(t *testing.T) {
 	}
 	maps.Merge(m2, m1)
 
-	out := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	out := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": 456,
 				"val": 789,
 			},
-			"child2": map[string]interface{}{
+			"child2": map[string]any{
 				"key": 123,
 			},
 		},
-		"child": map[string]interface{}{
+		"child": map[string]any{
 			"key": 456,
 		},
 		"top":    789,
@@ -210,20 +210,20 @@ func TestMapMerge(t *testing.T) {
 }
 
 func TestMapMerge2(t *testing.T) {
-	src := map[string]interface{}{
-		"globals": map[string]interface{}{
-			"features": map[string]interface{}{
-				"testing": map[string]interface{}{
+	src := map[string]any{
+		"globals": map[string]any{
+			"features": map[string]any{
+				"testing": map[string]any{
 					"enabled": false,
 				},
 			},
 		},
 	}
 
-	dest := map[string]interface{}{
-		"globals": map[string]interface{}{
-			"features": map[string]interface{}{
-				"testing": map[string]interface{}{
+	dest := map[string]any{
+		"globals": map[string]any{
+			"features": map[string]any{
+				"testing": map[string]any{
 					"enabled":    true,
 					"anotherKey": "value",
 				},
@@ -235,12 +235,12 @@ func TestMapMerge2(t *testing.T) {
 }
 
 func TestMergeStrict(t *testing.T) {
-	m1 := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	m1 := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": "123",
 			},
-			"child2": map[string]interface{}{
+			"child2": map[string]any{
 				"key": 123,
 			},
 		},
@@ -248,14 +248,14 @@ func TestMergeStrict(t *testing.T) {
 		"empty": []int{},
 		"key":   1,
 	}
-	m2 := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	m2 := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": 456,
 				"val": 789,
 			},
 		},
-		"child": map[string]interface{}{
+		"child": map[string]any{
 			"key": 456,
 		},
 		"newtop": 999,
@@ -267,49 +267,49 @@ func TestMergeStrict(t *testing.T) {
 }
 
 func TestMapDelete(t *testing.T) {
-	testMap := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	testMap := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key":          123,
 				"key.with.dot": 456,
 			},
 		},
 		"top":   789,
-		"empty": map[string]interface{}{},
+		"empty": map[string]any{},
 	}
-	testMap2 := map[string]interface{}{
-		"list": []interface{}{
-			map[string]interface{}{
-				"child": map[string]interface{}{
+	testMap2 := map[string]any{
+		"list": []any{
+			map[string]any{
+				"child": map[string]any{
 					"key": 123,
 				},
 			},
-			map[string]interface{}{
-				"child": map[string]interface{}{
+			map[string]any{
+				"child": map[string]any{
 					"key": 123,
 				},
 			},
 		},
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": 123,
 			},
 		},
 		"top":   789,
-		"empty": map[string]interface{}{},
+		"empty": map[string]any{},
 	}
 
 	maps.Delete(testMap, []string{"parent", "child"})
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"top":   789,
-		"empty": map[string]interface{}{},
+		"empty": map[string]any{},
 	}, testMap)
 
 	maps.Delete(testMap2, []string{"list"})
 	maps.Delete(testMap2, []string{"empty"})
-	assert.Equal(t, map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	assert.Equal(t, map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key": 123,
 			},
 		},
@@ -319,26 +319,26 @@ func TestMapDelete(t *testing.T) {
 
 func TestSearch(t *testing.T) {
 	assert.Equal(t, 123, maps.Search(testMap, []string{"parent", "child", "key"}))
-	assert.Equal(t, map[string]interface{}{
+	assert.Equal(t, map[string]any{
 		"key":          123,
 		"key.with.dot": 456,
 	}, maps.Search(testMap, []string{"parent", "child"}))
 	assert.Equal(t, 456, maps.Search(testMap, []string{"parent", "child", "key.with.dot"}))
 	assert.Equal(t, 789, maps.Search(testMap, []string{"top"}))
-	assert.Equal(t, map[string]interface{}{}, maps.Search(testMap, []string{"empty"}))
+	assert.Equal(t, map[string]any{}, maps.Search(testMap, []string{"empty"}))
 	assert.Nil(t, maps.Search(testMap, []string{"xxx", "xxx"}))
 }
 
 func TestCopy(t *testing.T) {
-	mp := map[string]interface{}{
-		"parent": map[string]interface{}{
-			"child": map[string]interface{}{
+	mp := map[string]any{
+		"parent": map[string]any{
+			"child": map[string]any{
 				"key":          float64(123),
 				"key.with.dot": float64(456),
 			},
 		},
 		"top":   float64(789),
-		"empty": map[string]interface{}{},
+		"empty": map[string]any{},
 	}
 	assert.Equal(t, mp, maps.Copy(mp))
 }

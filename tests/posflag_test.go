@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func posflagCallback(key string, value string) (string, interface{}) {
+func posflagCallback(key string, value string) (string, any) {
 	return strings.ReplaceAll(key, "-", "_"), value
 }
 
@@ -39,7 +39,7 @@ func TestLoad(t *testing.T) {
 
 	// Test load with a custom flag callback.
 	k = koanf.New(".")
-	p := posflag.ProviderWithFlag(fs, ".", k, func(f *pflag.Flag) (string, interface{}) {
+	p := posflag.ProviderWithFlag(fs, ".", k, func(f *pflag.Flag) (string, any) {
 		return f.Name, posflag.FlagVal(fs, f)
 	})
 	require.Nil(t, k.Load(p, nil), nil)
@@ -47,7 +47,7 @@ func TestLoad(t *testing.T) {
 
 	// Test load with a custom key, val callback.
 	k = koanf.New(".")
-	p = posflag.ProviderWithValue(fs, ".", k, func(key, val string) (string, interface{}) {
+	p = posflag.ProviderWithValue(fs, ".", k, func(key, val string) (string, any) {
 		if key == "key.float" {
 			return "", val
 		}
@@ -62,7 +62,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestIssue90(t *testing.T) {
-	exampleKeys := map[string]interface{}{
+	exampleKeys := map[string]any{
 		"key.one_example": "a struct value",
 		"key.two_example": "b struct value",
 	}

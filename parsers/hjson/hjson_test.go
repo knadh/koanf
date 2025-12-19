@@ -10,7 +10,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 		name   string
 		input  []byte
 		keys   []string
-		values []interface{}
+		values []any
 		isErr  bool
 	}{
 		{
@@ -25,7 +25,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					number: 2
 				}`),
 			keys:   []string{"key", "name", "number"},
-			values: []interface{}{"val", "test", 2.0},
+			values: []any{"val", "test", 2.0},
 		},
 		{
 			name: "Commented HJSON",
@@ -44,7 +44,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					number: 3
 				}`),
 			keys:   []string{"key", "name", "number"},
-			values: []interface{}{"v1", "Comments", 3.0},
+			values: []any{"v1", "Comments", 3.0},
 		},
 		{
 			name: "Quoted strings HJSON",
@@ -57,7 +57,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					RegEx: \s+
 				}`),
 			keys:   []string{"JSON", "HJSON", "RegEx"},
-			values: []interface{}{"a string", "a string", `\s+`},
+			values: []any{"a string", "a string", `\s+`},
 		},
 		{
 			name: "Multiline strings HJSON",
@@ -70,7 +70,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					'''
 				}`),
 			keys:   []string{"md"},
-			values: []interface{}{"First line.\nSecond line.\n  This line is indented by two spaces."},
+			values: []any{"First line.\nSecond line.\n  This line is indented by two spaces."},
 		},
 		{
 			name: "Punctuators HJSON",
@@ -80,7 +80,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 				this: is OK though: {}[],:
 				}`),
 			keys:   []string{"key name", "()", "this"},
-			values: []interface{}{"{ sample }", " sample at the start/end ", "is OK though: {}[],:"},
+			values: []any{"{ sample }", " sample at the start/end ", "is OK though: {}[],:"},
 		},
 		{
 			name: "Invalid HJSON - missing curly brace",
@@ -96,7 +96,7 @@ func TestHJSON_Unmarshal(t *testing.T) {
 					key3: b,
 				}`),
 			keys:   []string{"key", "key_n", "key3"},
-			values: []interface{}{"a,", 3.0, "b,"},
+			values: []any{"a,", 3.0, "b,"},
 		},
 		{
 			name: "One quote in key - HJSON",
@@ -184,12 +184,12 @@ func TestHJSON_Unmarshal(t *testing.T) {
 						string: "Hello World"
 					}`),
 			keys: []string{"array", "boolean", "color", "null", "number", "object", "string"},
-			values: []interface{}{[]interface{}{1.0, 2.0, 3.0},
+			values: []any{[]any{1.0, 2.0, 3.0},
 				true,
 				"gold",
 				nil,
 				123.0,
-				map[string]interface{}{"a": "b", "c": "d"},
+				map[string]any{"a": "b", "c": "d"},
 				"Hello World"},
 		},
 	}
@@ -214,22 +214,22 @@ func TestHJSON_Unmarshal(t *testing.T) {
 func TestHJSON_Marshal(t *testing.T) {
 	testCases := []struct {
 		name   string
-		input  map[string]interface{}
-		output map[string]interface{}
+		input  map[string]any
+		output map[string]any
 	}{
 		{
 			name:   "Empty HJSON",
-			input:  map[string]interface{}{},
-			output: map[string]interface{}{},
+			input:  map[string]any{},
+			output: map[string]any{},
 		},
 		{
 			name: "Valid HJSON",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"key":    "val",
 				"name":   "test",
 				"number": 2.0,
 			},
-			output: map[string]interface{}{
+			output: map[string]any{
 				"key":    "val",
 				"name":   "test",
 				"number": 2.0,
@@ -237,7 +237,7 @@ func TestHJSON_Marshal(t *testing.T) {
 		},
 		{
 			name: "Multiline value HJSON",
-			input: map[string]interface{}{
+			input: map[string]any{
 				"md": `
 					'''
 					First line.
@@ -245,7 +245,7 @@ func TestHJSON_Marshal(t *testing.T) {
 					  This line is indented by two spaces.
 					'''`,
 			},
-			output: map[string]interface{}{
+			output: map[string]any{
 				"md": `
 					'''
 					First line.
@@ -256,22 +256,22 @@ func TestHJSON_Marshal(t *testing.T) {
 		},
 		{
 			name: "Complex HJSON - All types",
-			input: map[string]interface{}{
-				"array":   []interface{}{1, 2, 3, 4, 5},
+			input: map[string]any{
+				"array":   []any{1, 2, 3, 4, 5},
 				"boolean": true,
 				"color":   "red",
 				"null":    nil,
 				"number":  123,
-				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"object":  map[string]any{"a": "b", "c": "d"},
 				"string":  "Hello HJSON",
 			},
-			output: map[string]interface{}{
-				"array":   []interface{}{1.0, 2.0, 3.0, 4.0, 5.0},
+			output: map[string]any{
+				"array":   []any{1.0, 2.0, 3.0, 4.0, 5.0},
 				"boolean": true,
 				"color":   "red",
 				"null":    nil,
 				"number":  123.0,
-				"object":  map[string]interface{}{"a": "b", "c": "d"},
+				"object":  map[string]any{"a": "b", "c": "d"},
 				"string":  "Hello HJSON",
 			},
 		},

@@ -14,7 +14,7 @@ type DotEnv struct {
 	delim  string
 	prefix string
 
-	cb        func(key string, value string) (string, interface{})
+	cb        func(key string, value string) (string, any)
 	reverseCB map[string]string
 }
 
@@ -41,7 +41,7 @@ func ParserEnv(prefix, delim string, cb func(s string) string) *DotEnv {
 }
 
 // ParserEnvWithValue allows to make the DOTENV Parser behave like the env.ProviderWithValue.
-func ParserEnvWithValue(prefix, delim string, cb func(key string, value string) (string, interface{})) *DotEnv {
+func ParserEnvWithValue(prefix, delim string, cb func(key string, value string) (string, any)) *DotEnv {
 	return &DotEnv{
 		delim:     delim,
 		prefix:    prefix,
@@ -51,15 +51,15 @@ func ParserEnvWithValue(prefix, delim string, cb func(key string, value string) 
 }
 
 // Unmarshal parses the given DOTENV bytes.
-func (p *DotEnv) Unmarshal(b []byte) (map[string]interface{}, error) {
+func (p *DotEnv) Unmarshal(b []byte) (map[string]any, error) {
 	// Unmarshal DOTENV from []byte
 	r, err := godotenv.Unmarshal(string(b))
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert a map[string]string to a map[string]interface{}
-	mp := make(map[string]interface{})
+	// Convert a map[string]string to a map[string]any
+	mp := make(map[string]any)
 	for sourceKey, v := range r {
 		if !strings.HasPrefix(sourceKey, p.prefix) {
 			continue
@@ -82,12 +82,12 @@ func (p *DotEnv) Unmarshal(b []byte) (map[string]interface{}, error) {
 }
 
 // Marshal marshals the given config map to DOTENV bytes.
-func (p *DotEnv) Marshal(o map[string]interface{}) ([]byte, error) {
+func (p *DotEnv) Marshal(o map[string]any) ([]byte, error) {
 	if p.delim != "" {
 		o, _ = maps.Flatten(o, nil, p.delim)
 	}
 
-	// Convert a map[string]interface{} to a map[string]string
+	// Convert a map[string]any to a map[string]string
 	mp := make(map[string]string)
 	for targetKey, v := range o {
 		if sourceKey, found := p.reverseCB[targetKey]; found {

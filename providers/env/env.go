@@ -39,7 +39,7 @@ type Opt struct {
 }
 
 // Provider returns an environment variables provider that returns
-// a nested map[string]interface{} of environment variable where the
+// a nested map[string]any of environment variable where the
 // nesting hierarchy of keys is defined by delim. For instance, the
 // delim "." will convert the key `parent.child.key: 1`
 // to `{parent: {child: {key: 1}}}`.

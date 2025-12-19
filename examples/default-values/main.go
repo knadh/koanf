@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/knadh/koanf/v2"
 	"github.com/knadh/koanf/parsers/json"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
 )
 
 // Global koanf instance. Use "." as the key path delimiter. This can be "/" or any character.
@@ -18,7 +18,7 @@ func main() {
 	// Load default values using the confmap provider.
 	// We provide a flat map with the "." delimiter.
 	// A nested map can be loaded by setting the delimiter to an empty string "".
-	k.Load(confmap.Provider(map[string]interface{}{
+	k.Load(confmap.Provider(map[string]any{
 		"parent1.name": "Default Name",
 		"parent3.name": "New name here",
 	}, "."), nil)
