@@ -5,7 +5,7 @@ go 1.24.4
 toolchain go1.24.5
 
 require (
-	github.com/huml-lang/go-huml v0.1.0
+	github.com/huml-lang/go-huml v0.2.0
 	github.com/stretchr/testify v1.10.0
 )
 
