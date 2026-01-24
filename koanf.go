@@ -351,6 +351,13 @@ func (ko *Koanf) Get(path string) any {
 		return v
 	case map[string]any:
 		return maps.Copy(v)
+	case nil:
+		return nil
+	}
+
+	// Skil nil pointers before copying.
+	if rv := reflect.ValueOf(res); rv.Kind() == reflect.Ptr && rv.IsNil() {
+		return nil
 	}
 
 	out, _ := copystructure.Copy(&res)

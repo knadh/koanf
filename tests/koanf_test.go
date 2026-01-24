@@ -2046,3 +2046,26 @@ func TestFileProviderConcurrency(t *testing.T) {
 		t.Fatal("FILE PROVIDER DEADLOCK: Goroutines did not complete within timeout")
 	}
 }
+
+// TestGetNilPointer tests Get()'ing nil pointers.
+func TestGetNilPointer(t *testing.T) {
+	assert := assert.New(t)
+	k := koanf.New(".")
+
+	type test struct {
+		Name string
+	}
+	var nt *test
+	assert.Nil(k.Set("key", nt))
+	assert.True(k.Exists("key"))
+	assert.Nil(k.Get("key"))
+
+	// Test nil value.
+	assert.Nil(k.Set("val", nil))
+	assert.Nil(k.Get("val"))
+
+	// Test slice.
+	var s *[]string
+	assert.Nil(k.Set("slice", s))
+	assert.Nil(k.Get("slice"))
+}
