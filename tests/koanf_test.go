@@ -2058,7 +2058,10 @@ func TestGetNilPointer(t *testing.T) {
 	var nt *test
 	assert.Nil(k.Set("key", nt))
 	assert.True(k.Exists("key"))
-	assert.Nil(k.Get("key"))
+	got := k.Get("key")
+	assert.Nil(got)
+	_, ok := got.(*test)
+	assert.True(ok, "expected type *test, got %T", got)
 
 	// Test nil value.
 	assert.Nil(k.Set("val", nil))
@@ -2067,5 +2070,8 @@ func TestGetNilPointer(t *testing.T) {
 	// Test slice.
 	var s *[]string
 	assert.Nil(k.Set("slice", s))
-	assert.Nil(k.Get("slice"))
+	gotSlice := k.Get("slice")
+	assert.Nil(gotSlice)
+	_, ok = gotSlice.(*[]string)
+	assert.True(ok, "expected type *[]string, got %T", gotSlice)
 }

@@ -357,7 +357,7 @@ func (ko *Koanf) Get(path string) any {
 
 	// Skil nil pointers before copying.
 	if rv := reflect.ValueOf(res); rv.Kind() == reflect.Ptr && rv.IsNil() {
-		return nil
+		return res
 	}
 
 	out, _ := copystructure.Copy(&res)
