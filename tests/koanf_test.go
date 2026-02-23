@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"maps"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -935,6 +936,32 @@ func TestWithMergeFunc(t *testing.T) {
 	assert.ErrorIs(k.Load(rawbytes.Provider([]byte(`{"baz":"bar"}`)), json.Parser(), koanf.WithMergeFunc(func(a, b map[string]any) error {
 		return err
 	})), err, "expects the error thrown by WithMergeFunc")
+}
+
+func TestWithMergeFuncGetNoDeadlock(t *testing.T) {
+	k := koanf.New(delim)
+
+	require.NoError(t, k.Load(rawbytes.Provider([]byte(`{"key":"old"}`)), json.Parser()))
+
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		err := k.Load(rawbytes.Provider([]byte(`{"key":"new"}`)), json.Parser(), koanf.WithMergeFunc(func(src, dest map[string]any) error {
+			// Calling a typed getter inside the merge func must not deadlock.
+			_ = k.String("key")
+			maps.Copy(dest, src)
+			return nil
+		}))
+		require.NoError(t, err)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("deadlock: merge func calling GetString blocked for 5s")
+	}
+
+	assert.New(t).Equal("new", k.String("key"))
 }
 
 func TestMerge(t *testing.T) {
