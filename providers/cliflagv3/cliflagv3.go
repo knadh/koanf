@@ -18,8 +18,21 @@ type CliFlag struct {
 	config *Config
 }
 
+// KoanfIntf is an interface that represents a small subset of methods
+// used by this package from Koanf{}.
+// When using this in ProviderWithConfig, a live instance of Koanf{} should be passed.
+type KoanfIntf interface {
+	Exists(string) bool
+}
+
 type Config struct {
 	Defaults []string
+
+	// KeyMap is an optional live Koanf instance used to check whether keys already
+	// exist from a previously loaded provider (e.g. a config file). When set,
+	// unset flag defaults are merged only if the key does not already exist in the given instance,
+	// preventing flag defaults from being overwritten by sources with lower precedence.
+	KeyMap KoanfIntf
 }
 
 // Provider returns a commandline flags provider that returns
@@ -79,17 +92,26 @@ func (p *CliFlag) Read() (map[string]any, error) {
 func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]any) {
 	for _, flag := range flags {
 		name := flag.Names()[0]
-		if p.cmd.IsSet(name) || slices.Contains(p.config.Defaults, name) || p.cmd.Value(name) != nil {
-			value := p.getFlagValue(name)
-			if value != nil {
-				// Build the full path for the flag
-				fullPath := name
-				if prefix != "global" {
-					fullPath = prefix + p.delim + name
-				}
 
-				p.setNestedValue(fullPath, value, out)
+		// Build the full path for the flag.
+		fullPath := name
+		if prefix != "global" {
+			fullPath = prefix + p.delim + name
+		}
+
+		if !p.cmd.IsSet(name) && !slices.Contains(p.config.Defaults, name) {
+			// Flag was not explicitly set and is not in Defaults.
+			// If a KeyMap is provided and the key already exists, skip it
+			// so we lower-priority sources' values aren't used.
+			// If no KeyMap is provided, skip it altogether.
+			if p.config.KeyMap == nil || p.config.KeyMap.Exists(fullPath) {
+				continue
 			}
+		}
+
+		value := p.getFlagValue(name)
+		if value != nil {
+			p.setNestedValue(fullPath, value, out)
 		}
 	}
 }
