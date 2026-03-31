@@ -3,7 +3,7 @@ module github.com/knadh/koanf/parsers/toml/v2
 go 1.23.0
 
 require (
-	github.com/pelletier/go-toml/v2 v2.2.4
+	github.com/pelletier/go-toml/v2 v2.3.0
 	github.com/stretchr/testify v1.9.0
 )
 
