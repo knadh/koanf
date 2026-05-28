@@ -1526,6 +1526,17 @@ func TestGetStringsMap(t *testing.T) {
 	assert.Equal(map[string][]string{"k2": {"value"}}, k.StringsMap("ifaces3"), "types don't match")
 }
 
+func TestBoolsNativeSlice(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.NoError(k.Load(confmap.Provider(map[string]any{
+		"bools": []bool{true, false, true},
+	}, "."), nil))
+
+	assert.Equal([]bool{true, false, true}, k.Bools("bools"))
+}
+
 // waitTimeout waits for the waitgroup for the specified max timeout.
 // Returns true if waiting timed out.
 func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
