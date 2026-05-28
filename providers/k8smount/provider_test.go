@@ -156,6 +156,29 @@ func Test_K8SMount_Read_WithVolumeMount(t *testing.T) {
 	}
 }
 
+func Test_K8SMount_Read_WithMockVolumeMount(t *testing.T) {
+	// arrange
+	provider := k8smount.Provider("mock/mount", "." /*delim*/, k8smount.Opt{
+		TransformFunc: func(k, v string) (string, any) {
+			return strings.ToLower(strings.ReplaceAll(k, "_", testDelim)), strings.TrimSpace(v)
+		},
+	})
+
+	// act
+	got, err := provider.Read()
+
+	// assert
+	want := map[string]any{
+		"database": map[string]any{
+			"host": "localhost",
+			"port": "5432",
+		},
+	}
+
+	assert.Equal(t, want, got)
+	assert.NoError(t, err)
+}
+
 func Test_K8SMount_Read_MissingLink(t *testing.T) {
 	// arrange
 	now := time.Now()

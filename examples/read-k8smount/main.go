@@ -15,7 +15,7 @@ import (
 var k = koanf.New(".")
 
 func main() {
-	p := k8smount.Provider("mock/mount", ".", k8smount.Opt{
+	p := k8smount.Provider("../../providers/k8smount/mock/mount", ".", k8smount.Opt{
 		TransformFunc: func(k, v string) (string, any) {
 			return strings.ToLower(strings.ReplaceAll(k, "_", ".")), strings.TrimSpace(v)
 		},
@@ -44,6 +44,6 @@ func main() {
 		log.Fatalf("error watching config: %v", err)
 	}
 
-	log.Println("waiting forever. Try making a change under mock/mount/ to live reload")
+	log.Println("waiting forever. Try making a change under ../../providers/k8smount/mock/mount/ to live reload")
 	<-ctx.Done()
 }
