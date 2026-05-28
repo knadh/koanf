@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
@@ -440,46 +439,42 @@ func TestWatchFile(t *testing.T) {
 	)
 
 	// Create a tmp config file.
-	tmpDir, _ := os.MkdirTemp("", "koanf_*") // TODO: replace with t.TempDir() as of go v1.15
+	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "koanf_mock")
 	err := os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600)
 	require.NoError(t, err, "error creating temp config file: %v", err)
 
 	// Load the new config and watch it for changes.
 	f := file.Provider(tmpFile)
-	k.Load(f, json.Parser())
+	require.NoError(t, k.Load(f, json.Parser()))
 
 	// Watch for changes.
-	changedC := make(chan string, 1)
-	var wg sync.WaitGroup
-	wg.Add(1) // our assurance that cb is called max once
-	f.Watch(func(event any, err error) {
-		// The File watcher always returns a nil `event`, which can
-		// be ignored.
-		if err != nil {
-			// TODO: replace make with of Error Wrapping-Scheme and assert.ErrorIs() checks as of go v1.13
-			assert.Condition(func() bool {
-				return strings.Contains(err.Error(), "was removed")
-			}, "received unexpected error. err: %s", err)
-			return
+	changedC := make(chan error, 1)
+	require.NoError(t, f.Watch(func(event any, err error) {
+		if err == nil {
+			// Reload the config.
+			err = k.Load(f, json.Parser())
 		}
-		require.NotNil(t, event, "event is nil")
-		assert.True(event.(fsnotify.Event).Has(fsnotify.Write))
-		// Reload the config.
-		k.Load(f, json.Parser())
-		changedC <- k.String("parent.name")
-		wg.Done()
-	})
 
-	// Wait a second and change the file.
-	time.Sleep(1 * time.Second)
-	os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name2"}}`), 0600)
-	if waitTimeout(&wg, time.Second*10) {
+		select {
+		case changedC <- err:
+		default:
+		}
+	}))
+	defer f.Unwatch()
+
+	// Replace the file atomically so fsnotify cannot report a write while the
+	// watched file is truncated but not fully rewritten yet.
+	tmpWriteFile := filepath.Join(tmpDir, "koanf_mock.next")
+	require.NoError(t, os.WriteFile(tmpWriteFile, []byte(`{"parent": {"name": "name2"}}`), 0600))
+	require.NoError(t, os.Rename(tmpWriteFile, tmpFile))
+
+	select {
+	case err := <-changedC:
+		require.NoError(t, err)
+		assert.Equal("name2", k.String("parent.name"), "file watch reload didn't change config")
+	case <-time.After(10 * time.Second):
 		assert.Fail("timeout waiting for file watch trigger")
-	} else {
-		assert.Condition(func() bool {
-			return strings.Compare(<-changedC, "name2") == 0
-		}, "file watch reload didn't change config")
 	}
 }
 
