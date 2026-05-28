@@ -4,7 +4,6 @@ toolchain go1.24.5
 
 use (
 	.
-	./examples
 	./maps
 	./parsers/dotenv
 	./parsers/hcl
