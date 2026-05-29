@@ -169,7 +169,7 @@ func mergeStrict(a, b map[string]any, fullKey string) error {
 			if reflect.TypeOf(b[key]) == reflect.TypeOf(val) {
 				b[key] = val
 			} else {
-				return fmt.Errorf("incorrect types at key %v, type %T != %T", fullKey, b[key], val)
+				return fmt.Errorf("incorrect types at key %v, type %T != %T", newFullKey, b[key], val)
 			}
 			continue
 		}
