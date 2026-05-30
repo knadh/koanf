@@ -266,6 +266,28 @@ func TestMergeStrict(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestMergeStrictErrorKey(t *testing.T) {
+	// The type-mismatch error must name the full path to the conflicting key,
+	// including the leaf. Previously it reported the parent path, which left
+	// the key blank for a top-level conflict and dropped the leaf for nested
+	// ones.
+	err := maps.MergeStrict(
+		map[string]any{"key": "string"},
+		map[string]any{"key": 1},
+	)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "incorrect types at key key,")
+	}
+
+	err = maps.MergeStrict(
+		map[string]any{"parent": map[string]any{"child": map[string]any{"key": "string"}}},
+		map[string]any{"parent": map[string]any{"child": map[string]any{"key": 1}}},
+	)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "incorrect types at key parent.child.key,")
+	}
+}
+
 func TestMapDelete(t *testing.T) {
 	testMap := map[string]any{
 		"parent": map[string]any{
