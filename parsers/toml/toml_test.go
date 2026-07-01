@@ -16,7 +16,7 @@ func TestTOML_Unmarshal(t *testing.T) {
 		{
 			name:   "Empty TOML",
 			input:  []byte(``),
-			output: map[string]any{},
+			output: map[string]any(nil),
 		},
 		{
 			name: "Valid TOML",
@@ -86,7 +86,7 @@ func TestTOML_Marshal(t *testing.T) {
 		{
 			name:   "Empty TOML",
 			input:  map[string]any{},
-			output: []byte{},
+			output: []byte(nil),
 		},
 		{
 			name: "Valid TOML",
