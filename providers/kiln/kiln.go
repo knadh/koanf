@@ -27,7 +27,7 @@ type Opt struct {
 	// TransformFunc is an optional callback that takes an environment
 	// variable's string name and value, runs arbitrary transformations
 	// on them and returns a transformed string key and value of any type.
-	// Common usecase are stripping prefixes from keys, lowercasing variable names,
+	// Common use cases are stripping prefixes from keys, lowercasing variable names,
 	// replacing _ with . etc. Eg: APP_DB_HOST -> db.host
 	// If the returned variable name is an empty string (""), it is ignored altogether.
 	TransformFunc func(k, v string) (string, any)

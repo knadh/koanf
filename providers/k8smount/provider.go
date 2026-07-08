@@ -45,7 +45,7 @@ var _ koanf.Provider = (*K8SMount)(nil)
 type Opt struct {
 	// TransformFunc is an optional callback that takes a volume mount field's name and value, runs
 	// arbitrary transformations on them and returns a transformed string key and value of any type.
-	// Common usecase are lowercasing keys, replacing _ with . etc. For example, DB_HOST -> db.host.
+	// Common use cases are lowercasing keys, replacing _ with . etc. For example, DB_HOST -> db.host.
 	// If the returned key is an empty string (""), it is ignored altogether.
 	TransformFunc func(k, v string) (string, any)
 }
