@@ -288,6 +288,30 @@ func TestMergeStrictErrorKey(t *testing.T) {
 	}
 }
 
+func TestMergeStrictScalarVsMap(t *testing.T) {
+	// A type mismatch must be reported regardless of which side is the map.
+	// Previously, a scalar in the target overwritten by an incoming map was
+	// silently accepted, while the reverse (map overwritten by a scalar) errored.
+
+	// Incoming map over an existing scalar must error.
+	err := maps.MergeStrict(
+		map[string]any{"key": map[string]any{"child": 2}},
+		map[string]any{"key": 1},
+	)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "incorrect types at key key,")
+	}
+
+	// Incoming scalar over an existing map must error (existing behaviour).
+	err = maps.MergeStrict(
+		map[string]any{"key": 1},
+		map[string]any{"key": map[string]any{"child": 2}},
+	)
+	if assert.Error(t, err) {
+		assert.Contains(t, err.Error(), "incorrect types at key key,")
+	}
+}
+
 func TestMapDelete(t *testing.T) {
 	testMap := map[string]any{
 		"parent": map[string]any{

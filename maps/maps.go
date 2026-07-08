@@ -181,7 +181,9 @@ func mergeStrict(a, b map[string]any, fullKey string) error {
 				return err
 			}
 		default:
-			b[key] = val
+			// The incoming value is a map but the target value is not,
+			// which is a type mismatch.
+			return fmt.Errorf("incorrect types at key %v, type %T != %T", newFullKey, b[key], val)
 		}
 	}
 	return nil
