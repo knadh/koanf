@@ -21,11 +21,19 @@ func (p *TOML) Unmarshal(b []byte) (map[string]any, error) {
 		return nil, err
 	}
 
+	if len(outMap) == 0 {
+		return nil, nil
+	}
+
 	return outMap, nil
 }
 
 // Marshal marshals the given config map to TOML bytes.
 func (p *TOML) Marshal(o map[string]any) ([]byte, error) {
+	if len(o) == 0 {
+		return nil, nil
+	}
+
 	out, err := toml.Marshal(&o)
 	if err != nil {
 		return nil, err
