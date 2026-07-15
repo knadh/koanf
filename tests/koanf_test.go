@@ -2108,3 +2108,16 @@ func TestGetNilPointer(t *testing.T) {
 	_, ok = gotSlice.(*[]string)
 	assert.True(ok, "expected type *[]string, got %T", gotSlice)
 }
+
+func TestInt64UnsignedPrecision(t *testing.T) {
+	// Unsigned integers above 2^53 must not lose precision through a float64
+	// round-trip in toInt64.
+	k := koanf.New(delim)
+	err := k.Load(confmap.Provider(map[string]interface{}{
+		"u":   uint(9007199254740993),
+		"u64": uint64(9007199254740993),
+	}, delim), nil)
+	assert.Nil(t, err)
+	assert.Equal(t, int64(9007199254740993), k.Int64("u"))
+	assert.Equal(t, int64(9007199254740993), k.Int64("u64"))
+}

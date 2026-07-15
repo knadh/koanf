@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding"
 	"fmt"
+	"math"
 	"reflect"
 	"sort"
 	"strconv"
@@ -483,6 +484,16 @@ func toInt64(v any) (int64, error) {
 		return int64(i), nil
 	case int64:
 		return i, nil
+	case uint:
+		return uintToInt64(uint64(i))
+	case uint8:
+		return int64(i), nil
+	case uint16:
+		return int64(i), nil
+	case uint32:
+		return int64(i), nil
+	case uint64:
+		return uintToInt64(i)
 	}
 
 	// Force it to a string and try to convert.
@@ -492,6 +503,16 @@ func toInt64(v any) (int64, error) {
 	}
 
 	return int64(f), nil
+}
+
+// uintToInt64 converts an unsigned integer to int64, returning an error if the
+// value overflows int64 rather than silently losing precision via a float64
+// round-trip.
+func uintToInt64(v uint64) (int64, error) {
+	if v > math.MaxInt64 {
+		return 0, fmt.Errorf("value %d overflows int64", v)
+	}
+	return int64(v), nil
 }
 
 // toInt64 takes a `v any` value and if it is a float type,
