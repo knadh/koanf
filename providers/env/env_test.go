@@ -163,3 +163,19 @@ func TestRead(t *testing.T) {
 		},
 	})
 }
+
+func TestReadBareKey(t *testing.T) {
+	// An environment entry without a '=' (e.g. a variable name with no
+	// value) must be skipped, not cause an index-out-of-range panic.
+	env := Provider(".", Opt{
+		EnvironFunc: func() []string {
+			return []string{"TEST_GOOD=value", "BAREKEYWITHOUTEQUALS", "TEST_OTHER=other"}
+		},
+	})
+	envs, err := env.Read()
+	assert.Nil(t, err)
+	assert.Equal(t, "value", envs["TEST_GOOD"])
+	assert.Equal(t, "other", envs["TEST_OTHER"])
+	_, ok := envs["BAREKEYWITHOUTEQUALS"]
+	assert.False(t, ok)
+}

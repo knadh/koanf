@@ -86,6 +86,12 @@ func (e *Env) Read() (map[string]any, error) {
 	mp := make(map[string]any)
 	for _, k := range keys {
 		parts := strings.SplitN(k, "=", 2)
+		// os.Environ can yield bare entries without a '=' (e.g. an
+		// environment variable name with no value). Skip them so we
+		// don't index past the end of the slice.
+		if len(parts) < 2 {
+			continue
+		}
 
 		// If there's a transformation callback,
 		// run it through every key/value.
