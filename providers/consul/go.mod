@@ -1,6 +1,6 @@
 module github.com/knadh/koanf/providers/consul/v2
 
-go 1.23.0
+go 1.25.0
 
 require github.com/hashicorp/consul/api v1.32.0
 
@@ -21,6 +21,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
-	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/net v0.55.0 // indirect
+	golang.org/x/sys v0.45.0 // indirect
 )
