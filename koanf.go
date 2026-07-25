@@ -486,7 +486,16 @@ func toInt64(v any) (int64, error) {
 	}
 
 	// Force it to a string and try to convert.
-	f, err := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
+	s := fmt.Sprintf("%v", v)
+
+	// Parse as an integer first so that large integer strings (beyond the 2^53
+	// exact range of float64, up to the full int64 range) keep their value
+	// instead of losing precision or overflowing through a float64 round-trip.
+	if n, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return n, nil
+	}
+
+	f, err := strconv.ParseFloat(s, 64)
 	if err != nil {
 		return 0, err
 	}

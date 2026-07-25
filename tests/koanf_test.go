@@ -2108,3 +2108,23 @@ func TestGetNilPointer(t *testing.T) {
 	_, ok = gotSlice.(*[]string)
 	assert.True(ok, "expected type *[]string, got %T", gotSlice)
 }
+
+func TestInt64StringPrecision(t *testing.T) {
+	// String integer values (as provided by the env/dotenv/rawbytes providers)
+	// beyond the 2^53 exact range of float64 must keep their value instead of
+	// losing precision or overflowing through a float64 round-trip.
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.Nil(k.Load(confmap.Provider(map[string]interface{}{
+		"maxint64":  "9223372036854775807",  // math.MaxInt64
+		"minint64":  "-9223372036854775808", // math.MinInt64
+		"above2p53": "9007199254740993",     // 2^53 + 1
+		"float":     "3.7",                  // still parseable via the float fallback
+	}, delim), nil))
+
+	assert.Equal(int64(9223372036854775807), k.Int64("maxint64"))
+	assert.Equal(int64(-9223372036854775808), k.Int64("minint64"))
+	assert.Equal(int64(9007199254740993), k.Int64("above2p53"))
+	assert.Equal(int64(3), k.Int64("float"))
+}
