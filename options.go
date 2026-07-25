@@ -1,5 +1,7 @@
 package koanf
 
+import "github.com/knadh/koanf/maps"
+
 // options contains options to modify the behavior of Koanf.Load.
 type options struct {
 	merge func(a, b map[string]any) error
@@ -30,4 +32,25 @@ func WithMergeFunc(merge func(src, dest map[string]any) error) Option {
 	return func(o *options) {
 		o.merge = merge
 	}
+}
+
+// WithMergeAppendSlices makes Load append slices instead of overwriting them
+// when merging the incoming source into the existing configuration. Nested maps
+// continue to deep-merge. See maps.MergeAppendSlices.
+func WithMergeAppendSlices() Option {
+	return WithMergeFunc(maps.MergeAppendSlices)
+}
+
+// WithMergeByIndex makes Load merge slice elements by index when both sides
+// have a slice at the same key. Nested maps continue to deep-merge. See
+// maps.MergeByIndex.
+func WithMergeByIndex() Option {
+	return WithMergeFunc(maps.MergeByIndex)
+}
+
+// WithMergeByKey makes Load merge slices of maps by matching on a field when
+// both sides have a slice at the same key. Nested maps continue to deep-merge.
+// See maps.MergeByKey.
+func WithMergeByKey(field string) Option {
+	return WithMergeFunc(maps.MergeByKey(field))
 }
