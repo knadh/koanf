@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding"
 	"fmt"
+	"math"
 	"reflect"
 	"sort"
 	"strconv"
@@ -491,6 +492,30 @@ func toInt64(v any) (int64, error) {
 		return 0, err
 	}
 
+	return int64FromFloat(f, v)
+}
+
+// maxInt64AsFloat is 2^63: the smallest float64 that is too large for an
+// int64. math.MaxInt64 is deliberately not used here. It is not exactly
+// representable as a float64 and rounds *up* to 2^63, so `f > math.MaxInt64`
+// is false for precisely the values that overflow and would let them through.
+const maxInt64AsFloat = float64(1 << 63)
+
+// int64FromFloat converts a float64 to an int64, refusing values the
+// conversion cannot represent.
+//
+// Go leaves float-to-integer conversion of an out-of-range value
+// implementation-defined ("the behavior is undefined" per the spec); on amd64
+// and arm64 it yields math.MinInt64. Without this guard a configuration value
+// of 9223372036854775807 - the largest legal int64 - reads back as
+// -9223372036854775808, silently and with the sign flipped.
+func int64FromFloat(f float64, orig any) (int64, error) {
+	if math.IsNaN(f) {
+		return 0, fmt.Errorf("cannot convert %v to int64: not a number", orig)
+	}
+	if f >= maxInt64AsFloat || f < float64(math.MinInt64) {
+		return 0, fmt.Errorf("cannot convert %v to int64: value out of range", orig)
+	}
 	return int64(f), nil
 }
 
