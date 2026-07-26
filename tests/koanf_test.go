@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"maps"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -2107,4 +2108,40 @@ func TestGetNilPointer(t *testing.T) {
 	assert.Nil(gotSlice)
 	_, ok = gotSlice.(*[]string)
 	assert.True(ok, "expected type *[]string, got %T", gotSlice)
+}
+
+func TestInt64OutOfRange(t *testing.T) {
+	// A float64 that does not fit in an int64 must not be converted. Go leaves
+	// that conversion implementation-defined and on the common platforms it
+	// yields math.MinInt64, so the largest legal int64 in a config file used to
+	// read back as the smallest - silently, and with the sign flipped.
+	//
+	// JSON is the path that makes this reachable in practice: encoding/json
+	// decodes every number to a float64, so `{"n": 9223372036854775807}` is a
+	// float64 of 9.223372036854776e18 by the time it reaches Int64.
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.Nil(k.Load(confmap.Provider(map[string]interface{}{
+		"maxint64":  float64(9223372036854775807), // rounds to 2^63, just over the edge
+		"huge":      1e300,
+		"hugeneg":   -1e300,
+		"inf":       math.Inf(1),
+		"neginf":    math.Inf(-1),
+		"nan":       math.NaN(),
+		"inrange":   float64(1 << 62),
+		"truncates": 1.9,
+		"minint64":  float64(math.MinInt64),
+	}, delim), nil))
+
+	// Out of range: 0, per the documented "or 0 ... if the value is not a
+	// valid int64" contract. Never a wrapped-around number.
+	for _, key := range []string{"maxint64", "huge", "hugeneg", "inf", "neginf", "nan"} {
+		assert.Equal(int64(0), k.Int64(key), "Int64(%q) must not return an out-of-range value", key)
+	}
+
+	// In range: unchanged.
+	assert.Equal(int64(1)<<62, k.Int64("inrange"))
+	assert.Equal(int64(1), k.Int64("truncates"))
+	assert.Equal(int64(math.MinInt64), k.Int64("minint64"))
 }
