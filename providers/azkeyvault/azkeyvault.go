@@ -63,6 +63,11 @@ func (kv *AzureKeyVault) Read() (map[string]any, error) {
 			SValue, err := kv.kvclient.GetSecret(ctx, sName, "", nil)
 
 			if err != nil {
+				var respErr *azcore.ResponseError
+				// Unable to properly identify disabled secret, but a disabled secret will return 403.
+				if errors.As(err, &respErr) && respErr.StatusCode == 403 {
+					continue // skip disabled secrets
+				}
 				return nil, fmt.Errorf("failed to get the secret value for %s, Error: %w", sName, err)
 			}
 
