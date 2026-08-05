@@ -57,7 +57,11 @@ type Vault struct {
 
 // Provider returns a provider that takes a Vault config.
 func Provider(cfg Config) (*Vault, error) {
-	httpClient := &http.Client{Timeout: cfg.Timeout, Transport: cfg.Transport}
+	httpClient := &http.Client{Timeout: cfg.Timeout}
+	if cfg.Transport != nil {
+		httpClient.Transport = cfg.Transport
+	}
+
 	client, err := api.NewClient(&api.Config{Address: cfg.Address, HttpClient: httpClient})
 	if err != nil {
 		return nil, err
