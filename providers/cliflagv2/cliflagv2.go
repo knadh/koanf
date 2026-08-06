@@ -92,27 +92,13 @@ func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]a
 					fullPath = prefix + p.delim + name
 				}
 
-				p.setNestedValue(fullPath, value, out)
+				// Collect flags flat and let maps.Unflatten() in Read() do the
+				// nesting, so `db` and `db.host` resolve the same way here as
+				// they do for every other provider.
+				out[fullPath] = value
 			}
 		}
 	}
-}
-
-// setNestedValue sets a value in the nested configuration structure
-func (p *CliFlag) setNestedValue(path string, value any, out map[string]any) {
-	parts := strings.Split(path, p.delim)
-	current := out
-
-	// Navigate/create the nested structure
-	for i := 0; i < len(parts)-1; i++ {
-		if _, exists := current[parts[i]]; !exists {
-			current[parts[i]] = make(map[string]any)
-		}
-		current = current[parts[i]].(map[string]any)
-	}
-
-	// Set the final value
-	current[parts[len(parts)-1]] = value
 }
 
 // getFlagValue extracts the typed value from the flag.

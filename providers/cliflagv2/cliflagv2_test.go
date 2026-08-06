@@ -77,3 +77,74 @@ func TestCliFlag(t *testing.T) {
 	err := cliApp.Run(append(x, os.Environ()...))
 	require.NoError(t, err)
 }
+
+// A flag whose name is a delimiter-prefix of another flag's name, for eg:,
+// `--db` and `--db.host`, used to panic on an unchecked type assertion while
+// building the nested map. The deeper key must win instead.
+func TestCliFlagV2PrefixCollision(t *testing.T) {
+	cliApp := cli.App{
+		Name: "app",
+		Action: func(ctx *cli.Context) error {
+			p := ProviderWithConfig(ctx, ".", &Config{Defaults: []string{"db", "db.host"}})
+			mp, err := p.Read()
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{
+				"app": map[string]any{
+					"db": map[string]any{"host": "localhost"},
+				},
+			}, mp)
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "db", Value: "prod"},
+			&cli.StringFlag{Name: "db.host", Value: "localhost"},
+		},
+	}
+	require.NoError(t, cliApp.Run([]string{"app"}))
+}
+
+// The same collision across command levels: a subcommand whose name matches a
+// flag on its parent command.
+func TestCliFlagV2SubCommandNameCollision(t *testing.T) {
+	cliApp := cli.App{
+		Name:  "app",
+		Flags: []cli.Flag{&cli.StringFlag{Name: "db", Value: "prod"}},
+		Commands: []*cli.Command{
+			{
+				Name:  "db",
+				Flags: []cli.Flag{&cli.StringFlag{Name: "host", Value: "localhost"}},
+				Action: func(ctx *cli.Context) error {
+					p := ProviderWithConfig(ctx, ".", &Config{Defaults: []string{"db", "host"}})
+					mp, err := p.Read()
+					require.NoError(t, err)
+					require.Equal(t, map[string]any{
+						"app": map[string]any{
+							"db": map[string]any{"host": "localhost"},
+						},
+					}, mp)
+					return nil
+				},
+			},
+		},
+	}
+	require.NoError(t, cliApp.Run([]string{"app", "db"}))
+}
+
+// With an empty delimiter there is no nesting to do, so flag keys must be
+// returned as-is. They used to be split into one level per character.
+func TestCliFlagV2NoDelim(t *testing.T) {
+	cliApp := cli.App{
+		Name: "app",
+		Action: func(ctx *cli.Context) error {
+			p := ProviderWithConfig(ctx, "", &Config{Defaults: []string{"host"}})
+			mp, err := p.Read()
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{"apphost": "localhost"}, mp)
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "host", Value: "localhost"},
+		},
+	}
+	require.NoError(t, cliApp.Run([]string{"app"}))
+}

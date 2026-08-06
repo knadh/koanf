@@ -161,3 +161,47 @@ func TestCliFlagDefaults(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// A flag whose name is a delimiter-prefix of another flag's name, for eg:,
+// `--db` and `--db.host`, used to panic on an unchecked type assertion while
+// building the nested map. The deeper key must win instead.
+func TestCliFlagV3PrefixCollision(t *testing.T) {
+	cliApp := cli.Command{
+		Name: "app",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			p := ProviderWithConfig(cmd, ".", &Config{Defaults: []string{"db", "db.host"}})
+			mp, err := p.Read()
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{
+				"app": map[string]any{
+					"db": map[string]any{"host": "localhost"},
+				},
+			}, mp)
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "db", Value: "prod"},
+			&cli.StringFlag{Name: "db.host", Value: "localhost"},
+		},
+	}
+	require.NoError(t, cliApp.Run(context.Background(), []string{"app"}))
+}
+
+// With an empty delimiter there is no nesting to do, so flag keys must be
+// returned as-is. They used to be split into one level per character.
+func TestCliFlagV3NoDelim(t *testing.T) {
+	cliApp := cli.Command{
+		Name: "app",
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			p := ProviderWithConfig(cmd, "", &Config{Defaults: []string{"host"}})
+			mp, err := p.Read()
+			require.NoError(t, err)
+			require.Equal(t, map[string]any{"apphost": "localhost"}, mp)
+			return nil
+		},
+		Flags: []cli.Flag{
+			&cli.StringFlag{Name: "host", Value: "localhost"},
+		},
+	}
+	require.NoError(t, cliApp.Run(context.Background(), []string{"app"}))
+}

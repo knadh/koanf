@@ -1,6 +1,7 @@
 package koanf_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/knadh/koanf/maps"
@@ -130,6 +131,86 @@ func TestUnflatten(t *testing.T) {
 	m, _ = maps.Flatten(testMap2, nil, delim)
 	um = maps.Unflatten(m, delim)
 	assert.Equal(t, um, testMap2)
+}
+
+// TestUnflattenPrefixCollision covers flat maps where one key is a path-prefix
+// of another, for eg:, `parent` alongside `parent.child`. Both cannot be
+// represented in the nested map, so one has to win. The result must not depend
+// on Go's randomized map iteration order, and no value may end up at a key path
+// that was not in the input.
+func TestUnflattenPrefixCollision(t *testing.T) {
+	// Number of repetitions per case. Go reshuffles map iteration order on
+	// every range, so a handful of runs is enough to expose order dependence;
+	// this is deliberately generous to keep the test from being flaky.
+	const iters = 500
+
+	for _, c := range []struct {
+		name string
+		in   func() map[string]any
+		want map[string]any
+	}{
+		{
+			name: "scalar before nested",
+			in:   func() map[string]any { return map[string]any{"parent": 1, "parent.child": 2} },
+			want: map[string]any{"parent": map[string]any{"child": 2}},
+		},
+		{
+			name: "nested before scalar",
+			in:   func() map[string]any { return map[string]any{"parent.child": 2, "parent": 1} },
+			want: map[string]any{"parent": map[string]any{"child": 2}},
+		},
+		{
+			name: "prefix skips a level",
+			in:   func() map[string]any { return map[string]any{"parent": 1, "parent.child.key": 2} },
+			want: map[string]any{"parent": map[string]any{"child": map[string]any{"key": 2}}},
+		},
+		{
+			name: "collision below the top level",
+			in:   func() map[string]any { return map[string]any{"parent.child": 1, "parent.child.key": 2} },
+			want: map[string]any{"parent": map[string]any{"child": map[string]any{"key": 2}}},
+		},
+		{
+			name: "three keys on one path",
+			in: func() map[string]any {
+				return map[string]any{"parent": 1, "parent.child": 2, "parent.child.key": 3}
+			},
+			want: map[string]any{"parent": map[string]any{"child": map[string]any{"key": 3}}},
+		},
+		{
+			name: "colliding key already holds a map",
+			in: func() map[string]any {
+				return map[string]any{"parent": map[string]any{"other": 1}, "parent.child": 2}
+			},
+			want: map[string]any{"parent": map[string]any{"other": 1, "child": 2}},
+		},
+		{
+			name: "sibling paths, no collision",
+			in:   func() map[string]any { return map[string]any{"parent.child": 1, "top.child": 2} },
+			want: map[string]any{
+				"parent": map[string]any{"child": 1},
+				"top":    map[string]any{"child": 2},
+			},
+		},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			// Collect every distinct result across many runs. A correct
+			// Unflatten() yields exactly one.
+			seen := map[string]int{}
+			for i := 0; i < iters; i++ {
+				out := maps.Unflatten(c.in(), delim)
+				seen[fmt.Sprintf("%#v", out)]++
+				assert.Equal(t, c.want, out)
+			}
+			assert.Len(t, seen, 1, "Unflatten() is not deterministic: %d distinct results over %d runs: %v", len(seen), iters, seen)
+		})
+	}
+}
+
+// TestUnflattenNoDelim ensures keys are left untouched when there is no
+// delimiter to split on.
+func TestUnflattenNoDelim(t *testing.T) {
+	in := map[string]any{"parent": 1, "parent.child": 2}
+	assert.Equal(t, in, maps.Unflatten(in, ""))
 }
 
 func TestIntfaceKeysToStrings(t *testing.T) {
