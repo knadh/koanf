@@ -201,7 +201,7 @@ func (ko *Koanf) Cut(path string) *Koanf {
 		out = v
 	}
 
-	n := New(ko.conf.Delim)
+	n := NewWithConf(ko.conf)
 	_ = n.merge(out, new(options))
 	return n
 }
@@ -668,7 +668,7 @@ func textUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
 
 // appendMap creates new Koanf instances from a map returns a slice of Koanf instances.
 func (ko *Koanf) appendMap(mp map[string]any, out []*Koanf) []*Koanf {
-	k := New(ko.conf.Delim)
+	k := NewWithConf(ko.conf)
 	_ = k.merge(mp, new(options))
 	return append(out, k)
 }

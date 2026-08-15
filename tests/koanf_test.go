@@ -2319,3 +2319,30 @@ func TesConvertInt64(t *testing.T) {
 		assert.Equal(int64(0), k.Int64(key), "Int64(%q) must be 0", key)
 	}
 }
+
+func TestCutCopySlicesRetainConf(t *testing.T) {
+	// Cut/Copy/Slices rebuild the instance, and used to carry only the delim,
+	// silently dropping StrictMerge and anything else in Conf.
+	newStrict := func() *koanf.Koanf {
+		k := koanf.NewWithConf(koanf.Conf{Delim: ".", StrictMerge: true})
+		require.NoError(t, k.Load(confmap.Provider(map[string]any{
+			"a":         "str",
+			"list":      []any{map[string]any{"a": "str"}},
+			"typedList": []map[string]any{{"a": "str"}},
+		}, "."), nil))
+		return k
+	}
+
+	conflicting := confmap.Provider(map[string]any{"a": 1}, ".")
+
+	assert.Error(t, newStrict().Copy().Load(conflicting, nil), "Copy() lost StrictMerge")
+	assert.Error(t, newStrict().Cut("").Load(conflicting, nil), "Cut() lost StrictMerge")
+
+	for _, path := range []string{"list", "typedList"} {
+		t.Run(path, func(t *testing.T) {
+			sl := newStrict().Slices(path)
+			require.Len(t, sl, 1, "expected exactly one slice")
+			assert.Error(t, sl[0].Load(conflicting, nil), "Slices() lost StrictMerge")
+		})
+	}
+}
