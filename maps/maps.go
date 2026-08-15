@@ -259,6 +259,26 @@ func Copy(mp map[string]any) map[string]any {
 	return map[string]any{}
 }
 
+// intfaceKeysToStringsSlice converts map[any]any found anywhere inside a
+// slice, including in nested slices.
+func intfaceKeysToStringsSlice(sl []any) {
+	for i, v := range sl {
+		switch sub := v.(type) {
+		case map[any]any:
+			x := make(map[string]any)
+			for k, v := range sub {
+				x[fmt.Sprintf("%v", k)] = v
+			}
+			sl[i] = x
+			IntfaceKeysToStrings(x)
+		case map[string]any:
+			IntfaceKeysToStrings(sub)
+		case []any:
+			intfaceKeysToStringsSlice(sub)
+		}
+	}
+}
+
 // IntfaceKeysToStrings recursively converts map[any]any to
 // map[string]any. Some parses such as YAML unmarshal return this.
 func IntfaceKeysToStrings(mp map[string]any) {
@@ -272,19 +292,7 @@ func IntfaceKeysToStrings(mp map[string]any) {
 			mp[key] = x
 			IntfaceKeysToStrings(x)
 		case []any:
-			for i, v := range cur {
-				switch sub := v.(type) {
-				case map[any]any:
-					x := make(map[string]any)
-					for k, v := range sub {
-						x[fmt.Sprintf("%v", k)] = v
-					}
-					cur[i] = x
-					IntfaceKeysToStrings(x)
-				case map[string]any:
-					IntfaceKeysToStrings(sub)
-				}
-			}
+			intfaceKeysToStringsSlice(cur)
 		case map[string]any:
 			IntfaceKeysToStrings(cur)
 		}

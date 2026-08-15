@@ -1,6 +1,7 @@
 package koanf_test
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/knadh/koanf/maps"
@@ -196,6 +197,29 @@ func TestIntfaceKeysToStrings(t *testing.T) {
 	}
 	maps.IntfaceKeysToStrings(m)
 	assert.Equal(t, testMap2, m)
+}
+
+func TestIntfaceKeysToStringsNestedSlice(t *testing.T) {
+	m := map[string]any{
+		"rows": []any{
+			[]any{
+				map[any]any{"name": "a"},
+			},
+		},
+	}
+	maps.IntfaceKeysToStrings(m)
+
+	assert.Equal(t, map[string]any{
+		"rows": []any{
+			[]any{
+				map[string]any{"name": "a"},
+			},
+		},
+	}, m)
+
+	// the point of the conversion is that the result is serialisable
+	_, err := json.Marshal(m)
+	assert.NoError(t, err)
 }
 
 func TestMapMerge(t *testing.T) {
