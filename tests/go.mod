@@ -22,6 +22,7 @@ replace (
 )
 
 require (
+	github.com/go-viper/mapstructure/v2 v2.4.0
 	github.com/knadh/koanf/maps v0.1.2
 	github.com/knadh/koanf/parsers/dotenv v0.0.0-00010101000000-000000000000
 	github.com/knadh/koanf/parsers/hcl v0.0.0-00010101000000-000000000000
@@ -46,7 +47,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/structs v1.1.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
-	github.com/go-viper/mapstructure/v2 v2.4.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/hjson/hjson-go/v4 v4.4.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect

@@ -263,25 +263,30 @@ func (ko *Koanf) Unmarshal(path string, o any) error {
 // See mitchellh/mapstructure's DecoderConfig for advanced customization
 // of the unmarshal behaviour.
 func (ko *Koanf) UnmarshalWithConf(path string, o any, c UnmarshalConf) error {
-	if c.DecoderConfig == nil {
-		c.DecoderConfig = &mapstructure.DecoderConfig{
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				mapstructure.StringToTimeDurationHookFunc(),
-				textUnmarshalerHookFunc()),
-			Metadata:         nil,
-			WeaklyTypedInput: true,
-		}
+	dc := mapstructure.DecoderConfig{
+		DecodeHook: mapstructure.ComposeDecodeHookFunc(
+			mapstructure.StringToTimeDurationHookFunc(),
+			textUnmarshalerHookFunc()),
+		Metadata:         nil,
+		WeaklyTypedInput: true,
 	}
 
-	c.DecoderConfig.Result = o
-
-	if c.Tag == "" {
-		c.DecoderConfig.TagName = "koanf"
-	} else {
-		c.DecoderConfig.TagName = c.Tag
+	// Work on a copy so a caller's DecoderConfig isn't mutated and can be reused.
+	if c.DecoderConfig != nil {
+		dc = *c.DecoderConfig
 	}
 
-	d, err := mapstructure.NewDecoder(c.DecoderConfig)
+	dc.Result = o
+
+	// An explicit Tag wins. Otherwise keep a TagName already set on a
+	// user-supplied DecoderConfig and only fall back to the default.
+	if c.Tag != "" {
+		dc.TagName = c.Tag
+	} else if dc.TagName == "" {
+		dc.TagName = "koanf"
+	}
+
+	d, err := mapstructure.NewDecoder(&dc)
 	if err != nil {
 		return err
 	}
