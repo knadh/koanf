@@ -1533,6 +1533,22 @@ func TestBoolsNativeSlice(t *testing.T) {
 	assert.Equal([]bool{true, false, true}, k.Bools("bools"))
 }
 
+func TestMapsNativeType(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.NoError(k.Load(confmap.Provider(map[string]any{
+		"ints":   map[string]int64{"a": 1, "b": 2},
+		"floats": map[string]float64{"a": 1.5, "b": 2.5},
+		"bools":  map[string]bool{"a": true, "b": false},
+	}, "."), nil))
+
+	assert.Equal(map[string]int64{"a": 1, "b": 2}, k.Int64Map("ints"))
+	assert.Equal(map[string]int{"a": 1, "b": 2}, k.IntMap("ints"))
+	assert.Equal(map[string]float64{"a": 1.5, "b": 2.5}, k.Float64Map("floats"))
+	assert.Equal(map[string]bool{"a": true, "b": false}, k.BoolMap("bools"))
+}
+
 // waitTimeout waits for the waitgroup for the specified max timeout.
 // Returns true if waiting timed out.
 func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {

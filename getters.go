@@ -91,23 +91,26 @@ func (ko *Koanf) Int64Map(path string) map[string]int64 {
 		return out
 	}
 
-	mp, ok := o.(map[string]any)
-	if !ok {
-		return out
-	}
-
-	out = make(map[string]int64, len(mp))
-	for k, v := range mp {
-		switch i := v.(type) {
-		case int64:
-			out[k] = i
-		default:
-			// Attempt a conversion.
-			iv, err := toInt64(i)
-			if err != nil {
-				return map[string]int64{}
+	switch mp := o.(type) {
+	case map[string]int64:
+		out = make(map[string]int64, len(mp))
+		for k, v := range mp {
+			out[k] = v
+		}
+	case map[string]any:
+		out = make(map[string]int64, len(mp))
+		for k, v := range mp {
+			switch i := v.(type) {
+			case int64:
+				out[k] = i
+			default:
+				// Attempt a conversion.
+				iv, err := toInt64(i)
+				if err != nil {
+					return map[string]int64{}
+				}
+				out[k] = iv
 			}
-			out[k] = iv
 		}
 	}
 	return out
@@ -283,23 +286,26 @@ func (ko *Koanf) Float64Map(path string) map[string]float64 {
 		return out
 	}
 
-	mp, ok := o.(map[string]any)
-	if !ok {
-		return out
-	}
-
-	out = make(map[string]float64, len(mp))
-	for k, v := range mp {
-		switch i := v.(type) {
-		case float64:
-			out[k] = i
-		default:
-			// Attempt a conversion.
-			iv, err := toFloat64(i)
-			if err != nil {
-				return map[string]float64{}
+	switch mp := o.(type) {
+	case map[string]float64:
+		out = make(map[string]float64, len(mp))
+		for k, v := range mp {
+			out[k] = v
+		}
+	case map[string]any:
+		out = make(map[string]float64, len(mp))
+		for k, v := range mp {
+			switch i := v.(type) {
+			case float64:
+				out[k] = i
+			default:
+				// Attempt a conversion.
+				iv, err := toFloat64(i)
+				if err != nil {
+					return map[string]float64{}
+				}
+				out[k] = iv
 			}
-			out[k] = iv
 		}
 	}
 	return out
@@ -616,22 +622,26 @@ func (ko *Koanf) BoolMap(path string) map[string]bool {
 		return out
 	}
 
-	mp, ok := o.(map[string]any)
-	if !ok {
-		return out
-	}
-	out = make(map[string]bool, len(mp))
-	for k, v := range mp {
-		switch i := v.(type) {
-		case bool:
-			out[k] = i
-		default:
-			// Attempt a conversion.
-			b, err := toBool(i)
-			if err != nil {
-				return map[string]bool{}
+	switch mp := o.(type) {
+	case map[string]bool:
+		out = make(map[string]bool, len(mp))
+		for k, v := range mp {
+			out[k] = v
+		}
+	case map[string]any:
+		out = make(map[string]bool, len(mp))
+		for k, v := range mp {
+			switch i := v.(type) {
+			case bool:
+				out[k] = i
+			default:
+				// Attempt a conversion.
+				b, err := toBool(i)
+				if err != nil {
+					return map[string]bool{}
+				}
+				out[k] = b
 			}
-			out[k] = b
 		}
 	}
 
