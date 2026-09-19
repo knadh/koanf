@@ -496,6 +496,7 @@ func (ko *Koanf) StringsMap(path string) map[string][]string {
 	case map[string][]any:
 		out = make(map[string][]string, len(mp))
 		for k, v := range mp {
+			out[k] = nil
 			for _, v := range v {
 				switch sv := v.(type) {
 				case string:
@@ -512,6 +513,7 @@ func (ko *Koanf) StringsMap(path string) map[string][]string {
 			case []string:
 				out[k] = append(out[k], s...)
 			case []any:
+				out[k] = nil
 				for _, v := range s {
 					switch sv := v.(type) {
 					case string:

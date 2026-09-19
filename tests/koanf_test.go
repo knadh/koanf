@@ -1522,6 +1522,38 @@ func TestGetStringsMap(t *testing.T) {
 	assert.Equal(map[string][]string{"k2": {"value"}}, k.StringsMap("ifaces3"), "types don't match")
 }
 
+func TestGetStringsMapEmptySlices(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		value any
+	}{
+		{"string_slices", map[string][]string{"empty": {}, "nil": nil}},
+		{"interface_slices", map[string][]any{"empty": {}, "nil": nil}},
+		{"interface_map", map[string]any{"empty": []any{}, "nil": []any(nil)}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			k := koanf.New(delim)
+			require.NoError(t, k.Set("lists", tt.value))
+			want := map[string][]string{"empty": nil, "nil": nil}
+			require.Equal(t, want, k.StringsMap("lists"))
+			require.Equal(t, want, k.MustStringsMap("lists"))
+		})
+	}
+
+	t.Run("json", func(t *testing.T) {
+		k := koanf.New(delim)
+		require.NoError(t, k.Load(rawbytes.Provider([]byte(`{"lists":{"empty":[],"populated":["value"]}}`)), json.Parser()))
+		require.Equal(t, map[string][]string{"empty": nil, "populated": {"value"}}, k.StringsMap("lists"))
+	})
+
+	t.Run("invalid_element", func(t *testing.T) {
+		k := koanf.New(delim)
+		require.NoError(t, k.Set("lists", map[string][]any{"empty": {}, "invalid": {42}}))
+		require.Empty(t, k.StringsMap("lists"))
+		require.Panics(t, func() { k.MustStringsMap("lists") })
+	})
+}
+
 func TestBoolsNativeSlice(t *testing.T) {
 	assert := assert.New(t)
 
