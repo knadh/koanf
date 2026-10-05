@@ -449,10 +449,12 @@ func (ko *Koanf) merge(c map[string]any, opts *options) error {
 		}
 		ko.confMap = dest
 	} else if ko.conf.StrictMerge {
-		if err := maps.MergeStrict(c, ko.confMap); err != nil {
+		dest := maps.Copy(ko.confMap)
+		if err := maps.MergeStrict(c, dest); err != nil {
 			ko.mu.Unlock()
 			return err
 		}
+		ko.confMap = dest
 	} else {
 		maps.Merge(c, ko.confMap)
 	}
