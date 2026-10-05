@@ -1691,6 +1691,17 @@ func TestTypedGettersNativeMaps(t *testing.T) {
 	}
 }
 
+func TestMapKeysNativeMap(t *testing.T) {
+	assert := assert.New(t)
+
+	k := koanf.New(delim)
+	assert.NoError(k.Load(confmap.Provider(map[string]any{
+		"ints": map[string]int64{"a": 1, "b": 2},
+	}, "."), nil))
+
+	assert.Equal([]string{"a", "b"}, k.MapKeys("ints"), "map keys mismatch for a natively-typed map")
+}
+
 // waitTimeout waits for the waitgroup for the specified max timeout.
 // Returns true if waiting timed out.
 func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
