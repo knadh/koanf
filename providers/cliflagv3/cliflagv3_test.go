@@ -161,3 +161,51 @@ func TestCliFlagDefaults(t *testing.T) {
 		require.NoError(t, err)
 	})
 }
+
+// The provider is normally built inside a subcommand's Action, so its command is the
+// innermost one. Flags must still be read from the command in the lineage that defines
+// them, or a parent's flags are lost and a parent and child sharing a name get mixed up.
+func TestCliFlagParentFlagsInSubcommand(t *testing.T) {
+	run := func(t *testing.T, args []string) map[string]any {
+		var all map[string]any
+		cliApp := cli.Command{
+			Name: "app",
+			Flags: []cli.Flag{
+				&cli.StringFlag{Name: "region", Value: "us"},
+				&cli.StringFlag{Name: "profile", Value: "p0", Local: true},
+				&cli.StringFlag{Name: "config", Value: "root.yaml"},
+			},
+			Commands: []*cli.Command{
+				{
+					Name: "sub",
+					Flags: []cli.Flag{
+						&cli.StringFlag{Name: "config", Value: "sub.yaml"},
+					},
+					Action: func(ctx context.Context, cmd *cli.Command) error {
+						k := koanf.New(".")
+						require.NoError(t, k.Load(Provider(cmd, "."), nil))
+						all = k.All()
+						return nil
+					},
+				},
+			},
+		}
+		require.NoError(t, cliApp.Run(context.Background(), args))
+		return all
+	}
+
+	t.Run("a parent's flags are kept", func(t *testing.T) {
+		all := run(t, []string{"app", "--region", "eu", "--profile", "p9", "sub"})
+		require.Equal(t, map[string]any{"app.region": "eu", "app.profile": "p9"}, all)
+	})
+
+	t.Run("a parent and child sharing a name keep their own values", func(t *testing.T) {
+		all := run(t, []string{"app", "--config", "R.yaml", "sub", "--config", "S.yaml"})
+		require.Equal(t, map[string]any{"app.config": "R.yaml", "app.sub.config": "S.yaml"}, all)
+	})
+
+	t.Run("a child's flag does not set the parent's key", func(t *testing.T) {
+		all := run(t, []string{"app", "sub", "--config", "S.yaml"})
+		require.Equal(t, map[string]any{"app.sub.config": "S.yaml"}, all)
+	})
+}
