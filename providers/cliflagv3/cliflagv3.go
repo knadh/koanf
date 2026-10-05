@@ -99,7 +99,10 @@ func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]a
 			fullPath = prefix + p.delim + name
 		}
 
-		if !p.cmd.IsSet(name) && !slices.Contains(p.config.Defaults, name) {
+		// Ask the flag itself rather than looking it up by name on p.cmd. p.cmd is the
+		// innermost command, so a lookup there misses a flag that only a parent defines,
+		// and finds the child's flag when a parent and a child share a name.
+		if !flag.IsSet() && !slices.Contains(p.config.Defaults, name) {
 			// Flag was not explicitly set and is not in Defaults.
 			// If a KeyMap is provided and the key already exists, skip it
 			// so we lower-priority sources' values aren't used.
@@ -109,8 +112,7 @@ func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]a
 			}
 		}
 
-		value := p.getFlagValue(name)
-		if value != nil {
+		if value := flag.Get(); value != nil {
 			p.setNestedValue(fullPath, value, out)
 		}
 	}
@@ -131,26 +133,4 @@ func (p *CliFlag) setNestedValue(path string, value any, out map[string]any) {
 
 	// Set the final value
 	current[parts[len(parts)-1]] = value
-}
-
-// getFlagValue extracts the typed value from the flag.
-func (p *CliFlag) getFlagValue(name string) any {
-	// Find the flag definition
-	flag := p.findFlag(name)
-	if flag == nil {
-		return nil
-	}
-	return flag.Get()
-}
-
-// findFlag looks up a flag by name
-func (p *CliFlag) findFlag(name string) cli.Flag {
-	// Check global flags
-	for _, f := range p.cmd.Flags {
-		if slices.Contains(f.Names(), name) {
-			return f
-		}
-	}
-
-	return nil
 }
