@@ -260,35 +260,29 @@ func Copy(mp map[string]any) map[string]any {
 }
 
 // IntfaceKeysToStrings recursively converts map[any]any to
-// map[string]any. Some parses such as YAML unmarshal return this.
+// map[string]any. Some parsers such as YAML unmarshal return this.
 func IntfaceKeysToStrings(mp map[string]any) {
-	for key, val := range mp {
-		switch cur := val.(type) {
-		case map[any]any:
-			x := make(map[string]any)
-			for k, v := range cur {
-				x[fmt.Sprintf("%v", k)] = v
-			}
-			mp[key] = x
-			IntfaceKeysToStrings(x)
-		case []any:
-			for i, v := range cur {
-				switch sub := v.(type) {
-				case map[any]any:
-					x := make(map[string]any)
-					for k, v := range sub {
-						x[fmt.Sprintf("%v", k)] = v
-					}
-					cur[i] = x
-					IntfaceKeysToStrings(x)
-				case map[string]any:
-					IntfaceKeysToStrings(sub)
-				}
-			}
-		case map[string]any:
-			IntfaceKeysToStrings(cur)
+	intfaceKeysToStrings(mp)
+}
+
+func intfaceKeysToStrings(v any) any {
+	switch cur := v.(type) {
+	case map[any]any:
+		out := make(map[string]any, len(cur))
+		for k, v := range cur {
+			out[fmt.Sprint(k)] = intfaceKeysToStrings(v)
+		}
+		return out
+	case map[string]any:
+		for k, v := range cur {
+			cur[k] = intfaceKeysToStrings(v)
+		}
+	case []any:
+		for i, v := range cur {
+			cur[i] = intfaceKeysToStrings(v)
 		}
 	}
+	return v
 }
 
 // StringSliceToLookupMap takes a slice of strings and returns a lookup map
