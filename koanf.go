@@ -50,7 +50,7 @@ type KeyMap map[string][]string
 // Unmarshal() to unmarshal conf maps into arbitrary structs.
 type UnmarshalConf struct {
 	// Tag is the struct field tag to unmarshal.
-	// `koanf` is used if left empty.
+	// If empty, DecoderConfig.TagName (`koanf`) is used.
 	Tag string
 
 	// If this is set to true, instead of unmarshalling nested structures
@@ -263,23 +263,20 @@ func (ko *Koanf) Unmarshal(path string, o any) error {
 // See mitchellh/mapstructure's DecoderConfig for advanced customization
 // of the unmarshal behaviour.
 func (ko *Koanf) UnmarshalWithConf(path string, o any, c UnmarshalConf) error {
-	dc := mapstructure.DecoderConfig{
-		DecodeHook: mapstructure.ComposeDecodeHookFunc(
-			mapstructure.StringToTimeDurationHookFunc(),
-			textUnmarshalerHookFunc()),
-		Metadata:         nil,
-		WeaklyTypedInput: true,
-	}
-
-	// Work on a copy so a caller's DecoderConfig isn't mutated and can be reused.
+	var dc mapstructure.DecoderConfig
 	if c.DecoderConfig != nil {
 		dc = *c.DecoderConfig
+	} else {
+		dc = mapstructure.DecoderConfig{
+			DecodeHook: mapstructure.ComposeDecodeHookFunc(
+				mapstructure.StringToTimeDurationHookFunc(),
+				textUnmarshalerHookFunc()),
+			WeaklyTypedInput: true,
+		}
 	}
 
 	dc.Result = o
 
-	// An explicit Tag wins. Otherwise keep a TagName already set on a
-	// user-supplied DecoderConfig and only fall back to the default.
 	if c.Tag != "" {
 		dc.TagName = c.Tag
 	} else if dc.TagName == "" {

@@ -2353,7 +2353,7 @@ func TestUnmarshalDecoderConfigTagName(t *testing.T) {
 		assert = assert.New(t)
 		k      = koanf.New(delim)
 	)
-	assert.Nil(k.Load(rawbytes.Provider([]byte(`{"name": "bob"}`)), json.Parser()))
+	assert.Nil(k.Load(rawbytes.Provider([]byte(`{"name": "bob", "other": "alice"}`)), json.Parser()))
 
 	type person struct {
 		Label string `mytag:"name" koanf:"other"`
@@ -2362,7 +2362,7 @@ func TestUnmarshalDecoderConfigTagName(t *testing.T) {
 	// A TagName on a user-supplied DecoderConfig must be honoured.
 	var p person
 	assert.Nil(k.UnmarshalWithConf("", &p, koanf.UnmarshalConf{
-		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag", Result: &p},
+		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag"},
 	}))
 	assert.Equal("bob", p.Label)
 
@@ -2370,9 +2370,9 @@ func TestUnmarshalDecoderConfigTagName(t *testing.T) {
 	var p2 person
 	assert.Nil(k.UnmarshalWithConf("", &p2, koanf.UnmarshalConf{
 		Tag:           "koanf",
-		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag", Result: &p2},
+		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag"},
 	}))
-	assert.Equal("", p2.Label)
+	assert.Equal("alice", p2.Label)
 
 	// A DecoderConfig is not mutated, so it stays reusable across calls.
 	shared := &mapstructure.DecoderConfig{}
@@ -2381,8 +2381,12 @@ func TestUnmarshalDecoderConfigTagName(t *testing.T) {
 	assert.Nil(k.UnmarshalWithConf("", &p3, koanf.UnmarshalConf{Tag: "mytag", DecoderConfig: shared}))
 	assert.Equal("bob", p3.Label)
 	assert.Equal("", shared.TagName)
+	assert.Nil(shared.Result)
 
 	var p4 person
 	assert.Nil(k.UnmarshalWithConf("", &p4, koanf.UnmarshalConf{DecoderConfig: shared}))
-	assert.Equal("", p4.Label)
+	assert.Equal("alice", p4.Label)
+	assert.Equal("bob", p3.Label)
+	assert.Equal("", shared.TagName)
+	assert.Nil(shared.Result)
 }
