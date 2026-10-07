@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
@@ -2345,4 +2346,47 @@ func TestCutCopySlicesRetainConf(t *testing.T) {
 			assert.Error(t, sl[0].Load(conflicting, nil), "Slices() lost StrictMerge")
 		})
 	}
+}
+
+func TestUnmarshalDecoderConfigTagName(t *testing.T) {
+	var (
+		assert = assert.New(t)
+		k      = koanf.New(delim)
+	)
+	assert.Nil(k.Load(rawbytes.Provider([]byte(`{"name": "bob", "other": "alice"}`)), json.Parser()))
+
+	type person struct {
+		Label string `mytag:"name" koanf:"other"`
+	}
+
+	// A TagName on a user-supplied DecoderConfig must be honoured.
+	var p person
+	assert.Nil(k.UnmarshalWithConf("", &p, koanf.UnmarshalConf{
+		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag"},
+	}))
+	assert.Equal("bob", p.Label)
+
+	// An explicit Tag still wins over the DecoderConfig's TagName.
+	var p2 person
+	assert.Nil(k.UnmarshalWithConf("", &p2, koanf.UnmarshalConf{
+		Tag:           "koanf",
+		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag"},
+	}))
+	assert.Equal("alice", p2.Label)
+
+	// A DecoderConfig is not mutated, so it stays reusable across calls.
+	shared := &mapstructure.DecoderConfig{}
+
+	var p3 person
+	assert.Nil(k.UnmarshalWithConf("", &p3, koanf.UnmarshalConf{Tag: "mytag", DecoderConfig: shared}))
+	assert.Equal("bob", p3.Label)
+	assert.Equal("", shared.TagName)
+	assert.Nil(shared.Result)
+
+	var p4 person
+	assert.Nil(k.UnmarshalWithConf("", &p4, koanf.UnmarshalConf{DecoderConfig: shared}))
+	assert.Equal("alice", p4.Label)
+	assert.Equal("bob", p3.Label)
+	assert.Equal("", shared.TagName)
+	assert.Nil(shared.Result)
 }
