@@ -69,7 +69,7 @@ func (p *CliFlag) Read() (map[string]any, error) {
 			}
 			cmdPath = append(cmdPath, cmd.Command.Name)
 			prefix := strings.Join(cmdPath, p.delim)
-			p.processFlags(cmd.Command.Flags, prefix, out)
+			p.processFlags(cmd, prefix, out)
 		}
 	}
 
@@ -80,20 +80,23 @@ func (p *CliFlag) Read() (map[string]any, error) {
 	return maps.Unflatten(out, p.delim), nil
 }
 
-func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]any) {
-	for _, flag := range flags {
+// processFlags reads flags through ctx, the context of the command that
+// defines them. p.ctx is the innermost command, so reading there finds the
+// child's flag when a parent and a child share a name.
+func (p *CliFlag) processFlags(ctx *cli.Context, prefix string, out map[string]any) {
+	for _, flag := range ctx.Command.Flags {
 		name := flag.Names()[0]
-		if p.ctx.IsSet(name) || slices.Contains(p.config.Defaults, name) {
-			value := p.getFlagValue(name)
-			if value != nil {
-				// Build the full path for the flag
-				fullPath := name
-				if prefix != "global" {
-					fullPath = prefix + p.delim + name
-				}
+		if !ctx.IsSet(name) && !slices.Contains(p.config.Defaults, name) {
+			continue
+		}
 
-				p.setNestedValue(fullPath, value, out)
+		if value := getFlagValue(ctx, flag, name); value != nil {
+			// Build the full path for the flag.
+			fullPath := name
+			if prefix != "global" {
+				fullPath = prefix + p.delim + name
 			}
+			p.setNestedValue(fullPath, value, out)
 		}
 	}
 }
@@ -115,64 +118,32 @@ func (p *CliFlag) setNestedValue(path string, value any, out map[string]any) {
 	current[parts[len(parts)-1]] = value
 }
 
-// getFlagValue extracts the typed value from the flag.
-func (p *CliFlag) getFlagValue(name string) any {
-	// Find the flag definition
-	flag := p.findFlag(name)
-	if flag == nil {
-		return nil
-	}
-
-	// Use type switch to get the appropriate value
+// getFlagValue extracts the typed value of flag from ctx.
+func getFlagValue(ctx *cli.Context, flag cli.Flag, name string) any {
 	switch flag.(type) {
 	case *cli.StringFlag:
-		return p.ctx.String(name)
+		return ctx.String(name)
 	case *cli.StringSliceFlag:
-		return p.ctx.StringSlice(name)
+		return ctx.StringSlice(name)
 	case *cli.IntFlag:
-		return p.ctx.Int(name)
+		return ctx.Int(name)
 	case *cli.Int64Flag:
-		return p.ctx.Int64(name)
+		return ctx.Int64(name)
 	case *cli.IntSliceFlag:
-		return p.ctx.IntSlice(name)
+		return ctx.IntSlice(name)
 	case *cli.Float64Flag:
-		return p.ctx.Float64(name)
+		return ctx.Float64(name)
 	case *cli.Float64SliceFlag:
-		return p.ctx.Float64Slice(name)
+		return ctx.Float64Slice(name)
 	case *cli.BoolFlag:
-		return p.ctx.Bool(name)
+		return ctx.Bool(name)
 	case *cli.DurationFlag:
-		return p.ctx.Duration(name)
+		return ctx.Duration(name)
 	case *cli.TimestampFlag:
-		return p.ctx.Timestamp(name)
+		return ctx.Timestamp(name)
 	case *cli.PathFlag:
-		return p.ctx.Path(name)
+		return ctx.Path(name)
 	default:
-		return p.ctx.Generic(name)
+		return ctx.Generic(name)
 	}
-}
-
-// findFlag looks up a flag by name in both global and command-specific flags
-func (p *CliFlag) findFlag(name string) cli.Flag {
-	// Check global flags
-	for _, f := range p.ctx.App.Flags {
-		for _, n := range f.Names() {
-			if n == name {
-				return f
-			}
-		}
-	}
-
-	// Check command-specific flags if we're in a command
-	if p.ctx.Command != nil {
-		for _, f := range p.ctx.Command.Flags {
-			for _, n := range f.Names() {
-				if n == name {
-					return f
-				}
-			}
-		}
-	}
-
-	return nil
 }
