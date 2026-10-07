@@ -69,7 +69,7 @@ func (p *CliFlag) Read() (map[string]any, error) {
 			}
 			cmdPath = append(cmdPath, cmd.Command.Name)
 			prefix := strings.Join(cmdPath, p.delim)
-			p.processFlags(cmd, cmd.Command.Flags, prefix, out)
+			p.processFlags(cmd, prefix, out)
 		}
 	}
 
@@ -83,20 +83,20 @@ func (p *CliFlag) Read() (map[string]any, error) {
 // processFlags reads flags through ctx, the context of the command that
 // defines them. p.ctx is the innermost command, so reading there finds the
 // child's flag when a parent and a child share a name.
-func (p *CliFlag) processFlags(ctx *cli.Context, flags []cli.Flag, prefix string, out map[string]any) {
-	for _, flag := range flags {
+func (p *CliFlag) processFlags(ctx *cli.Context, prefix string, out map[string]any) {
+	for _, flag := range ctx.Command.Flags {
 		name := flag.Names()[0]
-		if ctx.IsSet(name) || slices.Contains(p.config.Defaults, name) {
-			value := getFlagValue(ctx, flag, name)
-			if value != nil {
-				// Build the full path for the flag
-				fullPath := name
-				if prefix != "global" {
-					fullPath = prefix + p.delim + name
-				}
+		if !ctx.IsSet(name) && !slices.Contains(p.config.Defaults, name) {
+			continue
+		}
 
-				p.setNestedValue(fullPath, value, out)
+		if value := getFlagValue(ctx, flag, name); value != nil {
+			// Build the full path for the flag.
+			fullPath := name
+			if prefix != "global" {
+				fullPath = prefix + p.delim + name
 			}
+			p.setNestedValue(fullPath, value, out)
 		}
 	}
 }
