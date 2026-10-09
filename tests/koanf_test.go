@@ -2280,8 +2280,8 @@ func TestGetNilPointer(t *testing.T) {
 	assert.True(ok, "expected type *[]string, got %T", gotSlice)
 }
 
-// TesConvertInt64 tests various int64 conversion/overflow scenarios.
-func TesConvertInt64(t *testing.T) {
+// TestConvertInt64 tests various int64 conversion/overflow scenarios.
+func TestConvertInt64(t *testing.T) {
 	assert := assert.New(t)
 	k := koanf.New(delim)
 
@@ -2295,6 +2295,9 @@ func TesConvertInt64(t *testing.T) {
 		"float":     1.9,
 		"minfloat":  float64(math.MinInt64),
 		"strfloat":  "3.7",
+		"strsci":    "3.7e1",
+		"jsonmax":   encjson.Number("9223372036854775807"),
+		"jsonmin":   encjson.Number("-9223372036854775808"),
 
 		// Overflows.
 		"bigfloat":  float64(math.MaxInt64),
@@ -2314,10 +2317,41 @@ func TesConvertInt64(t *testing.T) {
 	assert.Equal(int64(1), k.Int64("float"))
 	assert.Equal(int64(math.MinInt64), k.Int64("minfloat"))
 	assert.Equal(int64(3), k.Int64("strfloat"))
+	assert.Equal(int64(37), k.Int64("strsci"))
+	assert.Equal(int64(math.MaxInt64), k.Int64("jsonmax"))
+	assert.Equal(int64(math.MinInt64), k.Int64("jsonmin"))
 
 	// Out of range must return 0 and not a wrapped value.
 	for _, key := range []string{"bigfloat", "hugefloat", "neghuge", "inf", "neginf", "nan", "biguint64"} {
 		assert.Equal(int64(0), k.Int64(key), "Int64(%q) must be 0", key)
+	}
+}
+
+func TestConvertInt64StringOverflow(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		value any
+	}{
+		{"below minimum", "-9223372036854775809"},
+		{"below minimum rounded", "-9223372036854776832"},
+		{"below minimum with leading zeros", "-009223372036854775809"},
+		{"below minimum JSON number", encjson.Number("-9223372036854775809")},
+		{"above maximum", "9223372036854775808"},
+		{"above maximum JSON number", encjson.Number("9223372036854775808")},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			k := koanf.New(delim)
+			require.NoError(t, k.Load(confmap.Provider(map[string]any{
+				"scalar": tt.value,
+				"slice":  []any{1, tt.value},
+				"map":    map[string]any{"valid": 1, "overflow": tt.value},
+			}, delim), nil))
+
+			assert.Zero(t, k.Int64("scalar"))
+			assert.Panics(t, func() { k.MustInt64("scalar") })
+			assert.Empty(t, k.Int64s("slice"))
+			assert.Empty(t, k.Int64Map("map"))
+		})
 	}
 }
 

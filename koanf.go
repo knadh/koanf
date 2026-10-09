@@ -3,6 +3,7 @@ package koanf
 import (
 	"bytes"
 	"encoding"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
@@ -510,11 +511,13 @@ func toInt64(v any) (int64, error) {
 	// Force it to a string and try to convert.
 	s := fmt.Sprintf("%v", v)
 
-	// Try parsing as int64 first, and on failure, attempt float64 parsing.
+	// Try parsing as int64 first, and only attempt float64 parsing on a syntax error.
 	// Parsing directly as float64, when the number is beyond its upper limit (2^53)
 	// causes unnecessary precision loss when the value is actually an int.
 	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
 		return i, nil
+	} else if errors.Is(err, strconv.ErrRange) {
+		return 0, err
 	}
 
 	f, err := strconv.ParseFloat(s, 64)
