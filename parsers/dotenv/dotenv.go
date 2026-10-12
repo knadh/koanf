@@ -67,6 +67,10 @@ func (p *DotEnv) Unmarshal(b []byte) (map[string]any, error) {
 
 		if p.cb != nil {
 			targetKey, value := p.cb(sourceKey, v)
+			// If the callback blanked the key, omit it, as env.Provider does.
+			if targetKey == "" {
+				continue
+			}
 			p.reverseCB[targetKey] = sourceKey
 			mp[targetKey] = value
 		} else {
