@@ -3,11 +3,13 @@ package koanf
 import (
 	"bytes"
 	"encoding"
+	"errors"
 	"fmt"
 	"math"
 	"reflect"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/go-viper/mapstructure/v2"
@@ -510,11 +512,15 @@ func toInt64(v any) (int64, error) {
 	// Force it to a string and try to convert.
 	s := fmt.Sprintf("%v", v)
 
-	// Try parsing as int64 first, and on failure, attempt float64 parsing.
+	// Try parsing as int64 first  before attempting to parse as a float.
 	// Parsing directly as float64, when the number is beyond its upper limit (2^53)
 	// causes unnecessary precision loss when the value is actually an int.
 	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
 		return i, nil
+	} else if errors.Is(err, strconv.ErrRange) && !strings.ContainsAny(s, ".eE") {
+		// ParseInt can overflow before reaching a '.' or exponent. Only return
+		// if it's neither of those.
+		return 0, err
 	}
 
 	f, err := strconv.ParseFloat(s, 64)
