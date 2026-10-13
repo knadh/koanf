@@ -304,3 +304,20 @@ func TestParserEnvWithValue(t *testing.T) {
 		})
 	}
 }
+
+func TestUnmarshalSkipsBlankedKeys(t *testing.T) {
+	p := ParserEnv("APP_", ".", func(key string) string {
+		if key == "APP_SECRET" {
+			return ""
+		}
+		return strings.ToLower(strings.TrimPrefix(key, "APP_"))
+	})
+
+	got, err := p.Unmarshal([]byte("APP_HOST=localhost\nAPP_SECRET=hunter2\n"))
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]any{"host": "localhost"}, got)
+
+	out, err := p.Marshal(got)
+	assert.NoError(t, err)
+	assert.Equal(t, "APP_HOST=\"localhost\"", string(out))
+}
