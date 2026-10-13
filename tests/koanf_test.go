@@ -2327,6 +2327,40 @@ func TestConvertInt64(t *testing.T) {
 	}
 }
 
+func TestConvertInt64SciNotation(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		value any
+		want  int64
+	}{
+		{"+", "100000000000000000000e-20", 1},
+		{"-", "-100000000000000000000e-20", -1},
+		{"explicit +", "+100000000000000000000e-20", 1},
+		{"uppercase 'e'", "100000000000000000000E-20", 1},
+		{"decimal mant", "100000000000000000000.0e-20", 1},
+		{"+ JSON", encjson.Number("100000000000000000000e-20"), 1},
+		{"- JSON", encjson.Number("-100000000000000000000e-20"), -1},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			k := koanf.New(delim)
+			require.NoError(t, k.Load(confmap.Provider(map[string]any{
+				"scalar": tt.value,
+				"slice":  []any{2, tt.value},
+				"map":    map[string]any{"value": tt.value},
+			}, delim), nil))
+
+			assert.Equal(t, tt.want, k.Int64("scalar"))
+			assert.Equal(t, tt.want, k.MustInt64("scalar"))
+			assert.Equal(t, []int64{2, tt.want}, k.Int64s("slice"))
+			assert.Equal(t, map[string]int64{"value": tt.want}, k.Int64Map("map"))
+			assert.Equal(t, int(tt.want), k.Int("scalar"))
+			assert.Equal(t, int(tt.want), k.MustInt("scalar"))
+			assert.Equal(t, []int{2, int(tt.want)}, k.Ints("slice"))
+			assert.Equal(t, map[string]int{"value": int(tt.want)}, k.IntMap("map"))
+		})
+	}
+}
+
 func TestConvertInt64StringOverflow(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
