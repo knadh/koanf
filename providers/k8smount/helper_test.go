@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -33,6 +34,11 @@ const (
 //	database_hostname -> ..data/database_hostname
 //	database_name -> ..data/database_name
 //	database_port -> ..data/database_port
+//
+// A data field with a nested path, such as "database/port", is linked through its first
+// directory instead:
+//
+//	database -> ..data/database
 func writeVolumeMount(tb testing.TB, mount string, data map[string]string) error {
 	tb.Helper()
 
@@ -70,6 +76,7 @@ func writeVolumeMountAt(tb testing.TB, t time.Time, mount string, data map[strin
 	tb.Log("created symlink: ..data ->", dir)
 
 	for key := range data {
+		key, _, _ = strings.Cut(key, "/")
 		target := filepath.Join(dataDir, key)
 
 		if err := os.Remove(key); err != nil && !os.IsNotExist(err) {

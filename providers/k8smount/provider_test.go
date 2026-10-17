@@ -123,6 +123,20 @@ func Test_K8SMount_Read_WithVolumeMount(t *testing.T) {
 				},
 			},
 		},
+		"nested path": {
+			have: map[string]string{
+				"a_foo":         "foo-value",
+				"database/host": "localhost",
+				"database/port": "5432",
+			},
+			want: map[string]any{
+				"a_foo": "foo-value",
+				"database": map[string]any{
+					"host": "localhost",
+					"port": "5432",
+				},
+			},
+		},
 		"with transform func empty string": {
 			have: map[string]string{
 				"a_foo": "foo-value",

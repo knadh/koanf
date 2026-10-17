@@ -38,6 +38,9 @@ import (
 // Errors returned by the provider.
 var ErrAlreadyWatched = errors.New("mount is already being watched")
 
+// errLinkedDir is returned by walkDir for a symlink to a directory that should be walked.
+var errLinkedDir = errors.New("symlink to a directory")
+
 // Non-allocating compile-time check for interface implementation.
 var _ koanf.Provider = (*K8SMount)(nil)
 
@@ -92,8 +95,13 @@ func (k *K8SMount) Read() (map[string]any, error) {
 	data := map[string]any{}
 	mountFS := root.FS()
 
-	if err := fs.WalkDir(mountFS, ".", func(path string, d fs.DirEntry, err error) error {
+	var walk fs.WalkDirFunc
+	walk = func(path string, d fs.DirEntry, err error) error {
 		key, value, err := k.walkDir(mountFS, path, d, err)
+		if errors.Is(err, errLinkedDir) {
+			// fs.WalkDir doesn't follow symlinks, except for the root it is given.
+			return fs.WalkDir(mountFS, path, walk)
+		}
 		if err != nil {
 			return err
 		}
@@ -112,7 +120,9 @@ func (k *K8SMount) Read() (map[string]any, error) {
 		}
 
 		return nil
-	}); err != nil {
+	}
+
+	if err := fs.WalkDir(mountFS, ".", walk); err != nil {
 		return nil, fmt.Errorf("failed to read configuration from mount: %q: %w", k.mount, err)
 	}
 
@@ -128,7 +138,10 @@ func (k *K8SMount) walkDir(mountFS fs.FS, path string, d fs.DirEntry, err error)
 		return "", "", nil
 	}
 
-	resolved := path
+	var (
+		resolved = path
+		isLink   = d.Type()&os.ModeSymlink != 0
+	)
 
 	for d.Type()&os.ModeSymlink != 0 {
 		p, err := fs.ReadLink(mountFS, resolved)
@@ -161,6 +174,12 @@ func (k *K8SMount) walkDir(mountFS fs.FS, path string, d fs.DirEntry, err error)
 		// instead, just skip the timestamp based directories
 		if strings.HasPrefix(path, "..") && path != "..data" {
 			return "", "", fs.SkipDir
+		}
+
+		// A key mounted at a nested path, such as "log/level", is linked from the top level of
+		// the mount through its first directory, i.e. "log -> ..data/log".
+		if isLink && !strings.HasPrefix(path, "..") && !strings.Contains(path, "/") {
+			return "", "", errLinkedDir
 		}
 
 		return "", "", nil
