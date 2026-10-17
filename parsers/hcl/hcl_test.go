@@ -83,6 +83,38 @@ func TestHCL_Unmarshal(t *testing.T) {
 			},
 		},
 		{
+			name: "Repeated blocks - With flatten",
+			input: []byte(`service {
+				name = "web"
+				check {
+				  port = 80
+				}
+			  }
+			  service {
+				name = "db"
+				check {
+				  port = 5432
+				}
+			  }`),
+			function: *hclParserWithFlatten,
+			output: map[string]any{
+				"service": []map[string]any{
+					{
+						"name": "web",
+						"check": map[string]any{
+							"port": 80,
+						},
+					},
+					{
+						"name": "db",
+						"check": map[string]any{
+							"port": 5432,
+						},
+					},
+				},
+			},
+		},
+		{
 			name: "Invalid HCL - With missing parenthesis",
 			input: []byte(`resource "aws_instance" "example" {
 				ami = "abc123"

@@ -72,8 +72,15 @@ func flattenHCL(mp map[string]any) {
 		}
 	}
 	for _, val := range mp {
-		if v, ok := val.(map[string]any); ok {
+		switch v := val.(type) {
+		case map[string]any:
 			flattenHCL(v)
+		case []map[string]any:
+			// A block that is repeated stays a slice, but the blocks in it
+			// are flattened too.
+			for _, m := range v {
+				flattenHCL(m)
+			}
 		}
 	}
 }
