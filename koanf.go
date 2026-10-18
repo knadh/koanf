@@ -716,5 +716,5 @@ func transformDurationStrHook(from, to reflect.Type, data any) (any, error) {
 		return data, nil
 	}
 
-	return expandDurationDays(data.(string)), nil
+	return expandDurationDays(reflect.ValueOf(data).String()), nil
 }

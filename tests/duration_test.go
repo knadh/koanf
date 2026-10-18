@@ -100,6 +100,34 @@ func TestDurationNumeric(t *testing.T) {
 	}
 }
 
+func TestDurationUnmarshalDefinedString(t *testing.T) {
+	type durationString string
+	for _, tt := range []struct {
+		input   durationString
+		want    time.Duration
+		wantErr bool
+	}{
+		{"1h30m", 90 * time.Minute, false},
+		{"1.5d", 36 * time.Hour, false},
+		{"invalid", 0, true},
+		{"1d-2h", 0, true},
+	} {
+		t.Run(string(tt.input), func(t *testing.T) {
+			k := koanf.New(".")
+			require.NoError(t, k.Set("duration", tt.input))
+
+			var out struct{ Duration time.Duration }
+			err := k.Unmarshal("", &out)
+			if tt.wantErr {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tt.want, out.Duration)
+		})
+	}
+}
+
 func FuzzDurationDays(f *testing.F) {
 	for _, s := range []string{"1d", ".5d", "-1d12h", "1.2.3d", "1dd", "1d-2h", "0", "1µs", "106751d23h47m16.854775807s"} {
 		f.Add(s)
