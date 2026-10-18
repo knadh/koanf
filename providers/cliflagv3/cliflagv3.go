@@ -113,24 +113,8 @@ func (p *CliFlag) processFlags(flags []cli.Flag, prefix string, out map[string]a
 		}
 
 		if value := flag.Get(); value != nil {
-			p.setNestedValue(fullPath, value, out)
+			// Keys stay flat here; Read nests them with maps.Unflatten.
+			out[fullPath] = value
 		}
 	}
-}
-
-// setNestedValue sets a value in the nested configuration structure
-func (p *CliFlag) setNestedValue(path string, value any, out map[string]any) {
-	parts := strings.Split(path, p.delim)
-	current := out
-
-	// Navigate/create the nested structure
-	for i := 0; i < len(parts)-1; i++ {
-		if _, exists := current[parts[i]]; !exists {
-			current[parts[i]] = make(map[string]any)
-		}
-		current = current[parts[i]].(map[string]any)
-	}
-
-	// Set the final value
-	current[parts[len(parts)-1]] = value
 }
