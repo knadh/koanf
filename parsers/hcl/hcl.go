@@ -65,19 +65,13 @@ func (p *HCL) Marshal(o map[string]any) ([]byte, error) {
 // turn into slices -- https://github.com/hashicorp/hcl/issues/162.
 func flattenHCL(mp map[string]any) {
 	for k, val := range mp {
-		if v, ok := val.([]map[string]any); ok {
-			if len(v) == 1 {
-				mp[k] = v[0]
-			}
-		}
-	}
-	for _, val := range mp {
 		switch v := val.(type) {
 		case map[string]any:
 			flattenHCL(v)
 		case []map[string]any:
-			// A block that is repeated stays a slice, but the blocks in it
-			// are flattened too.
+			if len(v) == 1 {
+				mp[k] = v[0]
+			}
 			for _, m := range v {
 				flattenHCL(m)
 			}
