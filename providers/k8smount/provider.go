@@ -91,6 +91,7 @@ func (k *K8SMount) Read() (map[string]any, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to open mount: %w", err)
 	}
+	defer root.Close()
 
 	data := map[string]any{}
 	mountFS := root.FS()
@@ -138,13 +139,9 @@ func (k *K8SMount) walkDir(mountFS fs.FS, path string, d fs.DirEntry, err error)
 		return "", "", nil
 	}
 
-	var (
-		resolved = path
-		isLink   = d.Type()&os.ModeSymlink != 0
-	)
-
-	for d.Type()&os.ModeSymlink != 0 {
-		p, err := fs.ReadLink(mountFS, resolved)
+	isLink := d.Type()&os.ModeSymlink != 0
+	if isLink {
+		info, err := fs.Stat(mountFS, path)
 		// If a value is deleted from a configmap, the symlink for the value remains, but the
 		// underlying file is removed. If this occurs, ignore it, and let the caller either provide
 		// a default or fail due to the missing value.
@@ -156,17 +153,7 @@ func (k *K8SMount) walkDir(mountFS fs.FS, path string, d fs.DirEntry, err error)
 			return "", "", err
 		}
 
-		info, err := fs.Lstat(mountFS, p)
-		if err != nil {
-			if errors.Is(err, syscall.ENOENT) {
-				return "", "", nil
-			}
-
-			return "", "", err
-		}
-
 		d = fs.FileInfoToDirEntry(info)
-		resolved = p
 	}
 
 	if d.IsDir() {
