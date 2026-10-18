@@ -209,3 +209,33 @@ func TestCliFlagParentFlagsInSubcommand(t *testing.T) {
 		require.Equal(t, map[string]any{"app.sub.config": "S.yaml"}, all)
 	})
 }
+
+// A subcommand can share its name with a flag of its parent, e.g. "app --db x db --name y".
+// The flag's key ("app.db") is then also the prefix of the subcommand's keys ("app.db.name").
+// Read must not panic; the nested key wins, as it does in maps.Unflatten.
+func TestCliFlagSubcommandNamedLikeParentFlag(t *testing.T) {
+	var (
+		all map[string]any
+		err error
+	)
+	cliApp := cli.Command{
+		Name:  "app",
+		Flags: []cli.Flag{&cli.StringFlag{Name: "db"}},
+		Commands: []*cli.Command{
+			{
+				Name:  "db",
+				Flags: []cli.Flag{&cli.StringFlag{Name: "name"}},
+				Action: func(ctx context.Context, cmd *cli.Command) error {
+					k := koanf.New(".")
+					require.NotPanics(t, func() { err = k.Load(Provider(cmd, "."), nil) })
+					all = k.All()
+					return nil
+				},
+			},
+		},
+	}
+
+	require.NoError(t, cliApp.Run(context.Background(), []string{"app", "--db", "x", "db", "--name", "y"}))
+	require.NoError(t, err)
+	require.Equal(t, map[string]any{"app.db.name": "y"}, all)
+}
