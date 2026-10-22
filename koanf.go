@@ -274,7 +274,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o any, c UnmarshalConf) error {
 			DecodeHook: mapstructure.ComposeDecodeHookFunc(
 				transformDurationStrHook,
 				mapstructure.StringToTimeDurationHookFunc(),
-				textUnmarshalerHookFunc()),
+				TextUnmarshalerHookFunc()),
 			WeaklyTypedInput: true,
 		}
 	}
@@ -609,9 +609,15 @@ func populateKeyParts(m KeyMap, delim string) KeyMap {
 	return out
 }
 
-// textUnmarshalerHookFunc is a fixed version of mapstructure.TextUnmarshallerHookFunc.
-// This hook allows to additionally unmarshal text into custom string types that implement the encoding.Text(Un)Marshaler interface(s).
-func textUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
+// TextUnmarshalerHookFunc returns the text decoding hook used by Unmarshal.
+// When both source and target are string types, it uses the source's
+// encoding.TextMarshaler representation, if available, before calling the
+// target's encoding.TextUnmarshaler. The source marshaler may have a value or
+// pointer receiver.
+//
+// Use this hook with a custom UnmarshalConf.DecoderConfig to retain this text
+// decoding behaviour. It can be composed with other mapstructure decode hooks.
+func TextUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
 		f reflect.Type,
 		t reflect.Type,

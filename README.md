@@ -373,6 +373,32 @@ func main() {
 }
 ```
 
+### Custom decoder hooks
+
+When supplying `UnmarshalConf.DecoderConfig`, you choose its decode hooks explicitly.
+`koanf.TextUnmarshalerHookFunc()` exposes the text decoding hook used by `Unmarshal`,
+including support for custom string types whose `MarshalText` representation differs
+from their underlying string value. For example, compose it with a duration hook while
+rejecting unknown keys:
+
+```go
+// Import github.com/go-viper/mapstructure/v2 for DecoderConfig and decode hooks.
+err := k.UnmarshalWithConf("", &out, koanf.UnmarshalConf{
+    DecoderConfig: &mapstructure.DecoderConfig{
+        DecodeHook: mapstructure.ComposeDecodeHookFunc(
+            mapstructure.StringToTimeDurationHookFunc(),
+            koanf.TextUnmarshalerHookFunc(),
+        ),
+        WeaklyTypedInput: true,
+        ErrorUnused:      true,
+    },
+})
+```
+
+The duration hook shown here accepts Go's `time.ParseDuration` syntax. Additional
+formats, such as Koanf's `d` duration suffix, require a separate hook when
+configuring a decoder explicitly.
+
 ### Unmarshalling with flat paths
 
 Sometimes it is necessary to unmarshal an assortment of keys from various nested structures into a flat target structure. This is possible with the `UnmarshalConf.FlatPaths` flag.
