@@ -66,7 +66,11 @@ type UnmarshalConf struct {
 	// 	Type       string `koanf:"json"`
 	// }
 	// ```
-	FlatPaths     bool
+	FlatPaths bool
+
+	// DecoderConfig replaces the default decoder configuration when non-nil.
+	// To retain the default decoding behaviour, set DecodeHook to DefaultDecodeHook()
+	// and WeaklyTypedInput to true. UnmarshalWithConf sets Result and applies Tag.
 	DecoderConfig *mapstructure.DecoderConfig
 }
 
@@ -271,10 +275,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o any, c UnmarshalConf) error {
 		dc = *c.DecoderConfig
 	} else {
 		dc = mapstructure.DecoderConfig{
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				transformDurationStrHook,
-				mapstructure.StringToTimeDurationHookFunc(),
-				TextUnmarshalerHookFunc()),
+			DecodeHook:       DefaultDecodeHook(),
 			WeaklyTypedInput: true,
 		}
 	}
@@ -607,6 +608,21 @@ func populateKeyParts(m KeyMap, delim string) KeyMap {
 		}
 	}
 	return out
+}
+
+// DefaultDecodeHook returns the decode hook used by Unmarshal and by
+// UnmarshalWithConf when no DecoderConfig is supplied. It supports duration
+// strings (including fixed 24-hour days) and encoding.TextUnmarshaler, preserving
+// the marshaled representation of custom string types.
+//
+// Use this hook in a custom mapstructure.DecoderConfig to retain koanf's default
+// conversions. WeaklyTypedInput is a separate option and must be set to true to
+// retain the default weak typing behaviour.
+func DefaultDecodeHook() mapstructure.DecodeHookFunc {
+	return mapstructure.ComposeDecodeHookFunc(
+		transformDurationStrHook,
+		mapstructure.StringToTimeDurationHookFunc(),
+		TextUnmarshalerHookFunc())
 }
 
 // TextUnmarshalerHookFunc returns the text decoding hook used by Unmarshal.
