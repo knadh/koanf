@@ -560,7 +560,7 @@ func toFloat64(v any) (float64, error) {
 	// Force it to a string and try to convert.
 	f, err := strconv.ParseFloat(fmt.Sprintf("%v", v), 64)
 	if err != nil {
-		return f, err
+		return 0, err
 	}
 
 	return f, nil
