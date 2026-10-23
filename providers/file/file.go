@@ -54,6 +54,7 @@ func (f *File) Watch(cb func(event any, err error)) error {
 	// can be detected.
 	realPath, err := filepath.EvalSymlinks(f.path)
 	if err != nil {
+		f.mu.Unlock()
 		return err
 	}
 	realPath = filepath.Clean(realPath)
