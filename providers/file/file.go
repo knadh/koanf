@@ -80,6 +80,9 @@ func (f *File) Watch(cb func(event any, err error)) error {
 		return err
 	}
 
+	// Bind this goroutine to its own watcher before another Watch can replace it.
+	watcher := f.w
+
 	// Release the lock before spawning goroutine
 	f.mu.Unlock()
 
@@ -92,11 +95,11 @@ func (f *File) Watch(cb func(event any, err error)) error {
 	loop:
 		for {
 			select {
-			case event, ok := <-f.w.Events:
+			case event, ok := <-watcher.Events:
 				if !ok {
 					// Only throw an error if we were still supposed to be watching.
 					f.mu.Lock()
-					stillWatching := f.isWatching
+					stillWatching := f.isWatching && f.w == watcher
 					f.mu.Unlock()
 
 					if stillWatching {
@@ -145,11 +148,11 @@ func (f *File) Watch(cb func(event any, err error)) error {
 				}
 
 			// There's an error.
-			case err, ok := <-f.w.Errors:
+			case err, ok := <-watcher.Errors:
 				if !ok {
 					// Only throw an error if we were still supposed to be watching.
 					f.mu.Lock()
-					stillWatching := f.isWatching
+					stillWatching := f.isWatching && f.w == watcher
 					f.mu.Unlock()
 
 					if stillWatching {
@@ -166,9 +169,9 @@ func (f *File) Watch(cb func(event any, err error)) error {
 		}
 
 		f.mu.Lock()
-		f.isWatching = false
-		if f.w != nil {
-			f.w.Close()
+		watcher.Close()
+		if f.w == watcher {
+			f.isWatching = false
 			f.w = nil
 		}
 		f.mu.Unlock()
