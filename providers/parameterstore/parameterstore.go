@@ -103,7 +103,7 @@ func (ps *ParameterStore[T]) Read() (map[string]any, error) {
 				name, value := ps.config.Callback(*p.Name, *p.Value)
 				// If the callback blanked the key, it should be omitted.
 				if name == "" {
-					break
+					continue
 				}
 				mp[name] = value
 			} else {
@@ -124,7 +124,7 @@ func (ps *ParameterStore[T]) Read() (map[string]any, error) {
 					name, value := ps.config.Callback(*p.Name, *p.Value)
 					// If the callback blanked the key, it should be omitted.
 					if name == "" {
-						break
+						continue
 					}
 					mp[name] = value
 				} else {

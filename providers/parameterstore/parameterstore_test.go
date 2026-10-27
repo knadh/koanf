@@ -198,6 +198,34 @@ func TestParameterStore(t *testing.T) {
 				},
 			},
 		},
+		"ignore first batch parameter and keep following parameter": {
+			provider: ProviderWithClient(Config[ssm.GetParametersInput]{
+				Delim: ".",
+				Input: ssm.GetParametersInput{Names: []string{"parent1", "parent2.child1"}},
+				Callback: func(key, value string) (string, any) {
+					if key == "prefix.parent1" {
+						return "", value
+					}
+					return strings.TrimPrefix(key, "prefix."), value
+				},
+			}, client),
+			want: map[string]any{"parent2": map[string]any{"child1": "bob"}},
+		},
+		"ignore first paged parameter and keep later page entries": {
+			provider: ProviderWithClient(Config[ssm.GetParametersByPathInput]{
+				Delim: ".",
+				Input: ssm.GetParametersByPathInput{Path: aws.String("/")},
+				Callback: func(key, value string) (string, any) {
+					if key == "prefix.parent1" {
+						return "", value
+					}
+					return strings.TrimPrefix(key, "prefix."), value
+				},
+			}, client),
+			want: map[string]any{"parent2": map[string]any{
+				"child1": "bob", "child2": map[string]any{"grandchild1": "carol"},
+			}},
+		},
 	}
 	for name, test := range tests {
 		test := test
