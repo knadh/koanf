@@ -483,6 +483,18 @@ func (ko *Koanf) merge(c map[string]any, opts *options) error {
 	return nil
 }
 
+// toInt converts a value without narrowing it outside the native int range.
+func toInt(v any) (int, error) {
+	i, err := toInt64(v)
+	if err != nil {
+		return 0, err
+	}
+	if int64(int(i)) != i {
+		return 0, fmt.Errorf("value %v overflows int", v)
+	}
+	return int(i), nil
+}
+
 // toInt64 takes an interface value and if it is an integer type,
 // converts and returns int64. If it's any other type,
 // forces it to a string and attempts to do a strconv.Atoi
