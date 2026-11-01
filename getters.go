@@ -139,7 +139,11 @@ func (ko *Koanf) MustInt64Map(path string) map[string]int64 {
 // Int returns the int value of a given key path or 0 if the path
 // does not exist or if the value is not a valid int.
 func (ko *Koanf) Int(path string) int {
-	return int(ko.Int64(path))
+	if v := ko.Get(path); v != nil {
+		i, _ := toInt(v)
+		return i
+	}
+	return 0
 }
 
 // MustInt returns the int value of a given key path or panics
@@ -168,20 +172,24 @@ func (ko *Koanf) Ints(path string) []int {
 	case []int64:
 		out = make([]int, 0, len(v))
 		for _, vi := range v {
-			out = append(out, int(vi))
+			i, err := toInt(vi)
+			if err != nil {
+				return []int{}
+			}
+			out = append(out, i)
 		}
 		return out
 	case []any:
 		out = make([]int, 0, len(v))
 		for _, vi := range v {
-			i, err := toInt64(vi)
+			i, err := toInt(vi)
 
 			// On error, return as it's not a valid
 			// int slice.
 			if err != nil {
 				return []int{}
 			}
-			out = append(out, int(i))
+			out = append(out, i)
 		}
 		return out
 	}
@@ -208,7 +216,11 @@ func (ko *Koanf) IntMap(path string) map[string]int {
 		out = make(map[string]int, len(mp))
 	)
 	for k, v := range mp {
-		out[k] = int(v)
+		i, err := toInt(v)
+		if err != nil {
+			return map[string]int{}
+		}
+		out[k] = i
 	}
 	return out
 }
