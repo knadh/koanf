@@ -26,7 +26,7 @@ go get -u github.com/knadh/koanf/providers/file
 
 
 # Install the necessary Parser(s).
-# Available: toml, toml/v2, json, yaml, huml, dotenv, hcl, hjson, nestedtext
+# Available: toml, toml/v2, json, jsonc, yaml, huml, dotenv, hcl, hjson, nestedtext
 # go get -u github.com/knadh/koanf/parsers/$parser
 
 go get -u github.com/knadh/koanf/parsers/toml
@@ -679,6 +679,7 @@ Install with `go get -u github.com/knadh/koanf/parsers/$parser`
 | Package      | Parser                           | Description                                                                                                                                               |
 | ------------ | -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | json       | `json.Parser()`                  | Parses JSON bytes into a nested map                                                                                                                       |
+| jsonc      | `jsonc.Parser()`                 | Parses JSONC (JSON with comments and trailing commas) bytes into a nested map                                                                             |
 | yaml       | `yaml.Parser()`                  | Parses YAML bytes into a nested map                                                                                                                       |
 | toml       | `toml.Parser()`                  | Parses TOML bytes into a nested map                                                                                                                       |
 | toml/v2    | `toml.Parser()`                  | Parses TOML bytes into a nested map (using go-toml v2)                                                                                                    |
