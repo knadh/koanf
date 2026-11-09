@@ -10,6 +10,7 @@ use (
 	./parsers/hjson
 	./parsers/huml
 	./parsers/json
+	./parsers/jsonc
 	./parsers/kdl
 	./parsers/nestedtext
 	./parsers/toml
