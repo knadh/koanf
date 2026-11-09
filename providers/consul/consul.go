@@ -103,6 +103,9 @@ func (c *Consul) Read() (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	if pair == nil {
+		return mp, nil
+	}
 
 	if c.cfg.Detailed {
 		m := make(map[string]any)
