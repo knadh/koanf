@@ -1031,6 +1031,21 @@ func TestRaw_JsonTypes(t *testing.T) {
 	}
 }
 
+func TestMergeNilNestedMap(t *testing.T) {
+	for _, strict := range []bool{false, true} {
+		t.Run(fmt.Sprintf("strict=%v", strict), func(t *testing.T) {
+			k := koanf.NewWithConf(koanf.Conf{Delim: ".", StrictMerge: strict})
+			require.NoError(t, k.Set("parent", map[string]any(nil)))
+			require.NoError(t, k.Set("other", "preserved"))
+			require.NotPanics(t, func() {
+				require.NoError(t, k.Set("parent.child", "value"))
+			})
+			require.Equal(t, "value", k.Get("parent.child"))
+			require.Equal(t, "preserved", k.Get("other"))
+		})
+	}
+}
+
 func TestMergeStrictError(t *testing.T) {
 	assert := assert.New(t)
 

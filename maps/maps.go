@@ -137,6 +137,10 @@ func Merge(a, b map[string]any) {
 		// The source key and target keys are both maps. Merge them.
 		switch v := bVal.(type) {
 		case map[string]any:
+			if v == nil {
+				b[key] = val
+				continue
+			}
 			Merge(val.(map[string]any), v)
 		default:
 			b[key] = val
@@ -184,6 +188,10 @@ func mergeStrict(a, b map[string]any, fullKey string) error {
 		// The source key and target keys are both maps. Merge them.
 		switch v := bVal.(type) {
 		case map[string]any:
+			if v == nil {
+				b[key] = val
+				continue
+			}
 			if err := mergeStrict(val.(map[string]any), v, newFullKey); err != nil {
 				return err
 			}
