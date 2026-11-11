@@ -1480,6 +1480,17 @@ func TestGetTypes(t *testing.T) {
 	}
 }
 
+func TestFloat64Overflow(t *testing.T) {
+	for _, value := range []string{"1e1000", "-1e1000"} {
+		t.Run(value, func(t *testing.T) {
+			k := koanf.New(delim)
+			require.NoError(t, k.Set("number", value))
+			assert.Equal(t, float64(0), k.Float64("number"))
+			assert.Panics(t, func() { k.MustFloat64("number") })
+		})
+	}
+}
+
 func TestMustGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
