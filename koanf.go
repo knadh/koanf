@@ -66,7 +66,11 @@ type UnmarshalConf struct {
 	// 	Type       string `koanf:"json"`
 	// }
 	// ```
-	FlatPaths     bool
+	FlatPaths bool
+
+	// DecoderConfig replaces the default decoder configuration when non-nil.
+	// To retain the default decoding behaviour, set DecodeHook to DefaultDecodeHook()
+	// and WeaklyTypedInput to true. UnmarshalWithConf sets Result and applies Tag.
 	DecoderConfig *mapstructure.DecoderConfig
 }
 
@@ -271,10 +275,7 @@ func (ko *Koanf) UnmarshalWithConf(path string, o any, c UnmarshalConf) error {
 		dc = *c.DecoderConfig
 	} else {
 		dc = mapstructure.DecoderConfig{
-			DecodeHook: mapstructure.ComposeDecodeHookFunc(
-				transformDurationStrHook,
-				mapstructure.StringToTimeDurationHookFunc(),
-				textUnmarshalerHookFunc()),
+			DecodeHook:       DefaultDecodeHook(),
 			WeaklyTypedInput: true,
 		}
 	}
@@ -609,9 +610,30 @@ func populateKeyParts(m KeyMap, delim string) KeyMap {
 	return out
 }
 
-// textUnmarshalerHookFunc is a fixed version of mapstructure.TextUnmarshallerHookFunc.
-// This hook allows to additionally unmarshal text into custom string types that implement the encoding.Text(Un)Marshaler interface(s).
-func textUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
+// DefaultDecodeHook returns the decode hook used by Unmarshal and by
+// UnmarshalWithConf when no DecoderConfig is supplied. It supports duration
+// strings (including fixed 24-hour days) and encoding.TextUnmarshaler, preserving
+// the marshaled representation of custom string types.
+//
+// Use this hook in a custom mapstructure.DecoderConfig to retain koanf's default
+// conversions. WeaklyTypedInput is a separate option and must be set to true to
+// retain the default weak typing behaviour.
+func DefaultDecodeHook() mapstructure.DecodeHookFunc {
+	return mapstructure.ComposeDecodeHookFunc(
+		transformDurationStrHook,
+		mapstructure.StringToTimeDurationHookFunc(),
+		TextUnmarshalerHookFunc())
+}
+
+// TextUnmarshalerHookFunc returns the text decoding hook used by Unmarshal.
+// When both source and target are string types, it uses the source's
+// encoding.TextMarshaler representation, if available, before calling the
+// target's encoding.TextUnmarshaler. The source marshaler may have a value or
+// pointer receiver.
+//
+// Use this hook with a custom UnmarshalConf.DecoderConfig to retain this text
+// decoding behaviour. It can be composed with other mapstructure decode hooks.
+func TextUnmarshalerHookFunc() mapstructure.DecodeHookFuncType {
 	return func(
 		f reflect.Type,
 		t reflect.Type,
