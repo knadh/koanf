@@ -3,7 +3,7 @@ module github.com/knadh/koanf/providers/cliflagv3
 go 1.23.0
 
 require (
-	github.com/knadh/koanf/maps v0.1.2
+	github.com/knadh/koanf/maps v0.1.3
 	github.com/knadh/koanf/v2 v2.1.2
 	github.com/stretchr/testify v1.10.0
 	github.com/urfave/cli/v3 v3.3.3
