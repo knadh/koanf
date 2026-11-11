@@ -1480,6 +1480,23 @@ func TestGetTypes(t *testing.T) {
 	}
 }
 
+func TestTimeUnixEpoch(t *testing.T) {
+	for name, value := range map[string]any{
+		"int": 0, "int64": int64(0), "float64": float64(0), "string": "0",
+	} {
+		t.Run(name, func(t *testing.T) {
+			k := koanf.New(delim)
+			require.NoError(t, k.Load(confmap.Provider(map[string]any{"timestamp": value}, delim), nil))
+
+			want := time.Unix(0, 0)
+			assert.Equal(t, want, k.Time("timestamp", time.RFC3339))
+			assert.NotPanics(t, func() {
+				assert.Equal(t, want, k.MustTime("timestamp", time.RFC3339))
+			})
+		})
+	}
+}
+
 func TestMustGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
