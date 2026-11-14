@@ -85,9 +85,11 @@ func (e *Env) Read() (map[string]any, error) {
 
 	mp := make(map[string]any)
 	for _, k := range keys {
-		// If there's no '=', skip it.
+		// If there's no '=', skip it. Entries that begin with '=' (such as
+		// Windows' per-drive working directories) have an empty key and are
+		// not valid configuration keys.
 		key, val, ok := strings.Cut(k, "=")
-		if !ok {
+		if !ok || key == "" {
 			continue
 		}
 
