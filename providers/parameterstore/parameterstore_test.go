@@ -198,6 +198,48 @@ func TestParameterStore(t *testing.T) {
 				},
 			},
 		},
+		// An empty callback key omits only that parameter. Later parameters in the
+		// same GetParameters response, and later parameters on the same
+		// GetParametersByPath page, must still be loaded.
+		"get parameters but an earlier one is ignored": {
+			provider: ProviderWithClient(Config[ssm.GetParametersInput]{
+				Delim: ".",
+				Input: ssm.GetParametersInput{Names: []string{"parent1", "parent2.child1"}},
+				Callback: func(key, value string) (string, any) {
+					key = strings.TrimPrefix(key, "prefix.")
+					if key == "parent1" {
+						return "", nil
+					}
+					return key, value
+				},
+			}, client),
+			want: map[string]any{
+				"parent2": map[string]any{
+					"child1": "bob",
+				},
+			},
+		},
+		"get parameters by path but an earlier one is ignored": {
+			provider: ProviderWithClient(Config[ssm.GetParametersByPathInput]{
+				Delim: ".",
+				Input: ssm.GetParametersByPathInput{Path: aws.String("/")},
+				Callback: func(key, value string) (string, any) {
+					key = strings.TrimPrefix(key, "prefix.")
+					if key == "parent1" {
+						return "", nil
+					}
+					return key, value
+				},
+			}, client),
+			want: map[string]any{
+				"parent2": map[string]any{
+					"child1": "bob",
+					"child2": map[string]any{
+						"grandchild1": "carol",
+					},
+				},
+			},
+		},
 	}
 	for name, test := range tests {
 		test := test
