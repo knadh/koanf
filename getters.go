@@ -365,8 +365,7 @@ func (ko *Koanf) MustDuration(path string) time.Duration {
 // and if it's string, a parse is attempted with the given layout.
 func (ko *Koanf) Time(path, layout string) time.Time {
 	// Unix timestamp?
-	v := ko.Int64(path)
-	if v != 0 {
+	if v, err := toInt64(ko.Get(path)); err == nil {
 		return time.Unix(v, 0)
 	}
 
