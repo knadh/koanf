@@ -153,8 +153,8 @@ func (ko *Koanf) KeyMap() KeyMap {
 }
 
 // All returns a map of all flattened key paths and their values.
-// Note that it uses maps.Copy to create a copy that uses
-// json.Marshal which changes the numeric types to float64.
+// Note that it uses maps.Copy to create a deep copy. Numbers keep the
+// type the parser gave them: JSON numbers are float64.
 func (ko *Koanf) All() map[string]any {
 	ko.mu.RLock()
 	defer ko.mu.RUnlock()
@@ -162,8 +162,8 @@ func (ko *Koanf) All() map[string]any {
 }
 
 // Raw returns a copy of the full raw conf map.
-// Note that it uses maps.Copy to create a copy that uses
-// json.Marshal which changes the numeric types to float64.
+// Note that it uses maps.Copy to create a deep copy. Numbers keep the
+// type the parser gave them: JSON numbers are float64.
 func (ko *Koanf) Raw() map[string]any {
 	ko.mu.RLock()
 	defer ko.mu.RUnlock()
@@ -350,8 +350,8 @@ func (ko *Koanf) Get(path string) any {
 	res := maps.Search(ko.confMap, p)
 
 	// Non-reference types are okay to return directly.
-	// Other types are "copied" with maps.Copy or json.Marshal
-	// that change the numeric types to float64.
+	// Other types are deep copied with maps.Copy or copystructure,
+	// which keep the numeric types.
 
 	switch v := res.(type) {
 	case int, int8, int16, int32, int64, float32, float64, string, bool:
