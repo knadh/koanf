@@ -64,6 +64,34 @@ func TestWatchFile(t *testing.T) {
 	}
 }
 
+func TestWatchMissingFile(t *testing.T) {
+	tmpFile := filepath.Join(t.TempDir(), "koanf_mock")
+	f := file.Provider(tmpFile)
+
+	// Watching a file that doesn't exist yet should fail.
+	require.Error(t, f.Watch(func(event any, err error) {}))
+
+	// The failed Watch() should not leave the provider locked. Retrying once
+	// the file exists and unwatching should both return.
+	require.NoError(t, os.WriteFile(tmpFile, []byte(`{"parent": {"name": "name1"}}`), 0600))
+
+	done := make(chan error, 1)
+	go func() {
+		if err := f.Watch(func(event any, err error) {}); err != nil {
+			done <- err
+			return
+		}
+		done <- f.Unwatch()
+	}()
+
+	select {
+	case err := <-done:
+		assert.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("Watch() blocked after a previous Watch() failed")
+	}
+}
+
 func TestWatchFileImmediateRestart(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	require.NoError(t, os.WriteFile(path, []byte(`{}`), 0600))
