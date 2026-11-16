@@ -178,3 +178,17 @@ func TestInvalidKey(t *testing.T) {
 	_, ok := envs["BAREKEYWITHOUTEQUALS"]
 	assert.False(t, ok)
 }
+
+func TestReadSkipEntriesWithEmptyKey(t *testing.T) {
+	// Windows exposes per-drive working directories as environment entries
+	// whose name starts with '=', for example "=C:=C:\work". os.Environ()
+	// returns them, but they are not valid configuration keys.
+	env := Provider(".", Opt{
+		EnvironFunc: func() []string {
+			return []string{`=C:=C:\work`, "TEST_KEY=value"}
+		},
+	})
+	envs, err := env.Read()
+	assert.Nil(t, err)
+	assert.Equal(t, map[string]any{"TEST_KEY": "value"}, envs)
+}
