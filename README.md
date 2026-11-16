@@ -375,9 +375,7 @@ func main() {
 
 ### Custom decoder hooks
 
-A non-nil `UnmarshalConf.DecoderConfig` replaces the default decoder configuration.
-To customize options such as `ErrorUnused` while retaining Koanf's default duration
-and text conversions, use `koanf.DefaultDecodeHook()` and retain `WeaklyTypedInput`:
+A non-nil `UnmarshalConf.DecoderConfig` can be set to override the default decoder config.
 
 ```go
 // Import github.com/go-viper/mapstructure/v2 for DecoderConfig and decode hooks.
@@ -389,15 +387,6 @@ err := k.UnmarshalWithConf("", &out, koanf.UnmarshalConf{
     },
 })
 ```
-
-This retains duration parsing, including `d` for fixed 24-hour days, and custom
-text conversions. `ErrorUnused` rejects keys that do not match the target struct.
-Custom decoder configurations do not inherit hooks or weak typing automatically.
-
-For just the text conversion, use `koanf.TextUnmarshalerHookFunc()`. It supports
-custom string types whose `MarshalText` representation differs from their
-underlying string value. Either helper can be composed with additional hooks
-using `mapstructure.ComposeDecodeHookFunc()`.
 
 ### Unmarshalling with flat paths
 
