@@ -169,9 +169,9 @@ func (f *File) Watch(cb func(event any, err error)) error {
 		}
 
 		f.mu.Lock()
-		watcher.Close()
 		if f.w == watcher {
 			f.isWatching = false
+			f.w.Close()
 			f.w = nil
 		}
 		f.mu.Unlock()
