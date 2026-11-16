@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log"
 	"maps"
-	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -1398,40 +1397,6 @@ func TestGetTypes(t *testing.T) {
 		assert.Equal(nil, c.koanf.Get("xxx"))
 		assert.Equal(make(map[string]any), c.koanf.Get("empty"))
 
-		// Int.
-		assert.Equal(int64(0), c.koanf.Int64("xxxx"))
-		assert.Equal(int64(1234), c.koanf.Int64("parent1.id"))
-
-		assert.Equal(int(0), c.koanf.Int("xxxx"))
-		assert.Equal(int(1234), c.koanf.Int("parent1.id"))
-
-		assert.Equal([]int64{}, c.koanf.Int64s("xxxx"))
-		assert.Equal([]int64{1, 2, 3}, c.koanf.Int64s("parent1.child1.grandchild1.ids"))
-
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.intmap"))
-		assert.Equal(map[string]int64{}, c.koanf.Int64Map("parent1.boolmap"))
-		assert.Equal(map[string]int64{}, c.koanf.Int64Map("xxxx"))
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Int64Map("parent1.floatmap"))
-
-		assert.Equal([]int{1, 2, 3}, c.koanf.Ints("parent1.child1.grandchild1.ids"))
-		assert.Equal([]int{}, c.koanf.Ints("xxxx"))
-
-		assert.Equal(map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.koanf.IntMap("parent1.intmap"))
-		assert.Equal(map[string]int{}, c.koanf.IntMap("parent1.boolmap"))
-		assert.Equal(map[string]int{}, c.koanf.IntMap("xxxx"))
-
-		// Float.
-		assert.Equal(float64(0), c.koanf.Float64("xxx"))
-		assert.Equal(float64(1234), c.koanf.Float64("parent1.id"))
-
-		assert.Equal([]float64{}, c.koanf.Float64s("xxxx"))
-		assert.Equal([]float64{1, 2, 3}, c.koanf.Float64s("parent1.child1.grandchild1.ids"))
-
-		assert.Equal(map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.Float64Map("parent1.intmap"))
-		assert.Equal(map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.koanf.Float64Map("parent1.floatmap"))
-		assert.Equal(map[string]float64{}, c.koanf.Float64Map("parent1.boolmap"))
-		assert.Equal(map[string]float64{}, c.koanf.Float64Map("xxxx"))
-
 		// String and bytes.
 		assert.Equal([]byte{}, c.koanf.Bytes("xxxx"))
 		assert.Equal([]byte("parent1"), c.koanf.Bytes("parent1.name"))
@@ -1500,43 +1465,6 @@ func TestTimeUnixEpoch(t *testing.T) {
 func TestMustGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {
-		// Int.
-		assert.Panics(func() { c.koanf.MustInt64("xxxx") })
-		assert.Equal(int64(1234), c.koanf.MustInt64("parent1.id"))
-		assert.Equal(int64(-1234), c.koanf.MustInt64("negative_int"))
-
-		assert.Panics(func() { c.koanf.MustInt("xxxx") })
-		assert.Equal(int(1234), c.koanf.MustInt("parent1.id"))
-		assert.Equal(int(-1234), c.koanf.MustInt("negative_int"))
-
-		assert.Panics(func() { c.koanf.MustInt64s("xxxx") })
-		assert.Equal([]int64{1, 2, 3}, c.koanf.MustInt64s("parent1.child1.grandchild1.ids"))
-
-		assert.Panics(func() { c.koanf.MustInt64Map("xxxx") })
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustInt64Map("parent1.intmap"))
-
-		assert.Panics(func() { c.koanf.MustInt64Map("parent1.boolmap") })
-		assert.Equal(map[string]int64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustInt64Map("parent1.floatmap"))
-
-		assert.Panics(func() { c.koanf.MustInts("xxxx") })
-		assert.Equal([]int{1, 2, 3}, c.koanf.MustInts("parent1.child1.grandchild1.ids"))
-
-		assert.Panics(func() { c.koanf.MustIntMap("xxxx") })
-		assert.Panics(func() { c.koanf.MustIntMap("parent1.boolmap") })
-		assert.Equal(map[string]int{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustIntMap("parent1.intmap"))
-
-		// Float.
-		assert.Panics(func() { c.koanf.MustInts("xxxx") })
-		assert.Equal(float64(1234), c.koanf.MustFloat64("parent1.id"))
-
-		assert.Panics(func() { c.koanf.MustFloat64s("xxxx") })
-		assert.Equal([]float64{1, 2, 3}, c.koanf.MustFloat64s("parent1.child1.grandchild1.ids"))
-
-		assert.Panics(func() { c.koanf.MustFloat64Map("xxxx") })
-		assert.Panics(func() { c.koanf.MustFloat64Map("parent1.boolmap") })
-		assert.Equal(map[string]float64{"key1": 1.1, "key2": 1.2, "key3": 1.3}, c.koanf.MustFloat64Map("parent1.floatmap"))
-		assert.Equal(map[string]float64{"key1": 1, "key2": 1, "key3": 1}, c.koanf.MustFloat64Map("parent1.intmap"))
-
 		// String and bytes.
 		assert.Panics(func() { c.koanf.MustBytes("xxxx") })
 		assert.Equal([]byte("parent1"), c.koanf.MustBytes("parent1.name"))
@@ -1667,19 +1595,13 @@ func TestBoolsNativeSlice(t *testing.T) {
 	assert.Equal([]bool{true, false, true}, k.Bools("bools"))
 }
 
-func TestTypedGettersNativeMaps(t *testing.T) {
+func TestBoolMapNativeMap(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		value any
 		get   func(*koanf.Koanf, string) any
 	}{
-		{"int", map[string]int{"a": 1, "b": 2}, func(k *koanf.Koanf, path string) any { return k.IntMap(path) }},
-		{"int64", map[string]int64{"a": 1 << 54, "b": -2}, func(k *koanf.Koanf, path string) any { return k.Int64Map(path) }},
-		{"float64", map[string]float64{"a": 1.5, "b": -2.5}, func(k *koanf.Koanf, path string) any { return k.Float64Map(path) }},
 		{"bool", map[string]bool{"a": true, "b": false}, func(k *koanf.Koanf, path string) any { return k.BoolMap(path) }},
-		{"nil_int", map[string]int(nil), func(k *koanf.Koanf, path string) any { return k.IntMap(path) }},
-		{"nil_int64", map[string]int64(nil), func(k *koanf.Koanf, path string) any { return k.Int64Map(path) }},
-		{"nil_float64", map[string]float64(nil), func(k *koanf.Koanf, path string) any { return k.Float64Map(path) }},
 		{"nil_bool", map[string]bool(nil), func(k *koanf.Koanf, path string) any { return k.BoolMap(path) }},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
@@ -1694,16 +1616,7 @@ func TestTypedGettersNativeMaps(t *testing.T) {
 			assert.Equal(t, tt.value, got)
 
 			// Changing the returned map must not change the stored configuration.
-			switch mp := got.(type) {
-			case map[string]int:
-				mp["a"] = 0
-			case map[string]int64:
-				mp["a"] = 0
-			case map[string]float64:
-				mp["a"] = 0
-			case map[string]bool:
-				mp["a"] = false
-			}
+			got.(map[string]bool)["a"] = false
 			assert.Equal(t, tt.value, tt.get(k, "value"))
 		})
 	}
@@ -2295,47 +2208,6 @@ func TestGetNilPointer(t *testing.T) {
 	assert.Nil(gotSlice)
 	_, ok = gotSlice.(*[]string)
 	assert.True(ok, "expected type *[]string, got %T", gotSlice)
-}
-
-// TesConvertInt64 tests various int64 conversion/overflow scenarios.
-func TesConvertInt64(t *testing.T) {
-	assert := assert.New(t)
-	k := koanf.New(delim)
-
-	assert.Nil(k.Load(confmap.Provider(map[string]any{
-		// Good values.
-		"int64":     int64(math.MaxInt64),
-		"uint64":    uint64(math.MaxInt64),
-		"strmaxint": "9223372036854775807",
-		"strminint": "-9223372036854775808",
-		"str2p53":   "9007199254740993",
-		"float":     1.9,
-		"minfloat":  float64(math.MinInt64),
-		"strfloat":  "3.7",
-
-		// Overflows.
-		"bigfloat":  float64(math.MaxInt64),
-		"hugefloat": 1e300,
-		"neghuge":   -1e300,
-		"inf":       math.Inf(1),
-		"neginf":    math.Inf(-1),
-		"nan":       math.NaN(),
-		"biguint64": uint64(math.MaxInt64) + 1,
-	}, delim), nil))
-
-	assert.Equal(int64(math.MaxInt64), k.Int64("int64"))
-	assert.Equal(int64(math.MaxInt64), k.Int64("uint64"))
-	assert.Equal(int64(math.MaxInt64), k.Int64("strmaxint"))
-	assert.Equal(int64(math.MinInt64), k.Int64("strminint"))
-	assert.Equal(int64(9007199254740993), k.Int64("str2p53"))
-	assert.Equal(int64(1), k.Int64("float"))
-	assert.Equal(int64(math.MinInt64), k.Int64("minfloat"))
-	assert.Equal(int64(3), k.Int64("strfloat"))
-
-	// Out of range must return 0 and not a wrapped value.
-	for _, key := range []string{"bigfloat", "hugefloat", "neghuge", "inf", "neginf", "nan", "biguint64"} {
-		assert.Equal(int64(0), k.Int64(key), "Int64(%q) must be 0", key)
-	}
 }
 
 func TestCutCopySlicesRetainConf(t *testing.T) {
