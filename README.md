@@ -373,6 +373,21 @@ func main() {
 }
 ```
 
+### Custom decoder hooks
+
+A non-nil `UnmarshalConf.DecoderConfig` can be set to override the default decoder config.
+
+```go
+// Import github.com/go-viper/mapstructure/v2 for DecoderConfig and decode hooks.
+err := k.UnmarshalWithConf("", &out, koanf.UnmarshalConf{
+    DecoderConfig: &mapstructure.DecoderConfig{
+        DecodeHook:       koanf.DefaultDecodeHook(),
+        WeaklyTypedInput: true,
+        ErrorUnused:      true,
+    },
+})
+```
+
 ### Unmarshalling with flat paths
 
 Sometimes it is necessary to unmarshal an assortment of keys from various nested structures into a flat target structure. This is possible with the `UnmarshalConf.FlatPaths` flag.

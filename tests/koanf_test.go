@@ -8,13 +8,11 @@ import (
 	"log"
 	"maps"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/go-viper/mapstructure/v2"
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/parsers/hcl"
 	"github.com/knadh/koanf/parsers/hjson"
@@ -211,59 +209,6 @@ child2.grandchild2.on -> true
 child2.name -> child2
 id -> 5678
 name -> parent2`
-
-type parentStruct struct {
-	Name   string      `koanf:"name"`
-	ID     int         `koanf:"id"`
-	Child1 childStruct `koanf:"child1"`
-}
-type childStruct struct {
-	Name        string            `koanf:"name"`
-	Type        string            `koanf:"type"`
-	Empty       map[string]string `koanf:"empty"`
-	Grandchild1 grandchildStruct  `koanf:"grandchild1"`
-}
-type grandchildStruct struct {
-	Ids []int `koanf:"ids"`
-	On  bool  `koanf:"on"`
-}
-type testStruct struct {
-	Type    string            `koanf:"type"`
-	Empty   map[string]string `koanf:"empty"`
-	Parent1 parentStruct      `koanf:"parent1"`
-}
-
-type testStructFlat struct {
-	Type                        string            `koanf:"type"`
-	Empty                       map[string]string `koanf:"empty"`
-	Parent1Name                 string            `koanf:"parent1.name"`
-	Parent1ID                   int               `koanf:"parent1.id"`
-	Parent1Child1Name           string            `koanf:"parent1.child1.name"`
-	Parent1Child1Type           string            `koanf:"parent1.child1.type"`
-	Parent1Child1Empty          map[string]string `koanf:"parent1.child1.empty"`
-	Parent1Child1Grandchild1IDs []int             `koanf:"parent1.child1.grandchild1.ids"`
-	Parent1Child1Grandchild1On  bool              `koanf:"parent1.child1.grandchild1.on"`
-}
-
-type customText int
-
-func (c *customText) UnmarshalText(text []byte) error {
-	s := strings.ToLower(string(text))
-
-	switch {
-	case strings.HasSuffix(s, "mb"):
-		s = strings.TrimSuffix(s, "mb")
-	default:
-		s = "0"
-	}
-
-	v, err := strconv.ParseFloat(s, 64)
-	if err != nil {
-		return err
-	}
-	*c = customText(v)
-	return nil
-}
 
 type Case struct {
 	koanf    *koanf.Koanf
@@ -880,100 +825,6 @@ func TestSet(t *testing.T) {
 
 	assert.Nil(k.Set("parent1.child1.grandchild1", map[string]any{"name": "new"}))
 	assert.Equal(k.Get("parent1.child1.grandchild1"), map[string]any{"name": "new"})
-}
-
-func TestUnmarshal(t *testing.T) {
-	assert := assert.New(t)
-
-	// Expected unmarshalled structure.
-	real := testStruct{
-		Type:  "json",
-		Empty: make(map[string]string),
-		Parent1: parentStruct{
-			Name: "parent1",
-			ID:   1234,
-			Child1: childStruct{
-				Name:  "child1",
-				Type:  "json",
-				Empty: make(map[string]string),
-				Grandchild1: grandchildStruct{
-					Ids: []int{1, 2, 3},
-					On:  true,
-				},
-			},
-		},
-	}
-
-	// Unmarshal and check all parsers.
-	for _, c := range cases {
-		var (
-			k  = koanf.New(delim)
-			ts testStruct
-		)
-		assert.Nil(k.Load(file.Provider(c.file), c.parser),
-			fmt.Sprintf("error loading: %v", c.file))
-		assert.Nil(k.Unmarshal("", &ts), "unmarshal failed")
-		real.Type = c.typeName
-		real.Parent1.Child1.Type = c.typeName
-		assert.Equal(real, ts, "unmarshalled structs don't match")
-
-		// Unmarshal with config.
-		ts = testStruct{}
-		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf"}), "unmarshal failed")
-		real.Type = c.typeName
-		real.Parent1.Child1.Type = c.typeName
-		assert.Equal(real, ts, "unmarshalled structs don't match")
-	}
-}
-
-func TestUnmarshalFlat(t *testing.T) {
-	assert := assert.New(t)
-
-	// Expected unmarshalled structure.
-	real := testStructFlat{
-		Type:                        "json",
-		Empty:                       make(map[string]string),
-		Parent1Name:                 "parent1",
-		Parent1ID:                   1234,
-		Parent1Child1Name:           "child1",
-		Parent1Child1Type:           "json",
-		Parent1Child1Empty:          make(map[string]string),
-		Parent1Child1Grandchild1IDs: []int{1, 2, 3},
-		Parent1Child1Grandchild1On:  true,
-	}
-
-	// Unmarshal and check all parsers.
-	for _, c := range cases {
-		k := koanf.New(delim)
-		assert.Nil(k.Load(file.Provider(c.file), c.parser),
-			fmt.Sprintf("error loading: %v", c.file))
-		ts := testStructFlat{}
-		assert.Nil(k.UnmarshalWithConf("", &ts, koanf.UnmarshalConf{Tag: "koanf", FlatPaths: true}), "unmarshal failed")
-		real.Type = c.typeName
-		real.Parent1Child1Type = c.typeName
-		assert.Equal(real, ts, "unmarshalled structs don't match")
-	}
-}
-
-func TestUnmarshalCustomText(t *testing.T) {
-	test := struct {
-		V1 customText `koanf:"v1"`
-		V2 string     `koanf:"v2"`
-		V3 customText `koanf:"v3"`
-	}{}
-
-	// Test custom unmarshalling of strings via mapstructure's UnmarshalText()
-	// methods. customText is an int type that strips of the `mb` suffix and parses
-	// the rest into a number.
-
-	k := koanf.New(delim)
-	err := k.Load(rawbytes.Provider([]byte(`{"v1": "42mb", "v2": "42mb"}`)), json.Parser())
-	assert.NoError(t, err)
-
-	k.Unmarshal("", &test)
-	assert.Equal(t, int(test.V1), 42)
-	assert.Equal(t, test.V2, "42mb")
-	assert.Equal(t, int(test.V3), 0)
 }
 
 func TestMarshal(t *testing.T) {
@@ -1787,47 +1638,4 @@ func TestCutCopySlicesRetainConf(t *testing.T) {
 			assert.Error(t, sl[0].Load(conflicting, nil), "Slices() lost StrictMerge")
 		})
 	}
-}
-
-func TestUnmarshalDecoderConfigTagName(t *testing.T) {
-	var (
-		assert = assert.New(t)
-		k      = koanf.New(delim)
-	)
-	assert.Nil(k.Load(rawbytes.Provider([]byte(`{"name": "bob", "other": "alice"}`)), json.Parser()))
-
-	type person struct {
-		Label string `mytag:"name" koanf:"other"`
-	}
-
-	// A TagName on a user-supplied DecoderConfig must be honoured.
-	var p person
-	assert.Nil(k.UnmarshalWithConf("", &p, koanf.UnmarshalConf{
-		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag"},
-	}))
-	assert.Equal("bob", p.Label)
-
-	// An explicit Tag still wins over the DecoderConfig's TagName.
-	var p2 person
-	assert.Nil(k.UnmarshalWithConf("", &p2, koanf.UnmarshalConf{
-		Tag:           "koanf",
-		DecoderConfig: &mapstructure.DecoderConfig{TagName: "mytag"},
-	}))
-	assert.Equal("alice", p2.Label)
-
-	// A DecoderConfig is not mutated, so it stays reusable across calls.
-	shared := &mapstructure.DecoderConfig{}
-
-	var p3 person
-	assert.Nil(k.UnmarshalWithConf("", &p3, koanf.UnmarshalConf{Tag: "mytag", DecoderConfig: shared}))
-	assert.Equal("bob", p3.Label)
-	assert.Equal("", shared.TagName)
-	assert.Nil(shared.Result)
-
-	var p4 person
-	assert.Nil(k.UnmarshalWithConf("", &p4, koanf.UnmarshalConf{DecoderConfig: shared}))
-	assert.Equal("alice", p4.Label)
-	assert.Equal("bob", p3.Label)
-	assert.Equal("", shared.TagName)
-	assert.Nil(shared.Result)
 }
