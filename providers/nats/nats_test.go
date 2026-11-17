@@ -75,3 +75,50 @@ func TestNats(t *testing.T) {
 
 	assert.Equal(t, k.Get("some.test.color"), "yellow")
 }
+
+func TestWatchWithoutPrefix(t *testing.T) {
+	nc, err := nats.Connect(testNatsURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer nc.Close()
+	js, err := nc.JetStream()
+	if err != nil {
+		t.Fatal(err)
+	}
+	kv, err := js.CreateKeyValue(&nats.KeyValueConfig{Bucket: "watch_without_prefix"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer js.DeleteKeyValue("watch_without_prefix")
+	if _, err := kv.Put("app.name", []byte("before")); err != nil {
+		t.Fatal(err)
+	}
+	provider, err := Provider(Config{URL: testNatsURL, Bucket: "watch_without_prefix"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := provider.Read()
+	if err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, "before", data["app.name"])
+	updates := make(chan nats.KeyValueEntry, 1)
+	if err := provider.Watch(func(event any, err error) {
+		if err == nil {
+			updates <- event.(nats.KeyValueEntry)
+		}
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := kv.Put("app.name", []byte("after")); err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case update := <-updates:
+		assert.Equal(t, "app.name", update.Key())
+		assert.Equal(t, "after", string(update.Value()))
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for update without a prefix")
+	}
+}
