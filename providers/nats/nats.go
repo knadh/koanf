@@ -89,7 +89,13 @@ func (n *Nats) Read() (map[string]any, error) {
 }
 
 func (n *Nats) Watch(cb func(event any, err error)) error {
-	w, err := n.kv.Watch(fmt.Sprintf("%s.*", n.cfg.Prefix))
+	var w nats.KeyWatcher
+	var err error
+	if n.cfg.Prefix == "" {
+		w, err = n.kv.WatchAll()
+	} else {
+		w, err = n.kv.Watch(fmt.Sprintf("%s.*", n.cfg.Prefix))
+	}
 	if err != nil {
 		return err
 	}
