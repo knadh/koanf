@@ -152,7 +152,9 @@ func (c *Consul) Watch(cb func(event any, err error)) error {
 	}
 
 	go func() {
-		plan.Run(c.cfg.Cfg.Address)
+		// Reuse the configured client so the ACL token, datacenter and
+		// TLS settings used by Read also apply to the watch requests.
+		plan.RunWithClientAndHclog(c.client, nil)
 	}()
 
 	return nil
