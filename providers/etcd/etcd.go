@@ -104,10 +104,17 @@ func (e *Etcd) Watch(cb func(event any, err error)) error {
 		}
 
 		for wresp := range w {
+			if err := wresp.Err(); err != nil {
+				cb(nil, err)
+				continue
+			}
+
 			for _, ev := range wresp.Events {
 				cb(ev, nil)
 			}
 		}
+
+		cb(nil, errors.New("etcd watch channel closed"))
 	}()
 
 	return nil
