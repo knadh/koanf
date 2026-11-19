@@ -95,7 +95,11 @@ func (r *Vault) Read() (map[string]any, error) {
 
 	s := secret.Data
 	if r.cfg.ExcludeMeta {
-		s = secret.Data["data"].(map[string]any)
+		var ok bool
+		s, ok = secret.Data["data"].(map[string]any)
+		if !ok {
+			return nil, errors.New("vault provider: secret has no nested \"data\" map; ExcludeMeta requires a KV v2 secret")
+		}
 	}
 
 	// Unflatten only when a delimiter is specified
