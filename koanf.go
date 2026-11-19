@@ -451,6 +451,12 @@ func (ko *Koanf) merge(c map[string]any, opts *options) error {
 	ko.mu.Lock()
 
 	maps.IntfaceKeysToStrings(c)
+
+	// Merging stores c's nested maps in confMap by reference. Copy them so
+	// that later merges into confMap don't mutate the caller's map (eg: a
+	// confmap provider that is loaded again, or shared by another instance).
+	c = copyNestedMaps(c)
+
 	if opts.merge != nil {
 		// Deep-copy confMap so the custom merge function can safely call
 		// ko.Get*() methods (which acquire a read lock) without deadlocking.
@@ -482,6 +488,19 @@ func (ko *Koanf) merge(c map[string]any, opts *options) error {
 
 	ko.mu.Unlock()
 	return nil
+}
+
+// copyNestedMaps returns a copy of mp in which every nested map[string]any
+// is also copied. Other values are not copied, as merging never mutates them.
+func copyNestedMaps(mp map[string]any) map[string]any {
+	out := make(map[string]any, len(mp))
+	for k, v := range mp {
+		if m, ok := v.(map[string]any); ok {
+			v = copyNestedMaps(m)
+		}
+		out[k] = v
+	}
+	return out
 }
 
 // toInt64 takes an interface value and if it is an integer type,
