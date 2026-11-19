@@ -735,6 +735,38 @@ func TestRaw_JsonTypes(t *testing.T) {
 	}
 }
 
+func TestMergeDoesNotMutateSource(t *testing.T) {
+	assert := assert.New(t)
+
+	// Loading over a provider must not modify the provider's map.
+	defaults := confmap.Provider(map[string]any{
+		"server": map[string]any{"port": 8080},
+	}, delim)
+	k := koanf.New(delim)
+	assert.Nil(k.Load(defaults, nil))
+	assert.Nil(k.Load(confmap.Provider(map[string]any{
+		"server": map[string]any{"port": 9090, "debug": true},
+	}, delim), nil))
+
+	reloaded := koanf.New(delim)
+	assert.Nil(reloaded.Load(defaults, nil))
+	assert.Equal(map[string]any{"server.port": 8080}, reloaded.All(), "provider map was mutated")
+
+	// Instances loaded from the same provider must not share nested maps.
+	k1, k2 := koanf.New(delim), koanf.New(delim)
+	assert.Nil(k1.Load(defaults, nil))
+	assert.Nil(k2.Load(defaults, nil))
+	assert.Nil(k1.Set("server.port", 1))
+	assert.Equal(8080, k2.Get("server.port"), "Set on one instance changed another")
+
+	// A map passed to Set must not be modified by later merges.
+	src := map[string]any{"x": 1}
+	k3 := koanf.New(delim)
+	assert.Nil(k3.Set("parent", src))
+	assert.Nil(k3.Set("parent.y", 2))
+	assert.Equal(map[string]any{"x": 1}, src, "map passed to Set was mutated")
+}
+
 func TestMergeStrictError(t *testing.T) {
 	assert := assert.New(t)
 
