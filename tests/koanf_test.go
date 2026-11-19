@@ -1073,6 +1073,29 @@ func TestTimeUnixEpoch(t *testing.T) {
 	}
 }
 
+func TestTimeNativeValue(t *testing.T) {
+	k := koanf.New(delim)
+	require.NoError(t, k.Load(rawbytes.Provider([]byte("toml = 2024-05-06T07:08:09.5+03:00\nstr = \"2024-05-06\"\nbad = \"not a date\"\n")), toml.Parser()))
+
+	want := time.Date(2024, 5, 6, 7, 8, 9, 5e8, time.FixedZone("", 3*60*60))
+	assert.True(t, want.Equal(k.Time("toml", time.RFC3339)))
+	// The layout only applies to strings, not to values that are already a time.Time.
+	assert.True(t, want.Equal(k.Time("toml", time.DateOnly)))
+	assert.True(t, want.Equal(k.MustTime("toml", time.DateOnly)))
+
+	set := time.Date(2020, 1, 2, 3, 4, 5, 6, time.FixedZone("X", -7*60*60))
+	require.NoError(t, k.Set("set", set))
+	assert.Equal(t, set, k.Time("set", time.RFC3339))
+
+	// Strings are still parsed with the layout.
+	assert.Equal(t, time.Date(2024, 5, 6, 0, 0, 0, 0, time.UTC), k.Time("str", time.DateOnly))
+	assert.True(t, k.Time("bad", time.DateOnly).IsZero())
+
+	require.NoError(t, k.Set("zero", time.Time{}))
+	assert.True(t, k.Time("zero", time.RFC3339).IsZero())
+	assert.Panics(t, func() { k.MustTime("zero", time.RFC3339) })
+}
+
 func TestMustGetTypes(t *testing.T) {
 	assert := assert.New(t)
 	for _, c := range cases {

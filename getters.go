@@ -375,12 +375,18 @@ func (ko *Koanf) MustDuration(path string) time.Duration {
 }
 
 // Time attempts to parse the value of a given key path and return time.Time
-// representation. If the value is numeric, it is treated as a UNIX timestamp
+// representation. If the value is already a time.Time (eg: a TOML offset datetime),
+// it is returned as-is. If the value is numeric, it is treated as a UNIX timestamp
 // and if it's string, a parse is attempted with the given layout.
 func (ko *Koanf) Time(path, layout string) time.Time {
+	v := ko.Get(path)
+	if t, ok := v.(time.Time); ok {
+		return t
+	}
+
 	// Unix timestamp?
-	if v, err := toInt64(ko.Get(path)); err == nil {
-		return time.Unix(v, 0)
+	if i, err := toInt64(v); err == nil {
+		return time.Unix(i, 0)
 	}
 
 	// String representation.
