@@ -359,6 +359,13 @@ func (ko *Koanf) Get(path string) any {
 		return v
 	case map[string]any:
 		return maps.Copy(v)
+	case []any:
+		// A slice of non-reference values only needs a shallow copy.
+		if isScalarSlice(v) {
+			out := make([]any, len(v))
+			copy(out, v)
+			return out
+		}
 	case nil:
 		return nil
 	}
@@ -373,6 +380,18 @@ func (ko *Koanf) Get(path string) any {
 		return *ptrOut
 	}
 	return out
+}
+
+// isScalarSlice reports whether v holds only values that Get returns without a copy.
+func isScalarSlice(v []any) bool {
+	for _, e := range v {
+		switch e.(type) {
+		case int, int8, int16, int32, int64, float32, float64, string, bool, nil:
+		default:
+			return false
+		}
+	}
+	return v != nil
 }
 
 // Slices returns a list of Koanf instances constructed from the value
