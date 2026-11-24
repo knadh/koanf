@@ -300,3 +300,40 @@ func Test_K8SMount_Unwatch(t *testing.T) {
 	// assert
 	assert.NoError(t, err)
 }
+
+func Test_K8SMount_Watch_RetryAfterMissingMount(t *testing.T) {
+	mount := filepath.Join(t.TempDir(), "mount")
+	provider := k8smount.Provider(mount, testDelim, k8smount.Opt{})
+	t.Cleanup(func() { require.NoError(t, provider.Unwatch()) })
+
+	changes := make(chan error, 1)
+	callback := func(_ any, err error) {
+		select {
+		case changes <- err:
+		default:
+		}
+	}
+
+	// Each failed attempt must leave the provider available for another Watch.
+	for i := 0; i < 2; i++ {
+		err := provider.Watch(callback)
+		require.Error(t, err)
+		require.NotErrorIs(t, err, k8smount.ErrAlreadyWatched)
+	}
+
+	require.NoError(t, os.Mkdir(mount, 0700))
+	require.NoError(t, provider.Watch(callback))
+	require.ErrorIs(t, provider.Watch(callback), k8smount.ErrAlreadyWatched)
+	require.NoError(t, os.WriteFile(filepath.Join(mount, "setting"), []byte("updated"), 0600))
+
+	select {
+	case err := <-changes:
+		require.NoError(t, err)
+	case <-time.After(5 * time.Second):
+		t.Fatal("retried watcher did not receive a mount change")
+	}
+
+	got, err := provider.Read()
+	require.NoError(t, err)
+	assert.Equal(t, map[string]any{"setting": "updated"}, got)
+}

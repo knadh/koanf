@@ -196,13 +196,21 @@ func (k *K8SMount) Watch(fn func(any, error)) error {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
+		k.watching.Store(false)
+		return err
+	}
+
+	// Only publish the watcher and start its goroutine after the mount was added.
+	if err := watcher.Add(k.mount); err != nil {
+		watcher.Close()
+		k.watching.Store(false)
 		return err
 	}
 
 	k.watcher = watcher
 	go k.watchDir(fn)
 
-	return watcher.Add(k.mount)
+	return nil
 }
 
 func (k *K8SMount) watchDir(fn func(any, error)) {
